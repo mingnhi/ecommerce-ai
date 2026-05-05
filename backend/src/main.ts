@@ -1,79 +1,36 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { WinstonModule } from 'nest-winston';
-import * as winston from 'winston';
-import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { MikroORM } from '@mikro-orm/core';
+import { ConfigService } from '@nestjs/config';
+import { SwaggerModule } from '@nestjs/swagger';
+import { swaggerConfig } from '@config/swagger.config';
+import { ValidationPipe } from '@nestjs/common';
+import { ResponseInterceptor } from '@common/interceptors/response.interceptor';
+import { HttpExceptionFilter } from '@common/filters/exception.filter';
+import { MikroOrmMiddleware } from '@mikro-orm/nestjs';
 
 async function bootstrap() {
-  const logger = WinstonModule.createLogger({
-    transports: [
-      new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.colorize(),
-          winston.format.printf(({ timestamp, level, message }) => {
-            return `[${timestamp}] ${level}: ${message}`;
-          }),
-        ),
-      }),
-      new winston.transports.File({
-        filename: 'logs/error.log',
-        level: 'error',
-        format: winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.json(),
-        ),
-      }),
-      new winston.transports.File({
-        filename: 'logs/combined.log',
-        format: winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.json(),
-        ),
-      }),
-    ],
-  });
+  const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
-  const app = await NestFactory.create(AppModule, { logger });
+  const orm = app.get(MikroORM);
+  app.use(new MikroOrmMiddleware(orm).use.bind(new MikroOrmMiddleware(orm)));
 
-  // Cookie parser cho httpOnly JWT
-  app.use(cookieParser());
-
-  // Global validation
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,       // Bỏ các field không khai báo trong DTO
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-
-  // CORS
-  const origins = process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3001'];
   app.enableCors({
-    origin: origins,
-    credentials: true,        // Cho phép gửi cookie
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: '*',
+    credentials: true,
   });
 
-  // Swagger (chỉ bật ở môi trường không phải production)
-  if (process.env.NODE_ENV !== 'production') {
-    const config = new DocumentBuilder()
-      .setTitle('E-commerce API')
-      .setDescription('API cho hệ thống bán hàng + AI gợi ý sản phẩm')
-      .setVersion('1.0')
-      .addCookieAuth('access_token')
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
-  }
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, document);
 
-  const port = process.env.PORT ?? 3000;
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  const port = configService.get<number>('APP_PORT', 3003);
   await app.listen(port);
-  console.log(`Server đang chạy tại: http://localhost:${port}`);
-  console.log(`Swagger: http://localhost:${port}/docs`);
 }
-
 bootstrap();

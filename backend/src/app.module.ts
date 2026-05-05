@@ -1,50 +1,68 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { BullModule } from '@nestjs/bull';
-import configuration from './config/configuration';
-import { PrismaModule } from './database/prisma.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { mikroOrmConfig } from '@config/mikro-orm.config';
+import { UsersModule } from '@modules/users/users.module';
+import { RolesModule } from '@modules/roles/roles.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
-import { ProductsModule } from './modules/products/products.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { RecommendationsModule } from './modules/recommendations/recommendations.module';
-import { CategoriesModule } from './modules/categories/categories.module';
-import { BehaviorModule } from './modules/behavior/behavior.module';
+import { UserRolesModule } from './modules/user_roles/user_roles.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { JobApplicationsModule } from './modules/job-applications/job-applications.module';
+import { SavedJobsModule } from './modules/saved-jobs/saved-jobs.module';
+import { JobViewsModule } from './modules/job-views/job-views.module';
+import { JobTagsModule } from './modules/job-tags/job-tags.module';
+import { JobSkillsModule } from './modules/job-skills/job-skills.module';
+import { JobCategoryModule } from './modules/job-category/job-category.module';
+import { CompanyModule } from './modules/company/company.module';
+import { JobSeekerProfileModule } from './modules/job-seeker-profile/job-seeker-profile.module';
+import { EmployerProfileModule } from './modules/employer-profile/employer-profile.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { BlogPostsModule } from '@modules/blog-posts/blog-posts.module';
+import { BlogTagsModule } from '@modules/blog-tags/blog-tags.module';
+import { BlogCommentsModule } from '@modules/Blog-comments/blog-comments.module';
+import { BlogCategoriesModule } from '@modules/blog-categories/blog-categories.module';
+import { BlogViewsModule } from './modules/blog-views/blog-views.module';
+import { SavedBlogsModule } from './modules/saved-blogs/saved-blogs.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
-    // Cấu hình env
     ConfigModule.forRoot({
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
       isGlobal: true,
-      load: [configuration],
     }),
-
-    // Rate limiting toàn cục
-    ThrottlerModule.forRoot([
-      { ttl: 60000, limit: 100 },  // 100 request / 60 giây
-    ]),
-
-    // BullMQ - hàng đợi tác vụ nền
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST ?? 'localhost',
-        port: parseInt(process.env.REDIS_PORT ?? '6379'),
-        password: process.env.REDIS_PASSWORD,
-      },
+    MikroOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        mikroOrmConfig(configService),
+      inject: [ConfigService],
     }),
-
-    // Database
-    PrismaModule,
-
-    // Feature modules
-    AuthModule,
     UsersModule,
-    ProductsModule,
-    CategoriesModule,
-    OrdersModule,
-    RecommendationsModule,
-    BehaviorModule,
+    RolesModule,
+    AuthModule,
+    UserRolesModule,
+    JobsModule,
+    JobApplicationsModule,
+    SavedJobsModule,
+    JobViewsModule,
+    JobTagsModule,
+    JobSkillsModule,
+    JobCategoryModule,
+    CompanyModule,
+    JobSeekerProfileModule,
+    EmployerProfileModule,
+    CloudinaryModule,
+    BlogPostsModule,
+    BlogTagsModule,
+    BlogCommentsModule,
+    BlogCategoriesModule,
+    BlogViewsModule,
+    SavedBlogsModule,
+    AdminModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
