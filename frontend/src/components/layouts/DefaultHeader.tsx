@@ -184,13 +184,16 @@ function HeaderCartDropdown() {
               </ul>
             </ScrollArea>
             <Separator />
-            <div className="bg-gray-50/50 px-4 py-3 dark:bg-neutral-900/40">
+            <div className="space-y-3 bg-gray-50/50 px-4 py-3 dark:bg-neutral-900/40">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 dark:text-neutral-400">Tạm tính</span>
                 <span className="text-base font-bold tabular-nums text-gray-900 dark:text-neutral-50">
                   {formatVnd(subtotal)}
                 </span>
               </div>
+              <Button asChild className="w-full rounded-xl font-semibold shadow-sm" size="sm">
+                <Link href={ROUTES.CART}>Xem giỏ hàng</Link>
+              </Button>
             </div>
           </>
         )}
