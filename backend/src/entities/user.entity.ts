@@ -1,51 +1,32 @@
-import {
-  Collection,
-  Entity,
-  OneToMany,
-  PrimaryKey,
-  Property,
-  Unique,
-} from '@mikro-orm/core';
+import { Entity, Enum, OneToMany, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
-@Entity({ tableName: 'Users' })
-export class Users extends AuditableEntity {
-  @Property({ type: 'string' })
-  @Unique()
-  email: string;
 
-  @Property({ type: 'string', nullable: true })
-  username?: string;
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  BANNED = ' BANNED',
+}
+@Entity({ tableName: 'users' })
+export class User extends AuditableEntity {
+  @Property({ type: 'varchar', length: 255, unique: true })
+  email!: string;
 
-  @Property({ type: 'string' })
-  password: string;
+  @Property({ type: 'varchar', length: 255, fieldName: 'password_hash' })
+  passwordHash!: string;
 
-  @Property({ type: 'boolean', default: false })
-  isEmailConfirmed: boolean = false;
+  @Property({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    fieldName: 'full_name',
+  })
+  fullName?: string;
 
-  @Property({ type: 'date', nullable: true })
+  @Enum({ items: () => UserStatus, default: UserStatus.ACTIVE })
+  status: UserStatus = UserStatus.ACTIVE;
+
+  @Property({ type: 'datetime', nullable: true, fieldName: 'last_login_at' })
   lastLoginAt?: Date;
 
-  @Property({ type: 'boolean', default: true })
-  isActive: boolean = true;
-
-  @Property({ type: 'boolean', default: false })
-  isDeleted: boolean = false;
-
-  @Property({ type: 'string', nullable: true })
-  displayName?: string;
-
-  @Property({ type: 'string', nullable: true })
-  avatarUrl?: string;
-
-  @Property({ type: 'string', nullable: true })
-  preferredLocale?: string;
-
-  @Property({ type: 'string', nullable: true })
-  googleId?: string;
-
-  @Property({ type: 'string', nullable: true })
-  linkedInId?: string;
-
-  @Property({ type: 'string', length: 1000, nullable: true })
-  refreshToken?: string;
+  // @OneToMany(())
 }
