@@ -38,8 +38,8 @@ Backend (NestJS + MikroORM):
 - Wishlist: unique (user_id, product_id), endpoint /ids cho FE selector
 - Audit log: best-effort em.fork() cho ORDER_STATUS_CHANGE
 - Migrations: 20260510080727 (inventory+cart), 20260510081912 (order),
-  20260512170000 (FK manual), 20260513023337 (address),
-  20260514120000 (voucher), 20260514130000 (wishlist), 20260514160000 (audit)
+  20260512170000 (FK manual), 20260514120000 (voucher),
+  20260514130000 (wishlist), 20260514160000 (audit)
 
 Frontend (Next.js):
 - apis/{cart,orders,vouchers,wishlist}.ts gọi BE Phong
@@ -75,7 +75,6 @@ git add \
   backend/src/modules/voucher \
   backend/src/modules/wishlist \
   backend/src/modules/audit \
-  backend/src/modules/address \
   backend/src/entities/inventory.entity.ts \
   backend/src/entities/inventory-movement.entity.ts \
   backend/src/entities/cart.entity.ts \
@@ -86,11 +85,9 @@ git add \
   backend/src/entities/voucher.entity.ts \
   backend/src/entities/wishlist.entity.ts \
   backend/src/entities/audit-log.entity.ts \
-  backend/src/entities/address.entity.ts \
   backend/src/databases/migrations/Migration20260510080727.ts \
   backend/src/databases/migrations/Migration20260510081912.ts \
   backend/src/databases/migrations/Migration20260512170000.ts \
-  backend/src/databases/migrations/Migration20260513023337.ts \
   backend/src/databases/migrations/Migration20260514120000.ts \
   backend/src/databases/migrations/Migration20260514130000.ts \
   backend/src/databases/migrations/Migration20260514160000.ts
@@ -101,7 +98,6 @@ git add \
   frontend/src/apis/orders.ts \
   frontend/src/apis/vouchers.ts \
   frontend/src/apis/wishlist.ts \
-  frontend/src/apis/addresses.ts \
   frontend/src/stores/cart \
   frontend/src/stores/wishlist \
   frontend/src/hooks/use-wishlist.ts \
