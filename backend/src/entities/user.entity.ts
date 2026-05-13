@@ -1,5 +1,6 @@
-import { Entity, Enum, OneToMany, Property } from '@mikro-orm/core';
+import { Collection, Entity, Enum, OneToMany, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
+import { UserRole } from './userRoles.entity';
 
 export enum UserStatus {
   ACTIVE = 'ACTIVE',
@@ -28,5 +29,6 @@ export class User extends AuditableEntity {
   @Property({ type: 'datetime', nullable: true, fieldName: 'last_login_at' })
   lastLoginAt?: Date;
 
-  // @OneToMany(())
+  @OneToMany(() => UserRole, userRole => userRole.user)
+  userRoles = new Collection<UserRole>(this);
 }
