@@ -18,6 +18,6 @@ export class AssignPermissionsDto {
 
     @IsArray()
     @ArrayNotEmpty()
-    permissionIds!: number[];
+    permissionIds!: string[];
 }
 export class UpdateRoleDto extends PartialType(CreateRoleDto) { }
