@@ -3,6 +3,7 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import { userReducer } from './user/slice';
 import { authReducer } from './auth/slice';
 import { chatbotReducer } from '@/stores/chatbot/slice';
+import { cartReducer } from '@/stores/cart/slice';
 
 export const makeStore = (): EnhancedStore => {
     return configureStore({
@@ -10,6 +11,7 @@ export const makeStore = (): EnhancedStore => {
             user: userReducer,
             auth: authReducer,
             chatbot: chatbotReducer,
+            cart: cartReducer,
         },
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware({ serializableCheck: false }),
