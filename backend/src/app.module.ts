@@ -17,7 +17,6 @@ import { mikroOrmConfig } from '@config/mikro-orm.config';
         mikroOrmConfig(configService),
       inject: [ConfigService],
     }),
-
   ],
   controllers: [AppController],
   providers: [AppService],

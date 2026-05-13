@@ -12,7 +12,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "lint": "eslint src --ext .ts",
-    "format": " prettier --write \" src/**/*.{ ts,js}\"",
+    "format": "prettier --write \"src/**/*.{ts,js}\"",
     "format:check": " prettier --check \" src/**/*.{ ts,js}\"",
     "mikro-orm": "mikro-orm",
     "migration:create": "mikro-orm migration:create",
