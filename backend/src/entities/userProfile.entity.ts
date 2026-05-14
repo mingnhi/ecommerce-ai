@@ -1,4 +1,4 @@
-import { Entity, OneToOne, Property } from '@mikro-orm/core';
+import { Entity, Enum, OneToOne, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
 import { User } from './user.entity';
 
@@ -19,4 +19,17 @@ export class UserProfile extends AuditableEntity {
 
   @Property({ type: 'varchar', length: 20, nullable: true })
   phone?: string;
+    
+    @Property({ type: 'text', nullable: true })
+    address?: string;
+
+    @Property({ type: 'varchar', length: 500, nullable: true, fieldName: 'avatar_url' })
+    avatarUrl?: string;
+
+    @Property({ type: 'date', nullable: true, fieldName: 'date_of_birth' })
+    dateOfBirth?: Date;
+
+    @Enum({ items: () => Gender, nullable: true })
+    gender?: Gender;
+
 }
