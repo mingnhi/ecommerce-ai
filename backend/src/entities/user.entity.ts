@@ -28,6 +28,9 @@ export class User extends AuditableEntity {
 
   @Property({ type: 'datetime', nullable: true, fieldName: 'last_login_at' })
   lastLoginAt?: Date;
+  
+  @Property({ nullable: true })
+  refreshToken?: string | null;
 
   @OneToMany(() => UserRole, userRole => userRole.user)
   userRoles = new Collection<UserRole>(this);

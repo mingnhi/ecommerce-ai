@@ -45,9 +45,9 @@ export class UsersService {
     });
   }
 
-  async create(dto: CreateUserDto) {
+  async create(data:Partial<User>) {
     const existedUser =
-      await this.findByEmail(dto.email);
+      await this.findByEmail(data.email);
 
     if (existedUser) {
       throw new ConflictException(
@@ -56,15 +56,15 @@ export class UsersService {
     }
 
     const hashedPassword = await bcrypt.hash(
-      dto.password,
+      data.passwordHash,
       10,
     );
 
     const user = this.userRepository.create({
-      email: dto.email,
+      email: data.email,
       passwordHash: hashedPassword,
-      fullName: dto.fullName,
-      status: dto.status || UserStatus.ACTIVE,
+      fullName: data.fullName,
+      status: data.status || UserStatus.ACTIVE,
     });
 
     await this.em.persistAndFlush(user);
@@ -74,39 +74,11 @@ export class UsersService {
 
   async update(
     id: string,
-    dto: UpdateUserDto,
+    data: Partial<User>,
   ) {
     const user = await this.findOne(id);
 
-    if (
-      dto.email &&
-      dto.email !== user.email
-    ) {
-      const existedUser =
-        await this.findByEmail(dto.email);
-
-      if (existedUser) {
-        throw new ConflictException(
-          'Email already exists',
-        );
-      }
-
-      user.email = dto.email;
-    }
-
-    if (dto.password) {
-      user.passwordHash =
-        await bcrypt.hash(dto.password, 10);
-    }
-
-
-    if (dto.fullName !== undefined) {
-      user.fullName = dto.fullName;
-    }
-
-    if (dto.status !== undefined) {
-      user.status = dto.status;
-    }
+    Object.assign(user, data);
 
     await this.em.flush();
 
