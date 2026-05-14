@@ -4,6 +4,9 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { mikroOrmConfig } from '@config/mikro-orm.config';
+import { UserRolesModule } from './modules/user-roles/user-roles.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { mikroOrmConfig } from '@config/mikro-orm.config';
         mikroOrmConfig(configService),
       inject: [ConfigService],
     }),
+    UsersModule,
+    RolesModule,
+    UserRolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
