@@ -8,7 +8,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
+import { AssignPermissionsDto, CreateRoleDto, UpdateRoleDto } from './dto/role.dto';
 
 @Injectable()
 export class RolesService {
@@ -100,40 +100,64 @@ export class RolesService {
     };
   }
 
-  async assignPermissions(roleId: string, permissionIds: string[]) {
-    const role = await this.findOne(roleId);
-
-    //xoá cái cũ
-
-    const oldPermissions = await this.rolePermissionRepository.find({
-      role: roleId,
+  async assignPermissions( roleId: string, dto: AssignPermissionsDto) {
+    const role = await this.roleRepository.findOne({
+      id: roleId,
     });
 
-    await this.em.removeAndFlush(oldPermissions);
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
 
-    //tạo mới
+    const addedPermissions: Permission[] = [];
 
-    for (const permissionId of permissionIds) {
-      const permission = await this.permissionRepository.findOne({
-        id: permissionId,
-      });
+    for (const permissionId of dto.permissionIds) {
+      const permission =
+        await this.permissionRepository.findOne({
+          id: permissionId,
+        });
 
       if (!permission) {
+        throw new NotFoundException(
+          `Permission with id ${permissionId} not found`,
+        );
+      }
+
+      const existed =
+        await this.rolePermissionRepository.findOne({
+          role,
+          permission,
+        });
+
+      if (existed) {
         continue;
       }
 
-      const rolePermission = this.rolePermissionRepository.create({
-        role,
-        permission,
-      });
+      const rolePermission =
+        this.rolePermissionRepository.create({
+          role,
+          permission,
+        });
 
-      this.em.persist(rolePermission);
+      await this.em.persist(rolePermission);
+
+      addedPermissions.push(permission);
     }
 
     await this.em.flush();
 
     return {
-      message: 'Assign permissions success',
+      message: 'Assign permissions to role success',
+      role: {
+        id: role.id,
+        name: role.name,
+      },
+      permissions: addedPermissions.map((permission) => ({
+        id: permission.id,
+        name: permission.name,
+        resource: permission.resource,
+        action: permission.action,
+      })),
     };
   }
 }

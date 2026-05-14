@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import {
@@ -14,11 +15,16 @@ import {
   CreateRoleDto,
   UpdateRoleDto,
 } from './dto/role.dto';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
 
 @Controller('roles')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')  
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
-
+  constructor(private readonly rolesService: RolesService) { }
+  
   @Get()
   findAll() {
     return this.rolesService.findAll();
@@ -52,10 +58,10 @@ export class RolesController {
   }
 
   @Post(':id/permissions')
-  assignPermissions(
+  async assignPermissions(
     @Param('id') id: string,
-    @Body() dto: AssignPermissionsDto
+    @Body() dto: AssignPermissionsDto,
   ) {
-    return this.rolesService.assignPermissions(id, dto.permissionIds);
+    return this.rolesService.assignPermissions(id, dto);
   }
 }
