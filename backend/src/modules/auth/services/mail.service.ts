@@ -26,4 +26,18 @@ export class MailService {
       `,
         });
     }
+
+    async sendResetPasswordOtp(email: string, otp: string) {
+        await this.transporter.sendMail({
+            from: process.env.MAIL_USER,
+            to: email,
+            subject: 'Reset password OTP',
+            html: `
+      <h2>Reset Password</h2>
+      <p>Your reset password OTP is:</p>
+      <h1>${otp}</h1>
+      <p>This code expires in 5 minutes.</p>
+    `,
+        });
+    }
 }

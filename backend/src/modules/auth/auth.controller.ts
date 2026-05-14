@@ -17,6 +17,8 @@ import { LoginDto } from './dtos/login.dto';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -55,6 +57,16 @@ export class AuthController {
     const refreshToken = authorization.replace('Bearer ', '');
 
     return this.authService.refresh(refreshToken);
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   @UseGuards(JwtAuthGuard)
