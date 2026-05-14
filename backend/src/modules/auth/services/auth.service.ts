@@ -15,6 +15,8 @@ import { UserStatus } from '@entities/user.entity';
 import { LoginDto } from '../dtos/login.dto';
 import { MailService } from './mail.service';
 import { VerifyOtpDto } from '../dtos/verify-otp.dto';
+import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
+import { ResetPasswordDto } from '../dtos/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +26,12 @@ export class AuthService {
         fullName: string;
         password: string;
     }
-    >();
+      >();
+  
+  private resetPasswordOtpStore = new Map<string, {
+    otpHash: string;
+    expiresAt: Date;
+  }>();
   constructor(
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
@@ -213,6 +220,68 @@ export class AuthService {
 
       accessToken,
       refreshToken,
+    };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+
+    if (!user) {
+      return { message: 'If this email exists, OTP has been sent'};
+    }
+    const otp = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+
+    const otpHash = await bcrypt.hash(otp, 10);
+
+    this.resetPasswordOtpStore.set(dto.email, {
+      otpHash,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
+
+    await this.mailService.sendResetPasswordOtp(dto.email, otp);
+    return { message: 'If this email exists, OTP has been sent'};
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const storedOtp = this.resetPasswordOtpStore.get(dto.email);
+
+    if (!storedOtp) {
+      throw new BadRequestException('OTP not found or expired');
+    }
+
+    if (storedOtp.expiresAt < new Date()) {
+      this.resetPasswordOtpStore.delete(dto.email);
+      throw new BadRequestException('OTP expired');
+    }
+
+    const isOtpValid = await bcrypt.compare(
+      dto.otp,
+      storedOtp.otpHash,
+    );
+
+    if (!isOtpValid) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    const user = await this.usersService.findByEmail(dto.email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.usersService.update(user.id, {
+      passwordHash: hashedPassword,
+      refreshToken: null,
+    });
+
+    this.resetPasswordOtpStore.delete(dto.email);
+
+    return {
+      message: 'Reset password success',
     };
   }
   async refresh(refreshToken: string) {
