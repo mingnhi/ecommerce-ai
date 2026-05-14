@@ -22,9 +22,18 @@ import { MOCK_PROVINCES, MOCK_WARDS } from "@/faker/mock-address";
 interface AddressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialAddress: {
+    name: string;
+    phone: string;
+    address: string;
+  };
+  onUpdate: (address: { name: string; phone: string; address: string }) => void;
 }
 
-export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
+export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: AddressDialogProps) {
+  const [name, setName] = useState(initialAddress.name);
+  const [phone, setPhone] = useState(initialAddress.phone);
+  const [detail, setDetail] = useState("");
   const [addrType, setAddrType] = useState("home");
   const [province, setProvince] = useState("danang");
   const [ward, setWard] = useState("dn-1");
@@ -32,7 +41,17 @@ export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
   const [activeTab, setActiveTab] = useState("province");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleTextareaChange = () => {
+  // Parse initial address to pre-fill detail if needed (simplified for mock)
+  useEffect(() => {
+    if (open) {
+      setName(initialAddress.name);
+      setPhone(initialAddress.phone);
+      // For simplicity, we just keep the current detail or reset
+    }
+  }, [open, initialAddress]);
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDetail(e.target.value);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -51,6 +70,16 @@ export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
   const khuVucLabel = selectedProvinceLabel && selectedWardLabel
     ? `${selectedProvinceLabel}, ${selectedWardLabel}`
     : "Tỉnh/Thành Phố, Quận/Huyện";
+
+  const handleComplete = () => {
+    const fullAddress = `${detail}${detail ? ", " : ""}${khuVucLabel}`;
+    onUpdate({
+      name,
+      phone,
+      address: fullAddress,
+    });
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,7 +101,9 @@ export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
               <div className="relative">
                 <Input
                   id="fullname"
-                  placeholder="Trịnh Thị Thanh Tâm"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Họ và tên"
                   className="h-14 pt-4 pb-1 px-4 border-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg font-medium"
                 />
                 <Label htmlFor="fullname" className="absolute left-4 top-1 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Họ và tên</Label>
@@ -82,7 +113,9 @@ export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
               <div className="relative">
                 <Input
                   id="phone"
-                  placeholder="(+84) 941 692 448"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Số điện thoại"
                   className="h-14 pt-4 pb-1 px-4 border-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg font-medium"
                 />
                 <Label htmlFor="phone" className="absolute left-4 top-1 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Số điện thoại</Label>
@@ -204,7 +237,8 @@ export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
               <Textarea
                 id="address-detail"
                 ref={textareaRef}
-                placeholder="99 Tôn Thất Thiệp"
+                value={detail}
+                placeholder="Địa chỉ cụ thể"
                 onChange={handleTextareaChange}
                 className="min-h-[10px] pt-5 px-4 border-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg font-medium resize-none overflow-hidden"
               />
@@ -247,7 +281,7 @@ export function AddressDialog({ open, onOpenChange }: AddressDialogProps) {
               Trở Lại
             </Button>
             <Button
-              onClick={() => onOpenChange(false)}
+              onClick={handleComplete}
               className="px-10 h-12 rounded-xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer"
             >
               Hoàn thành

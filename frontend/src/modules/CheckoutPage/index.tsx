@@ -69,12 +69,8 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { items } = useCart();
   const [selectedPayment, setSelectedPayment] = useState("cod");
-  const [selectedAddrId] = useState("1");
   const [isAddrDialogOpen, setIsAddrDialogOpen] = useState(false);
-
-  const selectedAddress = useMemo(() =>
-    ADDRESSES.find(a => a.id === selectedAddrId) || ADDRESSES[0]
-    , [selectedAddrId]);
+  const [currentAddress, setCurrentAddress] = useState(ADDRESSES[0]);
 
   const selectedItems = useMemo(() => {
     const idsParam = searchParams.get("ids");
@@ -87,6 +83,14 @@ export default function CheckoutPage() {
   const subTotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shippingFee = 0;
   const totalAmount = subTotal + shippingFee;
+
+  const handleAddressUpdate = (newAddress: { name: string; phone: string; address: string }) => {
+    setCurrentAddress({
+      ...newAddress,
+      id: "current",
+      isDefault: false
+    });
+  };
 
   if (selectedItems.length === 0) {
     return <EmptyCheckout />;
@@ -104,14 +108,19 @@ export default function CheckoutPage() {
             </div>
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-base">
               <div className="font-bold text-foreground">
-                {selectedAddress.name} {selectedAddress.phone}
+                {currentAddress.name} {currentAddress.phone}
               </div>
               <div className="text-foreground">
-                {selectedAddress.address}
+                {currentAddress.address}
               </div>
 
               <div className="md:ml-auto">
-                <AddressDialog open={isAddrDialogOpen} onOpenChange={setIsAddrDialogOpen} />
+                <AddressDialog 
+                  open={isAddrDialogOpen} 
+                  onOpenChange={setIsAddrDialogOpen}
+                  initialAddress={currentAddress}
+                  onUpdate={handleAddressUpdate}
+                />
               </div>
             </div>
           </div>
