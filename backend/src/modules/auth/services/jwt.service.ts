@@ -13,14 +13,12 @@ export class JwtService {
     return this.nestJwtService.signAsync({ ...payload, type: 'access' });
   }
   async generateRefreshToken(payload: any): Promise<string> {
-    return this.nestJwtService.signAsync(payload,
-      {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get<string>(
-          'JWT_REFRESH_EXPIRATION_TIME',
-        ) as '7d',
-      }
-    );
+    return this.nestJwtService.signAsync(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get<string>(
+        'JWT_REFRESH_EXPIRATION_TIME'
+      ) as '7d',
+    });
   }
   async verifyAccessToken(token: string): Promise<any> {
     try {
@@ -47,5 +45,18 @@ export class JwtService {
     } catch (error) {
       throw new UnauthorizedException('Refresh token không hợp lệ');
     }
+  }
+
+  async generateVerifyEmailToken(payload: { sub: string; email: string }) {
+    return this.nestJwtService.signAsync(payload, {
+      secret: process.env.JWT_VERIFY_EMAIL_SECRET,
+      expiresIn: '15m',
+    });
+  }
+
+  async verifyEmailToken(token: string) {
+    return this.nestJwtService.verifyAsync(token, {
+      secret: process.env.JWT_VERIFY_EMAIL_SECRET,
+    });
   }
 }

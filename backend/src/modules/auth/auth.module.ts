@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
-import {ConfigModule, ConfigService} from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { AuthController } from './auth.controller';
 import { AuthService } from './services/auth.service';
@@ -17,41 +17,36 @@ import { Role } from '@entities/roles.entity';
 import { UserRole } from '@entities/userRoles.entity';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
-
+import { MailService } from './services/mail.service';
 
 @Module({
-    imports: [
-        ConfigModule,
-        UsersModule,
-        RolesModule,
-        UserRolesModule,
-        MikroOrmModule.forFeature([
-            User,
-            Role,
-            UserRole,
-        ]),
-        PassportModule.register({ defaultStrategy: 'jwt'}),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_ACCESS_SECRET'),
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION_TIME') || '1d') as any
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    providers: [
-        AuthService,
-        JwtService,
-        AccessTokenStrategy,
-        RefreshTokenStrategy,
-    ],
-    controllers: [AuthController],
-    exports: [
-        AuthService,
-        JwtService,
-    ],
+  imports: [
+    ConfigModule,
+    UsersModule,
+    RolesModule,
+    UserRolesModule,
+    MikroOrmModule.forFeature([User, Role, UserRole]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_ACCESS_SECRET'),
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRATION_TIME') ||
+            '1d') as any,
+        },
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  providers: [
+    AuthService,
+    JwtService,
+    MailService,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+  ],
+  controllers: [AuthController],
+  exports: [AuthService, JwtService],
 })
-export class AuthModule { }
+export class AuthModule {}

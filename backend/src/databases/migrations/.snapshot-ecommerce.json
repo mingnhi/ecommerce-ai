@@ -344,6 +344,26 @@
           "length": null,
           "mappedType": "datetime"
         },
+        "email_otp_hash": {
+          "name": "email_otp_hash",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "email_otp_expires_at": {
+          "name": "email_otp_expires_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": null,
+          "mappedType": "datetime"
+        },
         "refresh_token": {
           "name": "refresh_token",
           "type": "varchar(255)",
