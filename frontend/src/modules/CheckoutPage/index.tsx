@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { MapPin, Ticket, Banknote, Landmark, Check } from "lucide-react";
+import { MapPin, Ticket, Banknote, Landmark, Check, ShoppingBag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatVnd } from "@/lib/format-currency";
@@ -25,6 +25,45 @@ const ADDRESSES = [
   { id: "1", name: "Trịnh Thị Thanh Tâm", phone: "(+84) 941 692 448", address: "99 Tôn Thất Thiệp, Phường Ngũ Hành Sơn, Thành phố Đà Nẵng", isDefault: true },
   { id: "2", name: "Trịnh Thị Thanh Tâm", phone: "(+84) 941 692 448", address: "K72/10 Nguyễn Văn Thoại, Phường Mỹ An, Quận Ngũ Hành Sơn, Đà Nẵng", isDefault: false },
 ];
+
+function EmptyCheckout() {
+  return (
+    <div className="min-h-[calc(100vh-66px)] bg-muted/25 flex items-center justify-center p-4">
+      <div className="max-w-md w-full text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="relative inline-flex">
+          <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl scale-150" />
+          <div className="relative size-32 rounded-3xl bg-card border-2 border-border/50 flex items-center justify-center shadow-2xl rotate-3">
+            <ShoppingBag className="size-14 text-primary/30 -rotate-3 stroke-[1.5]" />
+          </div>
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-2xl font-bold text-foreground">Không có sản phẩm thanh toán</h2>
+          <p className="text-muted-foreground max-w-[300px] mx-auto leading-relaxed text-sm">
+            Có vẻ như bạn chưa chọn sản phẩm nào để thanh toán. Vui lòng quay lại giỏ hàng để chọn sản phẩm.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Button
+            asChild
+            className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 transition-all cursor-pointer"
+          >
+            <Link href={ROUTES.CART}>Quay về giỏ hàng</Link>
+          </Button>
+          <Button
+            asChild
+            variant="ghost"
+            className="h-12 px-8 rounded-xl font-medium text-muted-foreground hover:bg-muted transition-all cursor-pointer"
+          >
+            <Link href={ROUTES.HOME} className="flex items-center gap-2">
+              <ArrowLeft className="size-4" />
+              Tiếp tục mua sắm
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
@@ -48,6 +87,10 @@ export default function CheckoutPage() {
   const subTotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shippingFee = 0;
   const totalAmount = subTotal + shippingFee;
+
+  if (selectedItems.length === 0) {
+    return <EmptyCheckout />;
+  }
 
   return (
     <div className="min-h-[calc(100vh-66px)] py-6 dark:bg-background">

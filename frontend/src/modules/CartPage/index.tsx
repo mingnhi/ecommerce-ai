@@ -13,6 +13,7 @@ import { useCart } from "@/hooks/use-cart";
 import { cn } from "@/lib/utils";
 import { CartVoucherPopover } from "./components/CartVoucherPopover";
 import { CartItem } from "./components/CartItem";
+import { ShoppingCart } from "lucide-react";
 
 const cartGrid =
   "grid grid-cols-[48px_minmax(220px,1fr)_112px_128px_112px_88px] items-center gap-x-3";
@@ -21,6 +22,35 @@ const chk =
   "size-[18px] cursor-pointer rounded-[3px] border border-[#d0d0d0] data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground";
 
 const linkBtn = "cursor-pointer text-primary hover:underline";
+
+function EmptyCart() {
+  return (
+    <div className="min-h-[calc(100vh-66px)] bg-muted/25 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-8 animate-in fade-in zoom-in duration-500">
+          <div className="relative inline-flex">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl scale-150 animate-pulse" />
+            <div className="relative size-32 rounded-full bg-background border-4 border-primary/20 flex items-center justify-center shadow-xl">
+              <ShoppingCart className="size-14 text-primary/40 stroke-[1.5]" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-foreground">Giỏ hàng của bạn đang trống</h2>
+            <p className="text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
+              Hãy lấp đầy giỏ hàng bằng những sản phẩm công nghệ tuyệt vời nhất tại {siteConfig.name}.
+            </p>
+          </div>
+          <Button
+            asChild
+            className="h-12 px-10 rounded-full bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Link href={ROUTES.HOME}>Khám phá ngay</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CartPage() {
   const router = useRouter();
@@ -81,34 +111,13 @@ export default function CartPage() {
   }, [selected, removeLine]);
 
   if (items.length === 0) {
-    return (
-      <div className="min-h-[calc(100vh-66px)] bg-muted/25">
-        <div className="border-b border-border/60 bg-background">
-          <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-3 px-4 py-4 sm:px-6">
-            <Link href={ROUTES.HOME} className="cursor-pointer text-lg font-semibold text-primary">
-              {siteConfig.name}
-            </Link>
-            <span className="text-lg text-muted-foreground/50">|</span>
-            <span className="text-lg font-medium text-primary">Giỏ hàng</span>
-          </div>
-        </div>
-        <div className="mx-auto max-w-[1200px] px-4 py-20 text-center sm:px-6">
-          <p className="text-base text-muted-foreground">Chưa có sản phẩm trong giỏ hàng.</p>
-          <Button
-            asChild
-            className="mt-8 cursor-pointer rounded-md bg-primary px-10 font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
-          >
-            <Link href={ROUTES.HOME}>Mua sắm ngay</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    return <EmptyCart />;
   }
 
   return (
     <div className="min-h-[calc(100vh-66px)] bg-muted/25 py-6">
       <div className="mx-auto max-w-[1200px]">
-        <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm ring-1 ring-border/40">
+        <div className="overflow-hidden shadow-sm rounded-sm border border-border/60 bg-card shadow-sm ring-1 ring-border/40">
           <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
             <div className="min-w-[760px]">
               <div
@@ -157,7 +166,7 @@ export default function CartPage() {
       </div>
 
       <div className="mt-6 px-4 sm:px-6" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
-        <div className="mx-auto max-w-[1200px] overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm ring-1 ring-border/40">
+        <div className="mx-auto max-w-[1200px] overflow-hidden shadow-sm rounded-sm border border-border/60 bg-card shadow-sm ring-1 ring-border/40">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 bg-muted/15 px-4 py-3">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Ticket className="size-4 text-primary" />
@@ -181,7 +190,7 @@ export default function CartPage() {
                 className="cursor-pointer text-sm font-medium text-foreground hover:text-primary"
                 onClick={() => toggleAll()}
               >
-                Chọn tất cả ({items.length})
+                Chọn tất cả ({selected.size})
               </button>
               <button
                 type="button"
