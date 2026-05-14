@@ -7,13 +7,7 @@ import { User } from '@entities/user.entity';
 import { Role } from '@entities/roles.entity';
 
 @Module({
-  imports: [
-    MikroOrmModule.forFeature([
-      UserRole,
-      User,
-      Role,
-    ]),
-  ],
+  imports: [MikroOrmModule.forFeature([UserRole, User, Role])],
 
   controllers: [UserRolesController],
   providers: [UserRolesService],

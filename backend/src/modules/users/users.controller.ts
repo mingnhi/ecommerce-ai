@@ -1,10 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/user.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   findAll() {
@@ -22,12 +31,8 @@ export class UsersController {
   }
 
   @Patch(':id/status')
-  updateStatus(
-    @Param('id') id: string, @Body() dto: UpdateUserDto,) {
-    return this.usersService.updateStatus(
-      id,
-      dto,
-    );
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateStatus(id, dto);
   }
 
   @Delete(':id')

@@ -7,12 +7,7 @@ import { Permission } from '@entities/permissions.entity';
 import { RolePermission } from '@entities/rolePermission.entity';
 
 @Module({
-  imports:[ MikroOrmModule.forFeature([
-    Role,
-    Permission,
-    RolePermission,
-  ]),
-],
+  imports: [MikroOrmModule.forFeature([Role, Permission, RolePermission])],
   controllers: [RolesController],
   providers: [RolesService],
   exports: [RolesService],
