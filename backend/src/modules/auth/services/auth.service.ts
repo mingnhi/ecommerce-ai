@@ -99,12 +99,12 @@ export class AuthService {
 
         const customerRole =
             await this.rolesService.findByName(
-                'CUSTOMER',
+                'USER',
             );
 
         if (!customerRole) {
             throw new NotFoundException(
-                'CUSTOMER role not found',
+                'USER role not found',
             );
         }
 
