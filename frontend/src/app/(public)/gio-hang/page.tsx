@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import CartPage from "@/modules/CartPage";
+import { CartSkeleton } from "@/modules/CartPage/components/Skeleton";
 import { siteConfig } from "@/configs/site";
 
 export const metadata: Metadata = {
@@ -8,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <CartPage />;
+  return (
+    <Suspense fallback={<CartSkeleton />}>
+      <CartPage />
+    </Suspense>
+  );
 }
