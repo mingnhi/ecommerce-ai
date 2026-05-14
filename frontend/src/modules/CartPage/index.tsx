@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,7 +14,7 @@ import { siteConfig } from "@/configs/site";
 import { useCart } from "@/hooks/use-cart";
 import { cn } from "@/lib/utils";
 import type { ICartLine } from "@/types/cart";
-import { CartVoucherPopover } from "./CartVoucherPopover";
+import { CartVoucherPopover } from "./components/CartVoucherPopover";
 
 const cartGrid =
   "grid grid-cols-[48px_minmax(220px,1fr)_112px_128px_112px_88px] items-center gap-x-3";
@@ -24,6 +25,7 @@ const chk =
 const linkBtn = "cursor-pointer text-primary hover:underline";
 
 export default function CartPage() {
+  const router = useRouter();
   const { items, removeLine, setLineQuantity } = useCart();
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
 
@@ -225,13 +227,7 @@ export default function CartPage() {
                   </button>
                 </CartVoucherPopover>
               </div>
-              <div className="flex flex-wrap items-center gap-2 border-t border-border/50 px-4 py-3 text-sm">
-                <Truck className="size-4 shrink-0 text-emerald-600" />
-                <span className="text-foreground/90">Giảm phí vận chuyển đơn từ 0đ</span>
-                <button type="button" className={cn(linkBtn, "ml-auto text-xs md:ml-0")}>
-                  Tìm hiểu thêm
-                </button>
-              </div>
+
             </div>
           </div>
         </div>
@@ -283,6 +279,10 @@ export default function CartPage() {
               <Button
                 type="button"
                 disabled={selectedQty === 0}
+                onClick={() => {
+                  const ids = Array.from(selected).join(",");
+                  router.push(`${ROUTES.CHECKOUT}?ids=${ids}`);
+                }}
                 className="h-10 min-w-[128px] cursor-pointer rounded-md bg-primary px-6 text-base font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Mua hàng
