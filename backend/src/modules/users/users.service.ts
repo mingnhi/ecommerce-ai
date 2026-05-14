@@ -45,24 +45,17 @@ export class UsersService {
     });
   }
 
-  async create(data:Partial<User>) {
+  async create(data: Partial<User>) {
     const existedUser =
       await this.findByEmail(data.email);
 
     if (existedUser) {
-      throw new ConflictException(
-        'Email already exists',
-      );
+      throw new ConflictException('Email already exists');
     }
-
-    const hashedPassword = await bcrypt.hash(
-      data.passwordHash,
-      10,
-    );
 
     const user = this.userRepository.create({
       email: data.email,
-      passwordHash: hashedPassword,
+      passwordHash: data.passwordHash,
       fullName: data.fullName,
       status: data.status || UserStatus.ACTIVE,
     });
