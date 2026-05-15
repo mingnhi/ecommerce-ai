@@ -6,6 +6,11 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { mikroOrmConfig } from '@config/mikro-orm.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
+import { AuthModule } from '@modules/auth/auth.module';
+import { UsersModule } from '@modules/users/users.module';
+import { RolesModule } from '@modules/roles/roles.module';
+import { UserRolesModule } from '@modules/user-roles/user-roles.module';
+import { PermissionsModule } from '@modules/permissions/permissions.module';
 import { InventoryModule } from '@modules/inventory/inventory.module';
 import { CartModule } from '@modules/cart/cart.module';
 import { OrderModule } from '@modules/order/order.module';
@@ -13,7 +18,6 @@ import { AuditModule } from '@modules/audit/audit.module';
 import { VoucherModule } from '@modules/voucher/voucher.module';
 import { WishlistModule } from '@modules/wishlist/wishlist.module';
 import { AddressModule } from '@modules/address/address.module';
-import { AuthModule } from '@modules/auth/auth.module';
 import { PriceModule } from '@modules/price/price.module';
 
 @Module({
@@ -29,8 +33,12 @@ import { PriceModule } from '@modules/price/price.module';
       inject: [ConfigService],
     }),
     EventEmitterModule.forRoot(),
-    AuditModule,
     AuthModule,
+    UsersModule,
+    RolesModule,
+    UserRolesModule,
+    PermissionsModule,
+    AuditModule,
     PriceModule,
     InventoryModule,
     CartModule,

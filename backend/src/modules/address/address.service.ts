@@ -7,7 +7,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/mysql';
 import { Address } from '@entities/address.entity';
-import { Users } from '@entities/user.entity';
+import { User } from '@entities/user.entity';
 import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class AddressService {
 
   async create(userId: string, dto: CreateAddressDto) {
     return this.em.transactional(async (em) => {
-      const user = await em.findOne(Users, { id: userId, isDeleted: false });
+      const user = await em.findOne(User, { id: userId });
       if (!user) throw new NotFoundException('User không tồn tại');
 
       // Đếm xem user đã có address nào chưa — nếu chưa, address đầu tiên auto default
