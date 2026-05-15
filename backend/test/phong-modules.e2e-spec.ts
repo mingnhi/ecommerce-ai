@@ -6,6 +6,8 @@ import { ResponseInterceptor } from '../src/common/interceptors/response.interce
 import { HttpExceptionFilter } from '../src/common/filters/exception.filter';
 import { MikroORM } from '@mikro-orm/core';
 import { MikroOrmMiddleware } from '@mikro-orm/nestjs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { getTestUserToken } = require('./jwt-helper');
 
 /**
  * E2E spec cho 3 module của Phong: INVENTORY, CART, ORDER.
@@ -14,6 +16,8 @@ import { MikroOrmMiddleware } from '@mikro-orm/nestjs';
  */
 describe('Phong modules (e2e)', () => {
   let app: INestApplication;
+  const JWT = getTestUserToken();
+  const AUTH = `Bearer ${JWT}`;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,6 +44,7 @@ describe('Phong modules (e2e)', () => {
     it('GET /inventory trả 200 với pagination meta', async () => {
       const res = await request(app.getHttpServer())
         .get('/inventory?page=1&limit=5')
+        .set('Authorization', AUTH)
         .expect(200);
       const payload = res.body?.data ?? res.body;
       expect(Array.isArray(payload.items)).toBe(true);
@@ -49,6 +54,7 @@ describe('Phong modules (e2e)', () => {
     it('GET /inventory?low_stock=true trả 200', async () => {
       await request(app.getHttpServer())
         .get('/inventory?low_stock=true')
+        .set('Authorization', AUTH)
         .expect(200);
     });
 
@@ -56,6 +62,7 @@ describe('Phong modules (e2e)', () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
       await request(app.getHttpServer())
         .put(`/inventory/${fakeId}`)
+        .set('Authorization', AUTH)
         .send({ quantity: -1 })
         .expect(400);
     });
@@ -65,6 +72,7 @@ describe('Phong modules (e2e)', () => {
     it('POST /inventory/movements thiếu field bắt buộc → 400', async () => {
       await request(app.getHttpServer())
         .post('/inventory/movements')
+        .set('Authorization', AUTH)
         .send({})
         .expect(400);
     });
@@ -72,6 +80,7 @@ describe('Phong modules (e2e)', () => {
     it('POST /inventory/movements với type không hợp lệ → 400', async () => {
       await request(app.getHttpServer())
         .post('/inventory/movements')
+        .set('Authorization', AUTH)
         .send({
           variantId: '00000000-0000-0000-0000-000000000000',
           type: 'INVALID_TYPE',
@@ -83,6 +92,7 @@ describe('Phong modules (e2e)', () => {
     it('GET /inventory/movements trả 200', async () => {
       const res = await request(app.getHttpServer())
         .get('/inventory/movements?limit=1')
+        .set('Authorization', AUTH)
         .expect(200);
       const payload = res.body?.data ?? res.body;
       expect(Array.isArray(payload.items)).toBe(true);
@@ -90,13 +100,17 @@ describe('Phong modules (e2e)', () => {
   });
 
   describe('S4 CART (validation)', () => {
-    it('GET /cart trả 200 (stub user)', async () => {
-      await request(app.getHttpServer()).get('/cart').expect(200);
+    it('GET /cart trả 200', async () => {
+      await request(app.getHttpServer())
+        .get('/cart')
+        .set('Authorization', AUTH)
+        .expect(200);
     });
 
     it('POST /cart/items với variantId không phải UUID → 400', async () => {
       await request(app.getHttpServer())
         .post('/cart/items')
+        .set('Authorization', AUTH)
         .send({ variantId: 'not-uuid', quantity: 1 })
         .expect(400);
     });
@@ -104,6 +118,7 @@ describe('Phong modules (e2e)', () => {
     it('POST /cart/items với quantity=0 → 400 (@Min(1))', async () => {
       await request(app.getHttpServer())
         .post('/cart/items')
+        .set('Authorization', AUTH)
         .send({
           variantId: '00000000-0000-0000-0000-000000000000',
           quantity: 0,
@@ -114,6 +129,7 @@ describe('Phong modules (e2e)', () => {
     it('POST /cart/items với quantity > 999 → 400 (@Max(999))', async () => {
       await request(app.getHttpServer())
         .post('/cart/items')
+        .set('Authorization', AUTH)
         .send({
           variantId: '00000000-0000-0000-0000-000000000000',
           quantity: 1000,
@@ -124,6 +140,7 @@ describe('Phong modules (e2e)', () => {
     it('POST /cart/merge với items không phải array → 400', async () => {
       await request(app.getHttpServer())
         .post('/cart/merge')
+        .set('Authorization', AUTH)
         .send({ items: 'wrong' })
         .expect(400);
     });
@@ -131,7 +148,10 @@ describe('Phong modules (e2e)', () => {
 
   describe('S5 ORDER (read + validation)', () => {
     it('GET /orders trả 200', async () => {
-      const res = await request(app.getHttpServer()).get('/orders').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/orders')
+        .set('Authorization', AUTH)
+        .expect(200);
       const payload = res.body?.data ?? res.body;
       expect(Array.isArray(payload.items)).toBe(true);
     });
@@ -139,6 +159,7 @@ describe('Phong modules (e2e)', () => {
     it('GET /orders?status=PENDING trả 200, items đều PENDING', async () => {
       const res = await request(app.getHttpServer())
         .get('/orders?status=PENDING')
+        .set('Authorization', AUTH)
         .expect(200);
       const payload = res.body?.data ?? res.body;
       expect(payload.items.every((o: any) => o.status === 'PENDING')).toBe(true);
@@ -147,12 +168,14 @@ describe('Phong modules (e2e)', () => {
     it('GET /orders/:id không tồn tại → 404', async () => {
       await request(app.getHttpServer())
         .get('/orders/00000000-0000-0000-0000-000000000099')
+        .set('Authorization', AUTH)
         .expect(404);
     });
 
     it('POST /orders với phone sai format VN → 400', async () => {
       await request(app.getHttpServer())
         .post('/orders')
+        .set('Authorization', AUTH)
         .send({ shippingAddress: 'Test address xxx', phone: 'not-a-phone' })
         .expect(400);
     });
@@ -160,6 +183,7 @@ describe('Phong modules (e2e)', () => {
     it('POST /orders/bulk-status với status sai enum → 400', async () => {
       await request(app.getHttpServer())
         .post('/orders/bulk-status')
+        .set('Authorization', AUTH)
         .send({
           orderIds: ['00000000-0000-0000-0000-000000000099'],
           status: 'BOGUS',
@@ -170,6 +194,7 @@ describe('Phong modules (e2e)', () => {
     it('PUT /orders/:id/status với status invalid enum → 400', async () => {
       await request(app.getHttpServer())
         .put('/orders/00000000-0000-0000-0000-000000000099/status')
+        .set('Authorization', AUTH)
         .send({ status: 'NOT_VALID' })
         .expect(400);
     });

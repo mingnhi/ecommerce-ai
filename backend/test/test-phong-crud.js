@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const { getTestUserToken } = require('./jwt-helper');
 
 const API_URL = process.env.API_URL || 'http://localhost:3003';
 const SEED_FILE = path.join(__dirname, 'seed-result.json');
@@ -89,10 +90,13 @@ function assert(cond, label, detail) {
 }
 
 // ----- HTTP helper -----
+const JWT = getTestUserToken();
 async function http(method, p, body) {
+  const headers = { Authorization: `Bearer ${JWT}` };
+  if (body) headers['Content-Type'] = 'application/json';
   const res = await fetch(`${API_URL}${p}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();

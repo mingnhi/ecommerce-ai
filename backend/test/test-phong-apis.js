@@ -1,4 +1,10 @@
+const fs = require('fs');
+const path = require('path');
+const { getTestUserToken } = require('./jwt-helper');
+
 const API_URL = process.env.API_URL || 'http://localhost:3003';
+const SEED_FILE = path.join(__dirname, 'seed-result.json');
+const JWT = getTestUserToken();
 
 let passed = 0;
 let failed = 0;
@@ -9,9 +15,11 @@ function log(msg) {
 }
 
 async function http(method, path, body) {
+  const headers = { Authorization: `Bearer ${JWT}` };
+  if (body) headers['Content-Type'] = 'application/json';
   const res = await fetch(`${API_URL}${path}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
   let data = null;
@@ -40,23 +48,14 @@ function section(title) {
   log(`\n=== ${title} ===`);
 }
 
-async function getFirstVariantId() {
-  const { status, data } = await http('GET', '/inventory?limit=10');
-  if (status !== 200) throw new Error(`GET /inventory failed: ${status}`);
-  const payload = data?.data ?? data;
-  const items = payload?.items ?? [];
-  if (!items.length) {
-    throw new Error('DB chưa có inventory nào — hãy seed trước khi test.');
+function getSeedVariantIds() {
+  if (!fs.existsSync(SEED_FILE)) {
+    throw new Error(
+      'Chưa có test/seed-result.json — chạy `node test/seed-test-data.js` trước.',
+    );
   }
-  return items[0].variantId;
-}
-
-async function getTwoVariantIds() {
-  const { data } = await http('GET', '/inventory?limit=10');
-  const payload = data?.data ?? data;
-  const items = payload?.items ?? [];
-  if (items.length < 2) return [items[0]?.variantId, null];
-  return [items[0].variantId, items[1].variantId];
+  const seed = JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
+  return [seed.variantA, seed.variantB];
 }
 
 async function clearCart() {
@@ -596,14 +595,16 @@ async function main() {
 
   let variantId, variantId2;
   try {
-    [variantId, variantId2] = await getTwoVariantIds();
-    log(`Variant chính: ${variantId}`);
-    if (variantId2) log(`Variant phụ:   ${variantId2}`);
-    else log('(chỉ có 1 variant trong DB — sẽ skip các assert cần 2 variant)');
+    [variantId, variantId2] = getSeedVariantIds();
+    log(`Seed variant A (chính, stock=100): ${variantId}`);
+    log(`Seed variant B (phụ, stock=3):    ${variantId2}`);
   } catch (e) {
     log(`FATAL: ${e.message}`);
     process.exit(2);
   }
+
+  // Đảm bảo variantA có stock đủ trước khi test cart/order (smoke trước có thể đã giảm)
+  await http('PUT', `/inventory/${variantId}`, { quantity: 250 });
 
   try {
     await testS3_01_Inventory(variantId);
