@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search, ShoppingBag } from "lucide-react";
+import { PackageSearch, Search, SearchX, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { OrderCard } from "./components/OrderCard";
 import { cn } from "@/lib/utils";
 import { MOCK_ORDERS } from "@/faker/mock-orders";
-import { useOrderTabsSticky } from "../../hooks/use-order-tabs-sticky";
+import { ROUTES } from "@/lib/routes";
+import { useOrderTabsSticky } from "@/hooks/use-order-tabs-sticky";
 import { HEADER_HEIGHT } from "@/stores/layout/constants";
 
 const orderTabs = [
@@ -17,7 +20,75 @@ const orderTabs = [
   { value: "delivered", label: "Hoàn thành" },
   { value: "cancelled", label: "Đã hủy" },
   { value: "returned", label: "Trả hàng/Hoàn tiền" },
-];
+] as const;
+
+type EmptyType = "all" | "tab" | "search";
+
+const emptyContent: Record<
+  EmptyType,
+  { icon: typeof ShoppingBag; title: string; description: string }
+> = {
+  all: {
+    icon: ShoppingBag,
+    title: "Bạn chưa có đơn hàng nào",
+    description: "Hãy mua sắm và đơn hàng của bạn sẽ hiển thị tại đây.",
+  },
+  tab: {
+    icon: PackageSearch,
+    title: "Không có đơn hàng ở trạng thái này",
+    description: "Thử chọn tab khác để xem các đơn hàng của bạn.",
+  },
+  search: {
+    icon: SearchX,
+    title: "Không tìm thấy kết quả",
+    description: "Thử tìm với từ khóa khác hoặc xóa bộ lọc tìm kiếm.",
+  },
+};
+
+function OrderHistoryEmptyView({
+  type,
+  tabLabel,
+  onClearSearch,
+}: {
+  type: EmptyType;
+  tabLabel?: string;
+  onClearSearch?: () => void;
+}) {
+  const { icon: Icon, title, description } = emptyContent[type];
+  const desc =
+    type === "tab" && tabLabel
+      ? `Không có đơn hàng nào ở mục "${tabLabel}".`
+      : description;
+
+  return (
+    <div className="flex min-h-[360px] flex-col items-center justify-center rounded-sm border border-dashed border-border/60 bg-card/50 px-6 py-14 text-center animate-in fade-in duration-300">
+      <div className="relative inline-flex">
+        <div className="absolute inset-0 rounded-full bg-primary/10 blur-2xl" />
+        <div className="relative flex size-20 items-center justify-center rounded-full border border-primary/15 bg-background shadow-sm">
+          <Icon className="size-9 text-primary/50" strokeWidth={1.5} />
+        </div>
+      </div>
+      <h3 className="mt-6 text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">{desc}</p>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {type === "search" && onClearSearch ? (
+          <Button variant="outline" className="rounded-full" onClick={onClearSearch}>
+            Xóa tìm kiếm
+          </Button>
+        ) : null}
+        {type === "all" ? (
+          <Button asChild className="rounded-full bg-primary px-8 shadow-md shadow-primary/20">
+            <Link href={ROUTES.HOME}>Mua sắm ngay</Link>
+          </Button>
+        ) : type === "tab" ? (
+          <Button asChild variant="outline" className="rounded-full">
+            <Link href={ROUTES.HOME}>Tiếp tục mua sắm</Link>
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export default function OrderHistoryPage() {
   const [activeTab, setActiveTab] = useState("all");
@@ -36,8 +107,17 @@ export default function OrderHistoryPage() {
     });
   }, [activeTab, searchQuery]);
 
+  const emptyType = useMemo<EmptyType | null>(() => {
+    if (filteredOrders.length > 0) return null;
+    if (searchQuery.trim()) return "search";
+    if (activeTab !== "all") return "tab";
+    return "all";
+  }, [filteredOrders.length, searchQuery, activeTab]);
+
+  const activeTabLabel = orderTabs.find((t) => t.value === activeTab)?.label;
+
   return (
-    <div className="min-h-auto  pb-6">
+    <div className="min-h-auto pb-6">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
         <div className="space-y-3">
           <div ref={sentinelRef} className="h-px w-full" aria-hidden />
@@ -79,18 +159,12 @@ export default function OrderHistoryPage() {
           </div>
 
           <div className="space-y-4">
-            {filteredOrders.length === 0 ? (
-              <div className="flex min-h-[300px] flex-col items-center justify-center rounded-sm border border-dashed border-border/60 bg-card/50 px-4 py-12 text-center">
-                <div className="flex size-16 items-center justify-center rounded-full bg-muted/50">
-                  <ShoppingBag className="size-8 text-muted-foreground/50" />
-                </div>
-                <h3 className="mt-4 text-lg font-medium text-foreground">
-                  Không tìm thấy đơn hàng
-                </h3>
-                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                  Chưa có đơn hàng nào phù hợp với tìm kiếm hoặc bộ lọc của bạn. Vui lòng thử lại.
-                </p>
-              </div>
+            {emptyType ? (
+              <OrderHistoryEmptyView
+                type={emptyType}
+                tabLabel={activeTabLabel}
+                onClearSearch={() => setSearchQuery("")}
+              />
             ) : (
               <div className="flex flex-col gap-5">
                 {filteredOrders.map((order) => (
