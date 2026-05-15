@@ -4,4 +4,5 @@ export const ROUTES = {
   REGISTER: '/dang-ky',
   CART: '/gio-hang',
   CHECKOUT: '/thanh-toan',
+  ORDER_HISTORY: '/lich-su-don-hang',
 };

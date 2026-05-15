@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function CartSkeleton() {
   return (
-    <div className="min-h-[calc(100vh-66px)] bg-muted/25 py-6">
+    <div className="min-h-auto py-6">
       {/* Header Skeleton */}
       <div className="border-b border-border/60 bg-background mb-6 -mt-6">
         <div className="mx-auto flex max-w-[1200px] items-center gap-3 px-4 py-4 sm:px-6">
