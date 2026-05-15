@@ -7,7 +7,7 @@ import {
   Unique,
 } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
-@Entity({ tableName: 'Users' })
+@Entity({ tableName: 'users' })
 export class Users extends AuditableEntity {
   @Property({ type: 'string' })
   @Unique()
