@@ -19,7 +19,7 @@ export function DefaultLayout({ children }: DefaultLayoutProps) {
             <DefaultHeader />
             <div className="bg-white">
                 <main
-                    className="bg-white transition-[margin] duration-200"
+                    className="bg-white transition-[margin-top] duration-200"
                     style={{ marginTop: suppressHeader ? 0 : HEADER_HEIGHT }}
                 >
                     {children}

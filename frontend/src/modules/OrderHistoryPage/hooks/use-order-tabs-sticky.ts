@@ -9,21 +9,24 @@ export function useOrderTabsSticky() {
   const [isPinned, setIsPinned] = useState(false);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    const sync = () => {
+      const sentinel = sentinelRef.current;
+      if (!sentinel) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const pinned = !entry.isIntersecting;
-        setIsPinned(pinned);
-        dispatch(setSuppressHeader(pinned));
-      },
-      { rootMargin: `-${HEADER_HEIGHT}px 0px 0px 0px`, threshold: 0 }
-    );
+      const atPageTop = window.scrollY <= 1;
+      const pinned = !atPageTop && sentinel.getBoundingClientRect().top <= 0;
 
-    observer.observe(sentinel);
+      setIsPinned(pinned);
+      dispatch(setSuppressHeader(pinned));
+    };
+
+    sync();
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+
     return () => {
-      observer.disconnect();
+      window.removeEventListener('scroll', sync);
+      window.removeEventListener('resize', sync);
       dispatch(setSuppressHeader(false));
     };
   }, [dispatch]);
