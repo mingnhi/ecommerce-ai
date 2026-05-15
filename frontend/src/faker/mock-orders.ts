@@ -8,7 +8,6 @@ function toProduct(index: number, id: string): IOrderProduct {
     productId: p.productId,
     name: p.name,
     image: p.image ?? undefined,
-    variantLabel: p.variantLabel,
     price: p.price,
     quantity: p.quantity,
   };
@@ -23,8 +22,6 @@ export const MOCK_ORDERS: IOrder[] = [
   {
     id: "ord-1",
     orderNumber: "ORD-A1B2C3",
-    shopName: "",
-    shopId: "",
     status: "delivered",
     products: [toProduct(0, "op-1")],
     subtotal: lineTotal(0),
@@ -38,8 +35,6 @@ export const MOCK_ORDERS: IOrder[] = [
   {
     id: "ord-2",
     orderNumber: "ORD-X9Y8Z7",
-    shopName: "",
-    shopId: "",
     status: "shipping",
     products: [toProduct(1, "op-2")],
     subtotal: lineTotal(1),
@@ -52,8 +47,6 @@ export const MOCK_ORDERS: IOrder[] = [
   {
     id: "ord-3",
     orderNumber: "ORD-M5N6P7",
-    shopName: "",
-    shopId: "",
     status: "pending",
     products: [toProduct(2, "op-3"), toProduct(3, "op-4")],
     subtotal: lineTotal(2) + lineTotal(3),
@@ -66,8 +59,6 @@ export const MOCK_ORDERS: IOrder[] = [
   {
     id: "ord-4",
     orderNumber: "ORD-C4NCEL",
-    shopName: "",
-    shopId: "",
     status: "cancelled",
     products: [toProduct(2, "op-5")],
     subtotal: lineTotal(2),
@@ -80,8 +71,6 @@ export const MOCK_ORDERS: IOrder[] = [
   {
     id: "ord-5",
     orderNumber: "ORD-R3TURN",
-    shopName: "",
-    shopId: "",
     status: "returned",
     products: [toProduct(3, "op-6")],
     subtotal: lineTotal(3),
