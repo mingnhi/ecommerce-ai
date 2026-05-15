@@ -5,7 +5,6 @@ export interface ICartLine {
   image?: string | null;
   price: number;
   quantity: number;
-  variantLabel?: string;
 }
 
 export type ICartLineInput = Omit<ICartLine, "id">;

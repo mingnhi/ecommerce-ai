@@ -118,11 +118,6 @@ function HeaderCartDropdown() {
                           <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-900 dark:text-neutral-100">
                             {line.name}
                           </p>
-                          {line.variantLabel ? (
-                            <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-neutral-400">
-                              {line.variantLabel}
-                            </p>
-                          ) : null}
                           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                             <p className="text-xs font-medium text-gray-600 dark:text-neutral-300">
                               {formatVnd(line.price)}
