@@ -6,6 +6,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { OrderService } from './order.service';
@@ -15,10 +16,13 @@ import { BulkUpdateStatusDto } from './dto/bulk-status.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
 import { CurrentUser } from '@modules/auth/decorators/current-user.decorator';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';
 
 @ApiTags('Order')
 @ApiBearerAuth('JWT')
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
