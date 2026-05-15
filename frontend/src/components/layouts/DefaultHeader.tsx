@@ -27,8 +27,6 @@ import { cartSlice } from "@/stores/cart/slice";
 import { MOCK_PRODUCTS } from "@/faker/mock-products";
 import { cn } from "@/lib/utils";
 import type { ICartLine } from "@/types/cart";
-import { selectSuppressHeader } from "@/stores/layout/selectors";
-
 function HeaderCartDropdown() {
   const { items, totalQuantity, subtotal, setLineQuantity, removeLine } = useCart();
   const badge =
@@ -203,7 +201,6 @@ export function DefaultHeader() {
   const { handleLogout } = useLogout();
   const user = useAppSelector(selectUser);
   const accessToken = useAppSelector(selectAccessToken);
-  const suppressHeader = useAppSelector(selectSuppressHeader);
   const [mounted, setMounted] = useState(false);
   const demoSeededRef = useRef(false);
 
@@ -231,12 +228,7 @@ export function DefaultHeader() {
       : undefined;
 
   return (
-    <header
-      className={cn(
-        "w-full bg-white shadow-sm fixed top-0 left-0 z-50 py-1 transition-transform duration-200",
-        suppressHeader && "-translate-y-full pointer-events-none"
-      )}
-    >
+    <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50 py-1">
       <div className="mx-auto flex items-center justify-between py-1 px-4 sm:px-6 lg:px-8 relative">
         <div className="flex items-center gap-6">
           <Link

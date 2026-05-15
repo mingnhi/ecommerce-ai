@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
 import { formatVnd } from "@/lib/format-currency";
 import { CartVoucherPopover } from "./CartVoucherPopover";
-import { HEADER_HEIGHT } from "@/stores/layout/constants";
 interface CartSummarySidebarProps {
   selected: Set<string>;
   headerChecked: boolean;
@@ -31,8 +30,7 @@ export function CartSummarySidebar({
 
   return (
     <aside
-      className="w-full shrink-0 lg:w-[340px] lg:sticky lg:self-start"
-      style={{ top: HEADER_HEIGHT + 16 }}
+      className="w-full shrink-0 lg:w-[340px] lg:sticky lg:top-[76px] lg:self-start"
     >
       <div
         className="overflow-hidden rounded-sm border border-border/60 bg-card shadow-sm"
