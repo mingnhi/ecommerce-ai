@@ -115,7 +115,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-66px)] bg-muted/25 py-6">
+    <div className="min-h-auto py-6">
       <div className="mx-auto max-w-[1200px]">
         <div className="overflow-hidden shadow-sm rounded-sm border border-border/60 bg-card shadow-sm ring-1 ring-border/40">
           <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
