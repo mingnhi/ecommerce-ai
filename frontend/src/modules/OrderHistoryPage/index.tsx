@@ -11,8 +11,6 @@ import { cn } from "@/lib/utils";
 import { MOCK_ORDERS } from "@/faker/mock-orders";
 import { ROUTES } from "@/lib/routes";
 import { useOrderTabsSticky } from "@/hooks/use-order-tabs-sticky";
-import { HEADER_HEIGHT } from "@/stores/layout/constants";
-
 const orderTabs = [
   { value: "all", label: "Tất cả" },
   { value: "pending", label: "Chờ thanh toán" },
@@ -124,10 +122,9 @@ export default function OrderHistoryPage() {
 
           <div
             className={cn(
-              "sticky z-40 rounded-sm border border-border/50 bg-card p-1 transition-shadow",
-              isPinned && "shadow-md"
+              "sticky top-[60px] z-40 rounded-sm border border-border/50 bg-card p-1 transition-shadow",
+              isPinned && "shadow-md",
             )}
-            style={{ top: isPinned ? 0 : HEADER_HEIGHT }}
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="flex w-full flex-wrap justify-start gap-1 overflow-x-auto bg-transparent p-0 scrollbar-hide sm:flex-nowrap">
