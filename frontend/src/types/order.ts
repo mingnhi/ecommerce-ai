@@ -11,7 +11,6 @@ export interface IOrderProduct {
   productId: string;
   name: string;
   image?: string;
-  variantLabel?: string;
   price: number;
   originalPrice?: number;
   quantity: number;
@@ -20,8 +19,6 @@ export interface IOrderProduct {
 export interface IOrder {
   id: string;
   orderNumber: string;
-  shopName: string;
-  shopId: string;
   status: OrderStatus;
   products: IOrderProduct[];
   subtotal: number;

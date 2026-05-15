@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrderCard } from "./components/OrderCard";
 import { cn } from "@/lib/utils";
 import { MOCK_ORDERS } from "@/faker/mock-orders";
-import { useOrderTabsSticky } from "./hooks/use-order-tabs-sticky";
+import { useOrderTabsSticky } from "../../hooks/use-order-tabs-sticky";
 import { HEADER_HEIGHT } from "@/stores/layout/constants";
 
 const orderTabs = [

@@ -71,11 +71,7 @@ export function OrderCard({ order }: OrderCardProps) {
               <h3 className="line-clamp-2 text-base font-medium leading-snug text-foreground hover:text-primary transition-colors cursor-pointer">
                 {product.name}
               </h3>
-              {product.variantLabel && (
-                <p className="mt-1.5 inline-flex w-fit rounded-md bg-muted/50 px-2 py-1 text-xs font-medium text-muted-foreground">
-                  Phân loại: {product.variantLabel}
-                </p>
-              )}
+              
               <div className="mt-2 font-medium text-muted-foreground sm:hidden">
                 x{product.quantity}
               </div>
