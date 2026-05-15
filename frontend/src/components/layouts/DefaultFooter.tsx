@@ -1,16 +1,10 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { siteConfig } from '@/configs/site';
 
 export function DefaultFooter() {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
-
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
+    const currentYear = new Date().getFullYear();
 
     return (
         <footer className="bg-white border-t border-gray-100">

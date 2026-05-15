@@ -7,8 +7,8 @@ export const ORDER_STATUS_VN: Record<OrderStatus, { label: string; description: 
         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     },
     PAID: {
-        label: 'Đã thanh toán',
-        description: 'Đơn đã được thanh toán, chờ đóng gói',
+        label: 'Đã xác nhận',
+        description: 'Đơn đã được xác nhận thanh toán',
         color: 'bg-blue-100 text-blue-800 border-blue-200',
     },
     SHIPPED: {
@@ -17,13 +17,13 @@ export const ORDER_STATUS_VN: Record<OrderStatus, { label: string; description: 
         color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
     },
     COMPLETED: {
-        label: 'Hoàn tất',
-        description: 'Đơn đã giao thành công',
+        label: 'Đã giao hàng',
+        description: 'Đơn hàng đã được giao thành công',
         color: 'bg-green-100 text-green-800 border-green-200',
     },
     CANCELLED: {
-        label: 'Đã huỷ',
-        description: 'Đơn đã bị huỷ',
+        label: 'Đã hủy',
+        description: 'Đơn hàng đã bị hủy',
         color: 'bg-red-100 text-red-800 border-red-200',
     },
     REFUNDED: {

@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { DefaultHeader } from './DefaultHeader';
 import { DefaultFooter } from './DefaultFooter';

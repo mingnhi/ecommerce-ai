@@ -1,4 +1,4 @@
-'use client';
+// File: use-wishlist.ts
 
 import { useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
@@ -12,8 +12,8 @@ import {
 } from '@/stores/wishlist/slice';
 import { wishlistApi } from '@/apis/wishlist';
 
-/** Fetch wishlist IDs 1 lần khi user login. Gọi từ root layout / providers. */
-export function useWishlistBootstrap() {
+/** Khởi tạo wishlist IDs khi user login. */
+export function useInitWishlist() {
   const dispatch = useAppDispatch();
   const { status } = useSession();
   const loaded = useAppSelector((s) => s.wishlist.loaded);
