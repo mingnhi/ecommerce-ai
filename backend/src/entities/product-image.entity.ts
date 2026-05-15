@@ -1,0 +1,1 @@
+import { Entity, PrimaryKey, Property, ManyToOne } from "@mikro-orm/core"; import { Product } from "./product.entity"; @Entity() export class ProductImage { @PrimaryKey() id: string; @ManyToOne(() => Product) product: Product; @Property() url: string; @Property() isThumbnail: boolean = false; }

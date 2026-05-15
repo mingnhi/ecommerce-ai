@@ -1,0 +1,1 @@
+import { Injectable } from '@nestjs/common'; @Injectable() export class PriceService { async getCurrentPriceFor(id: string) { return '100.00'; } }
