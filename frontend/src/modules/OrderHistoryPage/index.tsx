@@ -37,9 +37,9 @@ export default function OrderHistoryPage() {
   }, [activeTab, searchQuery]);
 
   return (
-    <div className="min-h-auto py-8">
+    <div className="min-h-auto  pb-6">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-        <div className="space-y-6">
+        <div className="space-y-3">
           <div ref={sentinelRef} className="h-px w-full" aria-hidden />
 
           <div

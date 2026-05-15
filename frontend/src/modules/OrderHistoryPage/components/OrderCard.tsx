@@ -106,7 +106,7 @@ export function OrderCard({ order }: OrderCardProps) {
             <div className="text-sm text-muted-foreground">
               Tổng tiền thanh toán
             </div>
-            <div className="text-2xl font-bold tracking-tight text-primary">
+            <div className="text-xl font-bold tracking-tight text-primary">
               {formatVnd(order.total)}
             </div>
           </div>
