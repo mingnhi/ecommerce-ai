@@ -12,22 +12,17 @@ const initialState: CartState = {
   items: [],
 };
 
-function lineId(productId: string, variantLabel?: string) {
-  return `${productId}__${variantLabel ?? ""}`;
-}
-
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
     addLine(state, action: PayloadAction<ICartLineInput>) {
-      const { productId, variantLabel, quantity, ...rest } = action.payload;
-      const id = lineId(productId, variantLabel);
-      const existing = state.items.find((i) => i.id === id);
+      const { productId, quantity, ...rest } = action.payload;
+      const existing = state.items.find((i) => i.productId === productId);
       if (existing) {
         existing.quantity += quantity;
       } else {
-        state.items.push({ id, productId, variantLabel, quantity, ...rest });
+        state.items.push({ id: productId, productId, quantity, ...rest });
       }
     },
     removeLine(state, action: PayloadAction<string>) {
