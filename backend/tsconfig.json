@@ -27,5 +27,5 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "test-api.ts", "test-e2e.ts"]
 }

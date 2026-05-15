@@ -12,6 +12,12 @@ export class UpdateInventoryDto {
   @IsUUID()
   warehouseId?: string;
 
+  @ApiPropertyOptional({ description: 'Ngưỡng cảnh báo sắp hết hàng', minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  lowStockThreshold?: number;
+
   @ApiPropertyOptional({ description: 'Ghi chú lý do điều chỉnh', maxLength: 500 })
   @IsOptional()
   @IsString()

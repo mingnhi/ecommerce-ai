@@ -5,24 +5,12 @@ export interface CartLine {
 }
 
 export interface MergeOptions {
-  /** Cap số lượng mỗi line. Default 999 (khớp DTO). */
+
   maxQuantity?: number;
 }
 
 const DEFAULT_MAX_QTY = 999;
 
-/**
- * Pure function — merge guest cart (localStorage) vào server cart khi user login.
- *
- * Quy tắc:
- *  - Nếu variantId đã có trong server: cộng quantity, cap ở maxQuantity
- *  - Nếu variantId chỉ có ở guest: append vào cuối, giữ priceAtTime của guest (nếu có)
- *  - Server cart line không được động — chỉ tăng quantity
- *  - Thứ tự: giữ thứ tự server, sau đó append guest items mới ở cuối
- *  - Immutable: không mutate input arrays
- *
- * KHÔNG validate stock — đó là việc của caller (cần I/O).
- */
 export function mergeCarts(
   server: ReadonlyArray<CartLine>,
   guest: ReadonlyArray<CartLine>,

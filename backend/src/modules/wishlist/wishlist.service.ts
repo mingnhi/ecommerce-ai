@@ -40,7 +40,7 @@ export class WishlistService {
     const products = await this.em.find(
       Product,
       { id: { $in: productIds }, isDeleted: false },
-      { populate: ['category'] },
+      { populate: [] },
     );
 
     const now = new Date();

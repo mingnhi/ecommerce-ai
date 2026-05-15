@@ -1,12 +1,6 @@
 import { OrderStatus, TERMINAL_STATUSES } from '../enums/order-status.enum';
 
-/**
- * Actor — ai có quyền trigger transition.
- * Dùng để phân biệt:
- *  - SYSTEM: payment webhook tự đổi PENDING→PAID
- *  - ADMIN: admin trigger PAID→SHIPPED, COMPLETED→REFUNDED
- *  - USER: user tự cancel khi đơn còn PENDING
- */
+
 export enum OrderActor {
   SYSTEM = 'SYSTEM',
   ADMIN = 'ADMIN',
@@ -18,32 +12,25 @@ interface TransitionRule {
   allowedActors: ReadonlySet<OrderActor>;
 }
 
-/**
- * Bảng transition hợp lệ. Theo đề xuất DB_NTP (payment-driven):
- *   PENDING → PAID → SHIPPED → COMPLETED
- *   + CANCELLED có thể đến từ PENDING/PAID
- *   + REFUNDED có thể đến từ PAID/SHIPPED/COMPLETED
- *
- * Terminal states (COMPLETED/CANCELLED/REFUNDED) — không transition tiếp.
- */
+
 const TRANSITIONS: Record<OrderStatus, ReadonlyArray<TransitionRule>> = {
   [OrderStatus.PENDING]: [
-    { to: OrderStatus.PAID, allowedActors: new Set([OrderActor.SYSTEM]) },
+    { to: OrderStatus.CONFIRMED, allowedActors: new Set([OrderActor.SYSTEM]) },
     {
       to: OrderStatus.CANCELLED,
       allowedActors: new Set([OrderActor.USER, OrderActor.ADMIN]),
     },
   ],
-  [OrderStatus.PAID]: [
+  [OrderStatus.CONFIRMED]: [
     { to: OrderStatus.SHIPPED, allowedActors: new Set([OrderActor.ADMIN]) },
     { to: OrderStatus.CANCELLED, allowedActors: new Set([OrderActor.ADMIN]) },
     { to: OrderStatus.REFUNDED, allowedActors: new Set([OrderActor.ADMIN]) },
   ],
   [OrderStatus.SHIPPED]: [
-    { to: OrderStatus.COMPLETED, allowedActors: new Set([OrderActor.ADMIN, OrderActor.SYSTEM]) },
+    { to: OrderStatus.DELIVERED, allowedActors: new Set([OrderActor.ADMIN, OrderActor.SYSTEM]) },
     { to: OrderStatus.REFUNDED, allowedActors: new Set([OrderActor.ADMIN]) },
   ],
-  [OrderStatus.COMPLETED]: [
+  [OrderStatus.DELIVERED]: [
     { to: OrderStatus.REFUNDED, allowedActors: new Set([OrderActor.ADMIN]) },
   ],
   [OrderStatus.CANCELLED]: [],
@@ -85,10 +72,7 @@ export function canTransition(
   return rule.allowedActors.has(actor);
 }
 
-/**
- * Validate transition. Throw nếu không hợp lệ. Trả về `to` nếu OK.
- * Nếu `actor` được truyền → enforce quyền actor.
- */
+
 export function transitionOrderStatus(
   from: OrderStatus,
   to: OrderStatus,

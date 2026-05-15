@@ -11,15 +11,6 @@ export interface ApplyMovementInput {
   variantId?: string;
 }
 
-/**
- * Pure function: tính snapshot mới từ snapshot cũ + movement.
- * Không có I/O, không touch DB — dễ unit test.
- *
- * Quy ước:
- * - quantity luôn > 0 (trừ ADJUST có thể = 0)
- * - ADJUST set absolute available (= quantity), không cộng/trừ
- * - Các type khác: cộng/trừ tương ứng
- */
 export function applyMovement(
   current: StockSnapshot,
   movement: ApplyMovementInput,
@@ -84,6 +75,13 @@ export function applyMovement(
         ...current,
         reserved: current.reserved - quantity,
         sold: current.sold + quantity,
+      };
+
+    case MovementType.RETURN:
+      return {
+        ...current,
+        available: current.available + quantity,
+        sold: current.sold - quantity,
       };
 
     default:

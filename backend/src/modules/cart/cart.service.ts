@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository, QueryOrder } from '@mikro-orm/core';
+import { EntityRepository, QueryOrder, LockMode } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/mysql';
 import { Cart } from '@entities/cart.entity';
 import { CartItem } from '@entities/cart-item.entity';
@@ -33,9 +33,33 @@ export class CartService {
   ) {}
 
   async getCart(userId: string) {
-    const cart = await this.getOrCreateActiveCart(this.em, userId);
-    await this.em.populate(cart, ['items']);
-    return this.toDto(cart);
+    return this.em.transactional(async (em) => {
+      const cart = await this.getOrCreateActiveCart(em, userId);
+      await em.populate(cart, ['items']);
+
+      let updated = false;
+      for (const item of cart.items.getItems()) {
+        try {
+          const currentPrice = await this.resolvePrice(em, item.variantId);
+          if (item.priceAtTime !== currentPrice) {
+            item.priceAtTime = currentPrice;
+            em.persist(item);
+            updated = true;
+          }
+        } catch (e) {
+          // If variant deleted or has no active price, remove it
+          em.remove(item);
+          updated = true;
+        }
+      }
+      if (updated) {
+        await em.flush();
+        // repopulate after removal if any
+        await em.populate(cart, ['items']);
+      }
+
+      return this.toDto(cart);
+    });
   }
 
   async addItem(userId: string, dto: AddCartItemDto) {
@@ -189,7 +213,7 @@ export class CartService {
     const cart = await em.findOne(
       Cart,
       { userId, status: CartStatus.ACTIVE },
-      { populate: ['items'] },
+      { populate: ['items'], lockMode: LockMode.PESSIMISTIC_WRITE },
     );
     if (!cart || cart.items.length === 0) {
       throw new ConflictException('Cart rỗng — không thể checkout');
@@ -246,7 +270,7 @@ export class CartService {
     }
   }
 
-  private async resolvePrice(
+  async resolvePrice(
     em: EntityManager,
     variantId: string,
   ): Promise<string> {

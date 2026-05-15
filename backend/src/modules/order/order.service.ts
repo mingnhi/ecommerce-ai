@@ -30,6 +30,7 @@ import { InventoryService } from '@modules/inventory/inventory.service';
 import { MovementType } from '@modules/inventory/enums/movement-type.enum';
 import { VoucherService } from '@modules/voucher/voucher.service';
 import { AuditService } from '@modules/audit/audit.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrderService {
@@ -41,6 +42,7 @@ export class OrderService {
     private readonly inventoryService: InventoryService,
     private readonly voucherService: VoucherService,
     private readonly auditService: AuditService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -55,7 +57,9 @@ export class OrderService {
     return this.em.transactional(async (em) => {
       const cart = await this.cartService.getActiveCartForCheckout(em, userId);
 
-      const items = cart.items.getItems();
+      const items = [...cart.items.getItems()].sort((a, b) => 
+        a.variantId.localeCompare(b.variantId)
+      );
       let subtotalNum = 0;
 
       const order = em.create(Order, {
@@ -87,7 +91,8 @@ export class OrderService {
           },
         );
 
-        const priceNum = Number(ci.priceAtTime);
+        const currentPriceStr = await this.cartService.resolvePrice(em, ci.variantId);
+        const priceNum = Number(currentPriceStr);
         const itemSubtotal = priceNum * ci.quantity;
         subtotalNum += itemSubtotal;
 
@@ -96,7 +101,7 @@ export class OrderService {
             order,
             variantId: ci.variantId,
             quantity: ci.quantity,
-            price: ci.priceAtTime,
+            price: currentPriceStr,
             subtotal: itemSubtotal.toFixed(2),
           }),
         );
@@ -259,10 +264,10 @@ export class OrderService {
    * Internal API cho PaymentService gọi khi PayPal capture / COD confirm xong.
    * SYSTEM actor được phép trigger PENDING→PAID (theo state machine).
    */
-  async markPaidBySystem(orderId: string) {
+  async markConfirmedBySystem(orderId: string) {
     return this.applyTransition({
       orderId,
-      targetStatus: OrderStatus.PAID,
+      targetStatus: OrderStatus.CONFIRMED,
       actor: OrderActor.SYSTEM,
       actorUserId: undefined,
       note: 'Payment confirmed',
@@ -370,6 +375,15 @@ export class OrderService {
         metadata: { from, to, actor: input.actor, note: input.note },
       });
 
+      // Emit event cho Webhook/Email service
+      this.eventEmitter.emit('order.status_changed', {
+        orderId: order.id,
+        userId: order.userId,
+        fromStatus: from,
+        toStatus: to,
+        actor: input.actor,
+      });
+
       return this.toDto(order);
     });
   }
@@ -383,7 +397,9 @@ export class OrderService {
     to: OrderStatus,
     actorUserId: string,
   ) {
-    const items = order.items.getItems();
+    const items = [...order.items.getItems()].sort((a, b) => 
+      a.variantId.localeCompare(b.variantId)
+    );
 
     const movementType = this.resolveMovementType(from, to);
     if (!movementType) return;
@@ -410,11 +426,11 @@ export class OrderService {
     from: OrderStatus,
     to: OrderStatus,
   ): MovementType | null {
-    if (to === OrderStatus.COMPLETED) return MovementType.SELL;
+    if (to === OrderStatus.DELIVERED) return MovementType.SELL;
     if (to === OrderStatus.CANCELLED) return MovementType.RELEASE;
     if (to === OrderStatus.REFUNDED) {
-      return from === OrderStatus.COMPLETED
-        ? MovementType.IMPORT
+      return from === OrderStatus.DELIVERED
+        ? MovementType.RETURN
         : MovementType.RELEASE;
     }
     return null;
@@ -422,9 +438,9 @@ export class OrderService {
 
   private stampTimestamp(order: Order, status: OrderStatus) {
     const now = new Date();
-    if (status === OrderStatus.PAID) order.paidAt = now;
+    if (status === OrderStatus.CONFIRMED) order.paidAt = now;
     if (status === OrderStatus.SHIPPED) order.shippedAt = now;
-    if (status === OrderStatus.COMPLETED) order.completedAt = now;
+    if (status === OrderStatus.DELIVERED) order.completedAt = now;
     if (status === OrderStatus.CANCELLED) order.cancelledAt = now;
   }
 

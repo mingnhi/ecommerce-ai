@@ -88,19 +88,57 @@ export class InventoryService {
     dto: UpdateInventoryDto,
     actorUserId?: string,
   ) {
-    return this.applyMovementTx(
-      {
+    return this.em.transactional(async (em) => {
+      const inv = await this.lockOrCreate(em, variantId, dto.warehouseId);
+
+      if (dto.lowStockThreshold !== undefined) {
+        inv.lowStockThreshold = dto.lowStockThreshold;
+        em.persist(inv);
+      }
+
+      const current: StockSnapshot = {
+        available: inv.available,
+        reserved: inv.reserved,
+        sold: inv.sold,
+      };
+
+      let next: StockSnapshot;
+      try {
+        next = applyMovement(current, {
+          type: MovementType.ADJUST,
+          quantity: dto.quantity,
+          variantId,
+        });
+      } catch (err) {
+        if (err instanceof InvalidMovementError) {
+          throw new BadRequestException(err.message);
+        }
+        throw err;
+      }
+
+      inv.available = next.available;
+      inv.reserved = next.reserved;
+      inv.sold = next.sold;
+
+      const movement = em.create(InventoryMovement, {
         variantId,
         warehouseId: dto.warehouseId,
         type: MovementType.ADJUST,
         quantity: dto.quantity,
-      },
-      {
+        referenceType: 'MANUAL',
         createdBy: actorUserId,
         note: dto.note,
-        referenceType: 'MANUAL',
-      },
-    );
+      });
+
+      em.persist(inv);
+      em.persist(movement);
+      await em.flush();
+
+      return {
+        inventory: this.toDto(inv),
+        movement: wrap(movement).toJSON(),
+      };
+    });
   }
 
   // ---------- S3-02 ----------

@@ -4,4 +4,5 @@ export enum MovementType {
   RELEASE = 'RELEASE',
   SELL = 'SELL',
   ADJUST = 'ADJUST',
+  RETURN = 'RETURN',
 }
