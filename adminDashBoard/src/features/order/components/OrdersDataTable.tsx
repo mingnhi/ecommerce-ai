@@ -105,14 +105,14 @@ export function OrdersDataTable({
               type="button"
               variant="ghost"
               size="icon-xs"
-              className="text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              className="text-muted-foreground hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
               onClick={row.getToggleExpandedHandler()}
               aria-expanded={row.getIsExpanded()}
               aria-label={row.getIsExpanded() ? "Thu gọn" : "Mở rộng"}
             >
               <ChevronRight
                 className={cn(
-                  "size-4 transition-transform duration-200",
+                  "size-4 transition-transform duration-200 ",
                   row.getIsExpanded() && "rotate-90",
                 )}
               />
@@ -274,7 +274,7 @@ export function OrdersDataTable({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                className="text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                className="text-muted-foreground hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
                 aria-label="Xem chi tiết"
                 onClick={() => setPreview(r)}
               >
@@ -284,7 +284,7 @@ export function OrdersDataTable({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:cursor-pointer"
                 aria-label="Xóa đơn"
                 onClick={() => setDeleteTarget(r)}
               >
