@@ -17,6 +17,7 @@ import { AppSidebar } from "@/shared/layouts/sidebar/AppSidebar"
 const LABELS: Record<string, string> = {
   "/dashboard": "Tổng quan",
   "/cart": "Giỏ hàng",
+  "/orders": "Đơn hàng",
 }
 
 function breadcrumbLabel(pathname: string) {
