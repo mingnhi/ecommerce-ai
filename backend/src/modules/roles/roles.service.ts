@@ -22,7 +22,7 @@ export class RolesService {
     @InjectRepository(RolePermission)
     private readonly rolePermissionRepository: EntityRepository<RolePermission>,
     private readonly em: EntityManager
-  ) {}
+  ) { }
 
   async findAll() {
     return this.roleRepository.findAll({
@@ -100,7 +100,7 @@ export class RolesService {
     };
   }
 
-  async assignPermissions( roleId: string, dto: AssignPermissionsDto) {
+  async assignPermissions(roleId: string, dto: AssignPermissionsDto) {
     const role = await this.roleRepository.findOne({
       id: roleId,
     });
@@ -158,6 +158,42 @@ export class RolesService {
         resource: permission.resource,
         action: permission.action,
       })),
+    };
+  }
+
+  async removePermissionFromRole(roleId: string, permissionId: string) {
+    const role = await this.roleRepository.findOne({ id: roleId });
+    if (!role) {
+      throw new NotFoundException(' Role not found');
+    }
+
+    const permission = await this.permissionRepository.findOne({ id: permissionId });
+    if (!permission) {
+      throw new NotFoundException('Permission not found');
+    }
+
+    const rolePermission = await this.rolePermissionRepository.findOne({
+      role,
+      permission,
+    });
+
+    if (!rolePermission) {
+      throw new NotFoundException('Permission is not assigned to this role');
+    }
+    await this.em.removeAndFlush(rolePermission);
+
+    return {
+      message: 'Remove permission from role success',
+      role: {
+        id: role.id,
+        name: role.name,
+      },
+      permission: {
+        id: permission.id,
+        name: permission.name,
+        resource: permission.resource,
+        action: permission.action,
+      },
     };
   }
 }

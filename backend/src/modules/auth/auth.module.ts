@@ -17,13 +17,17 @@ import { Role } from '@entities/roles.entity';
 import { UserRole } from '@entities/userRoles.entity';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
-import { MailService } from './services/mail.service';
+import { MailService } from '../mail/mail.service';
+import { OtpModule } from '@modules/otp/otp.module';
+import { MailModule } from '@modules/mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
     RolesModule,
+    OtpModule,
+    MailModule,
     UserRolesModule,
     MikroOrmModule.forFeature([User, Role, UserRole]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -49,4 +53,4 @@ import { MailService } from './services/mail.service';
   controllers: [AuthController],
   exports: [AuthService, JwtService],
 })
-export class AuthModule {}
+export class AuthModule { }
