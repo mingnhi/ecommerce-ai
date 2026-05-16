@@ -21,8 +21,9 @@ const LABELS: Record<string, string> = {
 
 function breadcrumbLabel(pathname: string) {
   if (LABELS[pathname]) return LABELS[pathname]
+  if (pathname === "/") return "Tổng quan"
   if (pathname.startsWith("/products/")) return "Sản phẩm"
-  return "Trang chủ"
+  return "Không tìm thấy"
 }
 
 const MainLayout = () => {
