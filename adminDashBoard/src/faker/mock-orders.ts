@@ -1,5 +1,5 @@
 import { MOCK_PRODUCTS } from "@/faker/mock-products"
-import type { IAdminOrder, IOrderProductLines } from "@/features/orders/types"
+import type { IAdminOrder, IOrderProductLines } from "@/features/order/types"
 
 function toProduct(index: number, id: string): IOrderProductLines {
   const p = MOCK_PRODUCTS[index]!
@@ -18,6 +18,15 @@ function lineTotal(index: number) {
   return p.price * p.quantity
 }
 
+const AVATARS = {
+  cust1:
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop",
+  cust2:
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop",
+  cust4:
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+} as const
+
 export const MOCK_ORDERS: IAdminOrder[] = [
   {
     id: "ord-1",
@@ -34,6 +43,7 @@ export const MOCK_ORDERS: IAdminOrder[] = [
     customerId: "cust-1",
     customerName: "Nguyễn Minh Anh",
     customerEmail: "minhanh@ecommerce-ai.vn",
+    customerAvatar: AVATARS.cust1,
   },
   {
     id: "ord-2",
@@ -49,6 +59,7 @@ export const MOCK_ORDERS: IAdminOrder[] = [
     customerId: "cust-2",
     customerName: "Trần Quốc Huy",
     customerEmail: "huy.tran@mail.vn",
+    customerAvatar: AVATARS.cust2,
   },
   {
     id: "ord-3",
@@ -64,6 +75,7 @@ export const MOCK_ORDERS: IAdminOrder[] = [
     customerId: "cust-1",
     customerName: "Nguyễn Minh Anh",
     customerEmail: "minhanh@ecommerce-ai.vn",
+    customerAvatar: AVATARS.cust1,
   },
   {
     id: "ord-4",
@@ -94,6 +106,7 @@ export const MOCK_ORDERS: IAdminOrder[] = [
     customerId: "cust-1",
     customerName: "Nguyễn Minh Anh",
     customerEmail: "minhanh@ecommerce-ai.vn",
+    customerAvatar: AVATARS.cust1,
   },
   {
     id: "ord-6",
@@ -109,5 +122,6 @@ export const MOCK_ORDERS: IAdminOrder[] = [
     customerId: "cust-4",
     customerName: "Phạm Đức Thịnh",
     customerEmail: "thinh.work@company.vn",
+    customerAvatar: AVATARS.cust4,
   },
 ]

@@ -8,13 +8,18 @@ import {
   type ExpandedState,
   type PaginationState,
 } from "@tanstack/react-table"
-import { BaggageClaim, ChevronRight, Eye, Trash2 } from "lucide-react"
+import { ChevronRight, Eye, Trash2, User } from "lucide-react"
 import type { IAdminOrder, OrderStatus, OrdersTableRow } from "@/features/order/types"
 import { ORDER_STATUS_LABEL, ORDER_STATUSES } from "@/features/order/types"
 import { DeleteOrderDialog } from "@/features/order/components/DeleteOrderDialog"
 import { OrderDetailDialog } from "@/features/order/components/OrderDetailDialog"
 import { formatVnd } from "@/shared/lib/format-vnd"
 import { cn } from "@/shared/lib/utils"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar"
 import { Button } from "@/shared/components/ui/button"
 import {
   Table,
@@ -129,9 +134,18 @@ export function OrdersDataTable({
             const n = r.subRows.length
             return (
               <div className="flex min-w-[220px] items-start gap-3.5 py-1">
-                <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 shadow-sm">
-                  <BaggageClaim className="size-4 text-primary" />
-                </div>
+                <Avatar
+                  size="lg"
+                  className="mt-0.5 size-10 rounded-xl after:rounded-xl"
+                >
+                  {r.avatar ? (
+                    <AvatarImage src={r.avatar} alt={r.name} className="rounded-sm" />
+                  ) : null}
+                  <AvatarFallback className="rounded-sm border border-primary/30 bg-primary/10">
+                    <User className="size-4 text-primary" aria-hidden />
+                    <span className="sr-only">{r.name}</span>
+                  </AvatarFallback>
+                </Avatar>
                 <div className="min-w-0 space-y-1">
                   <p className="truncate text-sm font-medium leading-snug text-foreground">
                     {r.name}
@@ -203,7 +217,7 @@ export function OrdersDataTable({
       {
         id: "total",
         header: () => (
-          <span className="block text-right text-sm font-medium text-muted-foreground">
+          <span className="block text-left text-sm font-medium text-muted-foreground">
             Tổng tiền
           </span>
         ),
@@ -215,7 +229,7 @@ export function OrdersDataTable({
             )
           }
           return (
-            <span className="block text-right text-sm font-medium tabular-nums text-foreground">
+            <span className="block text-left text-sm font-medium tabular-nums text-foreground">
               {formatVnd(r.total)}
             </span>
           )
@@ -323,7 +337,7 @@ export function OrdersDataTable({
 
   return (
     <div className="space-y-5">
-      <div className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05)] ring-1 ring-primary/[0.07] dark:bg-card dark:shadow-none">
+      <div className="overflow-hidden rounded-sm border border-primary/20 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05)] ring-1 ring-primary/[0.07] dark:bg-card dark:shadow-none">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -407,7 +421,7 @@ export function OrdersDataTable({
         </Table>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-primary/20 bg-card px-4 py-3.5 ring-1 ring-primary/5 sm:flex-row sm:items-center sm:justify-between dark:bg-card">
+      <div className="flex flex-col gap-4 rounded-sm border border-primary/20 bg-card px-4 py-3.5 ring-1 ring-primary/5 sm:flex-row sm:items-center sm:justify-between dark:bg-card">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="text-xs text-muted-foreground">Hiển thị</span>
           <Select

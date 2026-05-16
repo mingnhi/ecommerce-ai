@@ -27,11 +27,11 @@ export function OrdersToolbar({ value, onChange, onReset }: Props) {
   )
 
   return (
-    <Card className="border-primary/20 bg-card/90 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-primary/5 dark:bg-card">
+    <Card className="rounded-sm border-primary/20 bg-card/90 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-primary/5 dark:bg-card">
       <CardContent className="flex flex-col gap-5 ">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl border border-primary/25 bg-primary/10">
+            <div className="flex size-10 items-center justify-center rounded-sm border border-primary/25 bg-primary/10">
               <SlidersHorizontal className="size-4 text-primary" />
             </div>
             <div>
@@ -70,7 +70,7 @@ export function OrdersToolbar({ value, onChange, onReset }: Props) {
               patch({ status: v as OrderStatus | "all" })
             }
           >
-            <SelectTrigger className="h-10 w-full border-primary/20 bg-background text-sm focus:ring-primary/20">
+            <SelectTrigger className="h-10 py-5 w-full border-primary/20 bg-background text-sm focus:ring-primary/20">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>

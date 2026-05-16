@@ -31,6 +31,7 @@ export interface IAdminOrder {
   customerId: string
   customerName: string
   customerEmail: string
+  customerAvatar?: string
 }
 
 export type OrdersTableRow =
@@ -40,6 +41,7 @@ export type OrdersTableRow =
       customerId: string
       name: string
       email: string
+      avatar?: string
       subRows: OrdersTableRow[]
     }
   | ({
