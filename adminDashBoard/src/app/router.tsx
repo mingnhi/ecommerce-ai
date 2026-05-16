@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import DashboardPage from "@/features/dashboard/pages/Dashboard";
 import ProductPage from "@/features/product/pages/ProductPage";
 import { CartPage } from "@/features/cart/pages/CartPage";
-import OrdersPage from "@/features/orders/pages/OrdersPage";
+import OrdersPage from "@/features/order/pages/OrdersPage";
 import NotFoundPage from "@/features/system/pages/NotFoundPage";
 import MainLayout from "@/shared/layouts/MainLayout";
 import { LoginPage, PrivateRoute, PublicLoginRoute } from "./route-components";

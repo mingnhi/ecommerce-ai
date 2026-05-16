@@ -1,5 +1,5 @@
-import type { IAdminOrder } from "@/features/orders/types"
-import { ORDER_STATUS_LABEL } from "@/features/orders/types"
+import type { IAdminOrder } from "@/features/order/types"
+import { ORDER_STATUS_LABEL } from "@/features/order/types"
 import {
   Dialog,
   DialogContent,

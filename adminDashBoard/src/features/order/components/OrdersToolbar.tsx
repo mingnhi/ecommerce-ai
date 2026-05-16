@@ -1,14 +1,14 @@
 import * as React from "react"
 import { Search, SlidersHorizontal } from "lucide-react"
-import type { OrderListFilters } from "@/features/orders/lib/order-filters"
-import type { OrderStatus } from "@/features/orders/types"
-import { ORDER_STATUS_LABEL, ORDER_STATUSES } from "@/features/orders/types"
+import type { OrderListFilters } from "@/features/order/lib/order-filters"
+import type { OrderStatus } from "@/features/order/types"
+import { ORDER_STATUS_LABEL, ORDER_STATUSES } from "@/features/order/types"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItem, 
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
