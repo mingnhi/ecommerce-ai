@@ -1,4 +1,4 @@
-import type { IAdminOrder, OrderStatus, OrdersTableRow } from "@/features/orders/types"
+import type { IAdminOrder, OrderStatus, OrdersTableRow } from "@/features/order/types"
 
 export type OrderListFilters = {
   search: string
@@ -41,6 +41,7 @@ export function groupOrdersByCustomer(orders: IAdminOrder[]): OrdersTableRow[] {
       customerId,
       name: head.customerName,
       email: head.customerEmail,
+      avatar: head.customerAvatar,
       subRows: sorted.map((o) => ({ rowType: "order" as const, ...o })),
     }
   })
