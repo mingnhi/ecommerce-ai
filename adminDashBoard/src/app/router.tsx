@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import DashBoard from "@/features/dashboard/pages/Dashboard";
+import DashboardPage from "@/features/dashboard/pages/Dashboard";
 import ProductPage from "@/features/product/pages/ProductPage";
 import { CartPage } from "@/features/cart/pages/CartPage";
 import MainLayout from "@/shared/layouts/MainLayout";
@@ -30,7 +30,7 @@ export const privateRoutes = [
       },
       {
         path: "/dashboard",
-        element: <DashBoard />,
+        element: <DashboardPage />,
       },
       {
         path: "/products/:id",
