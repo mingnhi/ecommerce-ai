@@ -6,7 +6,7 @@ import {
   type OrderListFilters,
   filterOrders,
   groupOrdersByCustomer,
-} from "@/features/order/lib/order-filters"
+} from "@/shared/lib/order-filters"
 import type { IAdminOrder, OrderStatus } from "@/features/order/types"
 
 const defaultFilters: OrderListFilters = {
