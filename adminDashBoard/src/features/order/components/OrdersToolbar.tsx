@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Search, SlidersHorizontal } from "lucide-react"
-import type { OrderListFilters } from "@/features/order/lib/order-filters"
+import type { OrderListFilters } from "@/shared/lib/order-filters"
 import type { OrderStatus } from "@/features/order/types"
 import { ORDER_STATUS_LABEL, ORDER_STATUSES } from "@/features/order/types"
 import { Button } from "@/shared/components/ui/button"
