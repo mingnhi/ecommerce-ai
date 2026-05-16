@@ -1,10 +1,10 @@
 import type { ComponentProps } from "react"
 import { Link } from "react-router-dom"
 import {
+  BaggageClaim,
   LayoutDashboard,
   Package,
   ShoppingBag,
-  ShoppingCart,
 } from "lucide-react"
 import {
   Sidebar,
@@ -33,15 +33,16 @@ const nav = {
       isActive: true,
     },
     {
-      title: "Cửa hàng",
+      title: "Sản phẩm",
       url: "/products/1",
       icon: <Package className="size-4" />,
-      items: [{ title: "Sản phẩm mẫu", url: "/products/1" }],
+      items: [{ title: "Danh mục", url: "/categories" }, { title: "Danh sách sản phẩm", url: "/products" }],
     },
     {
-      title: "Giỏ hàng",
-      url: "/cart",
-      icon: <ShoppingCart className="size-4" />,
+      title: "Đơn hàng",
+      url: "/orders",
+      icon: <BaggageClaim className="size-4" />,
+      items: [{ title: "Danh sách đơn hàng", url: "/orders" }],
     },
   ],
 }
