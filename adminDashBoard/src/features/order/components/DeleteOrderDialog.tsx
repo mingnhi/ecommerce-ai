@@ -40,7 +40,7 @@ export function DeleteOrderDialog({
           <Button
             type="button"
             variant="outline"
-            className="w-full border-primary/20 sm:w-auto"
+            className="w-full border-primary/20 sm:w-auto hover:cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             Hủy
@@ -48,7 +48,7 @@ export function DeleteOrderDialog({
           <Button
             type="button"
             variant="destructive"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto hover:cursor-pointer"
             onClick={() => {
               onConfirm()
               onOpenChange(false)
