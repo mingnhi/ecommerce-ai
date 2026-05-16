@@ -21,10 +21,10 @@ import { Roles } from '@modules/auth/guards/roles.decorator';
 
 @Controller('roles')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')  
+@Roles('ADMIN')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) { }
-  
+
   @Get()
   findAll() {
     return this.rolesService.findAll();
@@ -63,5 +63,16 @@ export class RolesController {
     @Body() dto: AssignPermissionsDto,
   ) {
     return this.rolesService.assignPermissions(id, dto);
+  }
+
+  @Delete(':id/permissions/:permissionId')
+  async removePermissionFromRole(
+    @Param('id') id: string,
+    @Param('permissionId') permissionId: string,
+  ) {
+    return this.rolesService.removePermissionFromRole(
+      id,
+      permissionId,
+    );
   }
 }

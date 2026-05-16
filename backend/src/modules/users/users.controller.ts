@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/user.dto';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/guards/roles.decorator';
+import { ApiResponse } from '@common/interfaces/api-response.interface';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -22,29 +23,67 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(): Promise<ApiResponse<any>> {
+    const data = await this.usersService.findAll();
+
+    return {
+      status: 'success',
+      message: 'Get users successfully',
+      data,
+      meta: {
+        count: data.length,
+      },
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
+  async findOne(@Param('id') id: string): Promise<ApiResponse<any>> {
+    const data = await this.usersService.findOne(id);
 
+    return {
+      status: 'success',
+      message: 'Get user successfully',
+      data,
+    };
+  }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN','USER')
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.usersService.update(id, updateUserDto);
+
+    return {
+      status: 'success',
+      message: 'Update user successfully',
+      data,
+    };
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.updateStatus(id, dto);
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.usersService.updateStatus(id, dto);
+
+    return {
+      status: 'success',
+      message: 'Update user status successfully',
+      data,
+    };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: string): Promise<ApiResponse<any>> {
+    const data = await this.usersService.remove(id);
+
+    return {
+      status: 'success',
+      message: 'Delete user successfully',
+      data,
+    };
   }
 }

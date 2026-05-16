@@ -2,7 +2,7 @@ import { RolesService } from '@modules/roles/roles.service';
 import { UserRolesService } from '@modules/user-roles/user-roles.service';
 import { UsersService } from '@modules/users/users.service';
 import {
-    BadRequestException,
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -13,21 +13,23 @@ import { RegisterDto } from '../dtos/register.dto';
 import bcrypt from 'bcryptjs';
 import { UserStatus } from '@entities/user.entity';
 import { LoginDto } from '../dtos/login.dto';
-import { MailService } from './mail.service';
+import { MailService } from '../../mail/mail.service';
 import { VerifyOtpDto } from '../dtos/verify-otp.dto';
 import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
 import { ResetPasswordDto } from '../dtos/reset-password.dto';
+import { OtpService } from '@modules/otp/otp.service';
+import { OtpType } from '@entities/otp.entity';
 
 @Injectable()
 export class AuthService {
-    private otpStore = new Map<string, {
-        otpHash: string;
-        expiresAt: Date;
-        fullName: string;
-        password: string;
-    }
-      >();
-  
+  private otpStore = new Map<string, {
+    otpHash: string;
+    expiresAt: Date;
+    fullName: string;
+    password: string;
+  }
+  >();
+
   private resetPasswordOtpStore = new Map<string, {
     otpHash: string;
     expiresAt: Date;
@@ -36,9 +38,10 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
     private readonly userRolesService: UserRolesService,
-      private readonly jwtService: JwtService,
-      private readonly mailService: MailService,
-  ) {}
+    private readonly otpService: OtpService,
+    private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
+  ) { }
 
   private async getUserRoles(userId: string): Promise<string[]> {
     const userRoles = await this.userRolesService.findByUser(userId);
@@ -81,122 +84,92 @@ export class AuthService {
     if (exist) {
       throw new ConflictException('Email already exists');
     }
-      
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpHash = await bcrypt.hash(otp, 10);
-      this.otpStore.set(dto.email, {
-          otpHash,
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-          fullName: dto.fullName,
-          password: dto.password,
-      });
-      await this.mailService.sendOtpEmail(dto.email, otp);
-      return {
-          message: 'OTP sent to your email',
-          email: dto.email,
-      };
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    const user = await this.usersService.create({
+      email: dto.email,
+      passwordHash,
+      fullName: dto.fullName,
+      status: UserStatus.INACTIVE,
+    });
+
+    const otpData = await this.otpService.createOtp({
+      email: user.email,
+      type: OtpType.REGISTER,
+    });
+
+    await this.mailService.sendOtpEmail(user.email, otpData.otp);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        status: user.status,
+      },
+      message: 'OTP has been sent to your email',
+    };
   }
-    
-    async verifyOtp(dto: VerifyOtpDto) {
-        const storedOtp = this.otpStore.get(dto.email);
 
-        if (!storedOtp) {
-            throw new BadRequestException('OTP not found or expired');
-        }
+  async verifyOtp(dto: VerifyOtpDto) {
+    const user = await this.usersService.findByEmail(dto.email);
 
-        if (storedOtp.expiresAt < new Date()) {
-            this.otpStore.delete(dto.email);
-
-            throw new BadRequestException('OTP expired');
-        }
-
-        const isOtpValid = await bcrypt.compare(
-            dto.otp,
-            storedOtp.otpHash,
-        );
-
-        if (!isOtpValid) {
-            throw new UnauthorizedException('Invalid OTP');
-        }
-
-        const existedUser = await this.usersService.findByEmail(dto.email);
-
-        if (existedUser) {
-            this.otpStore.delete(dto.email);
-
-            throw new ConflictException('Email already exists');
-        }
-
-        const hashedPassword = await bcrypt.hash(storedOtp.password, 10);
-
-        const user = await this.usersService.create({
-            email: dto.email,
-            passwordHash: hashedPassword,
-            fullName: storedOtp.fullName,
-            status: UserStatus.ACTIVE,
-        });
-
-        const userRole = await this.rolesService.findByName('USER');
-
-        if (!userRole) {
-            throw new NotFoundException('USER role not found');
-        }
-
-        await this.userRolesService.create({
-            userId: user.id,
-            roleId: userRole.id,
-        });
-
-        this.otpStore.delete(dto.email);
-
-        const { accessToken, refreshToken } = await this.signTokens(
-            user.id,
-            user.email,
-        );
-
-        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-        await this.usersService.update(user.id, {
-            refreshToken: hashedRefreshToken,
-        });
-
-        return {
-            message: 'Register success',
-            user: {
-                id: user.id,
-                email: user.email,
-                fullName: user.fullName,
-                status: user.status,
-            },
-            accessToken,
-            refreshToken,
-        };
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    await this.otpService.verifyOtp({
+      email: dto.email,
+      otp: dto.otp,
+      type: OtpType.REGISTER,
+    });
+
+    user.status = UserStatus.ACTIVE;
+
+    await this.usersService.update(user.id, {
+      status: UserStatus.ACTIVE,
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      status: UserStatus.ACTIVE,
+      verified: true,
+    };
+  }
+
   async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const isPasswordValid = await bcrypt.compare(
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Account is not active');
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
       dto.password,
-      user.passwordHash
+      user.passwordHash,
     );
 
-    if (!isPasswordValid) {
+    if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    if (
-      user.status === UserStatus.INACTIVE ||
-      user.status === UserStatus.BANNED
-    ) {
-      throw new UnauthorizedException('Account inactive');
-    }
 
-    const { accessToken, refreshToken } = await this.signTokens(
-      user.id,
-      user.email
-    );
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    const accessToken = await this.jwtService.generateAccessToken(payload);
+
+    const refreshToken = await this.jwtService.generateRefreshToken({
+      ...payload,
+      type: 'refresh',
+    });
 
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
@@ -205,19 +178,13 @@ export class AuthService {
       lastLoginAt: new Date(),
     });
 
-    const roles = await this.getUserRoles(user.id);
-
     return {
-      message: 'Login success',
-
       user: {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
         status: user.status,
-        roles,
       },
-
       accessToken,
       refreshToken,
     };
@@ -227,49 +194,38 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
-      return { message: 'If this email exists, OTP has been sent'};
+      return {
+        message: 'If this email exists, OTP has been sent',
+      };
     }
-    const otp = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
 
-    const otpHash = await bcrypt.hash(otp, 10);
-
-    this.resetPasswordOtpStore.set(dto.email, {
-      otpHash,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    const otpData = await this.otpService.createOtp({
+      email: user.email,
+      type: OtpType.FORGOT_PASSWORD,
     });
 
-    await this.mailService.sendResetPasswordOtp(dto.email, otp);
-    return { message: 'If this email exists, OTP has been sent'};
+    await this.mailService.sendResetPasswordOtp(
+      user.email,
+      otpData.otp,
+    );
+
+    return {
+      message: 'If this email exists, OTP has been sent',
+    };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    const storedOtp = this.resetPasswordOtpStore.get(dto.email);
-
-    if (!storedOtp) {
-      throw new BadRequestException('OTP not found or expired');
-    }
-
-    if (storedOtp.expiresAt < new Date()) {
-      this.resetPasswordOtpStore.delete(dto.email);
-      throw new BadRequestException('OTP expired');
-    }
-
-    const isOtpValid = await bcrypt.compare(
-      dto.otp,
-      storedOtp.otpHash,
-    );
-
-    if (!isOtpValid) {
-      throw new UnauthorizedException('Invalid OTP');
-    }
-
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    await this.otpService.verifyOtp({
+      email: dto.email,
+      otp: dto.otp,
+      type: OtpType.FORGOT_PASSWORD,
+    });
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
@@ -277,8 +233,6 @@ export class AuthService {
       passwordHash: hashedPassword,
       refreshToken: null,
     });
-
-    this.resetPasswordOtpStore.delete(dto.email);
 
     return {
       message: 'Reset password success',

@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/swagger';
 import { ArrayNotEmpty, IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreatePermissionDto {
@@ -24,3 +25,5 @@ export class AssignPermissionsDto {
     @IsString({ each: true })
     permissionIds!: string[];
 }
+
+export class UpdatePermissionDto extends PartialType(CreatePermissionDto) {}

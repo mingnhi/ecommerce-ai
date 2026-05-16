@@ -5,7 +5,7 @@ import { UserRole } from './userRoles.entity';
 export enum UserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  BANNED = ' BANNED',
+  BANNED = 'BANNED',
 }
 @Entity({ tableName: 'users' })
 export class User extends AuditableEntity {
@@ -28,12 +28,6 @@ export class User extends AuditableEntity {
 
   @Property({ type: 'datetime', nullable: true, fieldName: 'last_login_at' })
   lastLoginAt?: Date;
-
-  @Property({ type: 'varchar', length: 255, fieldName: 'email_otp_hash', nullable: true })
-  emailOtpHash?: string | null;
-
-  @Property({ type: 'datetime', fieldName: 'email_otp_expires_at', nullable: true })
-  emailOtpExpiresAt?: Date | null;
 
   @Property({ nullable: true })
   refreshToken?: string | null;
