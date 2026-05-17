@@ -44,8 +44,10 @@ export class AuthService {
 
     const accessToken = await this.jwtService.generateAccessToken(payload);
 
-    const refreshToken = await this.jwtService.generateRefreshToken(payload);
-
+    const refreshToken = await this.jwtService.generateRefreshToken({
+      ...payload,
+      type: 'refresh',
+    });
     return {
       accessToken,
       refreshToken,
@@ -122,9 +124,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    const roles = await this.getUserRoles(user.id);
+
     const payload = {
       sub: user.id,
       email: user.email,
+      roles,
     };
 
     const accessToken = await this.jwtService.generateAccessToken(payload);
@@ -147,6 +152,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         status: user.status,
+        roles,
       },
       accessToken,
       refreshToken,
@@ -175,6 +181,9 @@ export class AuthService {
   async refresh(refreshToken: string) {
     const payload = await this.jwtService.verifyRefreshToken(refreshToken);
 
+    if (payload.type !== 'refresh') {
+      throw new UnauthorizedException('Invalid token type');
+    }
     const user = await this.usersService.findOne(payload.sub);
 
     if (!user || !user.refreshToken) {
