@@ -51,7 +51,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "../adminDashBoard/src/shared/lib/validations/inventory-schema.ts"
   ],
   "exclude": [
     "node_modules"
