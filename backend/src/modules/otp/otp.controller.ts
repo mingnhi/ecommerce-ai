@@ -4,12 +4,13 @@ import { OtpService } from './otp.service';
 
 import { ApiResponse } from '@common/interfaces/api-response.interface';
 import { CreateOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Controller('otp')
 export class OtpController {
   constructor(private readonly otpService: OtpService) { }
 
-  @Post('create')
+  @Post('send')
   async createOtp(
     @Body() dto: CreateOtpDto,
   ): Promise<ApiResponse<any>> {
@@ -35,6 +36,44 @@ export class OtpController {
     };
   }
 
+  @Post('resend')
+  async resendOtp(
+    @Body() dto: CreateOtpDto,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.otpService.resendOtp(dto);
+
+    return {
+      status: 'success',
+      message: 'Resend OTP successfully',
+      data,
+    };
+  }
+
+  @Post('verify-register')
+  async verifyRegisterOtp(
+    @Body() dto: VerifyOtpDto,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.otpService.verifyRegisterOtp(dto);
+
+    return {
+      status: 'success',
+      message: 'Verify register OTP successfully',
+      data,
+    };
+  }
+
+  @Post('forgot-password')
+  async forgotPasswordOtp(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.otpService.forgotPasswordOtp(dto.email);
+
+    return {
+      status: 'success',
+      message: 'Forgot password OTP sent successfully',
+      data,
+    };
+  }
   @Delete('expired')
   async removeExpiredOtps(): Promise<ApiResponse<any>> {
     const data = await this.otpService.removeExpiredOtps();

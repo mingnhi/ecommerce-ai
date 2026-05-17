@@ -1,4 +1,4 @@
-import { User, UserStatus } from '@entities/user.entity';
+import { User } from '@entities/user.entity';
 import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { UserStatus } from './use.enum';
 
 @Injectable()
 export class UsersService {

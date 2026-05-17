@@ -13,7 +13,7 @@ export class MailService {
         },
     });
 
-    async sendOtpEmail(email: string, otp: string) {
+    async sendOtpEmail(email: string, otp: number) {
         await this.transporter.sendMail({
             from: process.env.MAIL_USER,
             to: email,
@@ -27,7 +27,7 @@ export class MailService {
         });
     }
 
-    async sendResetPasswordOtp(email: string, otp: string) {
+    async sendResetPasswordOtp(email: string, otp: number) {
         await this.transporter.sendMail({
             from: process.env.MAIL_USER,
             to: email,

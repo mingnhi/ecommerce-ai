@@ -4,7 +4,6 @@ import {
   Get,
   Headers,
   Post,
-  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -16,17 +15,15 @@ import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { VerifyOtpDto } from './dtos/verify-otp.dto';
-import { ForgotPasswordDto } from './dtos/forgot-password.dto';
-import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
-  async register( @Body() dto: RegisterDto): Promise<ApiResponse<any>> {
+  async register(@Body() dto: RegisterDto): Promise<ApiResponse<any>> {
     const data = await this.authService.register(dto);
     return {
       status: 'success',
@@ -35,15 +32,6 @@ export class AuthController {
     }
   }
 
-  @Post('verify-otp')
-  async verifyOtp(@Body() dto: VerifyOtpDto): Promise<ApiResponse<any>> {
-    const data = await this.authService.verifyOtp(dto);
-    return {
-      status: 'success',
-      message: 'Verify OTP successfully',
-      data,
-    };
-  }
 
   @Post('login')
   async login(@Body() dto: LoginDto): Promise<ApiResponse<any>> {
@@ -71,16 +59,6 @@ export class AuthController {
     };
   }
 
-  @Post('forgot-password')
-  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<ApiResponse<any>> {
-    const data = await this.authService.forgotPassword(dto);
-
-    return {
-      status: 'success',
-      message: 'Forgot password request successfully',
-      data,
-    };
-  }
 
   @Post('reset-password')
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<ApiResponse<any>> {

@@ -2,7 +2,6 @@ import { RolesService } from '@modules/roles/roles.service';
 import { UserRolesService } from '@modules/user-roles/user-roles.service';
 import { UsersService } from '@modules/users/users.service';
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -11,29 +10,14 @@ import {
 import { JwtService } from './jwt.service';
 import { RegisterDto } from '../dtos/register.dto';
 import bcrypt from 'bcryptjs';
-import { UserStatus } from '@entities/user.entity';
 import { LoginDto } from '../dtos/login.dto';
 import { MailService } from '../../mail/mail.service';
-import { VerifyOtpDto } from '../dtos/verify-otp.dto';
-import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
-import { ResetPasswordDto } from '../dtos/reset-password.dto';
+import { ResetPasswordDto } from '../../otp/dto/reset-password.dto';
 import { OtpService } from '@modules/otp/otp.service';
-import { OtpType } from '@entities/otp.entity';
+import { UserStatus } from '@modules/users/use.enum';
 
 @Injectable()
 export class AuthService {
-  private otpStore = new Map<string, {
-    otpHash: string;
-    expiresAt: Date;
-    fullName: string;
-    password: string;
-  }
-  >();
-
-  private resetPasswordOtpStore = new Map<string, {
-    otpHash: string;
-    expiresAt: Date;
-  }>();
   constructor(
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
@@ -94,12 +78,17 @@ export class AuthService {
       status: UserStatus.INACTIVE,
     });
 
-    const otpData = await this.otpService.createOtp({
-      email: user.email,
-      type: OtpType.REGISTER,
+    const userRole = await this.rolesService.findByName('USER');
+
+    if (!userRole) {
+      throw new NotFoundException('Role USER not found');
+    }
+    await this.userRolesService.create({
+      userId: user.id,
+      roleId: userRole.id,
     });
 
-    await this.mailService.sendOtpEmail(user.email, otpData.otp);
+    await this.otpService.sendRegisterOtp(user.email);
 
     return {
       user: {
@@ -107,35 +96,9 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         status: user.status,
+        role: 'USER',
       },
       message: 'OTP has been sent to your email',
-    };
-  }
-
-  async verifyOtp(dto: VerifyOtpDto) {
-    const user = await this.usersService.findByEmail(dto.email);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    await this.otpService.verifyOtp({
-      email: dto.email,
-      otp: dto.otp,
-      type: OtpType.REGISTER,
-    });
-
-    user.status = UserStatus.ACTIVE;
-
-    await this.usersService.update(user.id, {
-      status: UserStatus.ACTIVE,
-    });
-
-    return {
-      id: user.id,
-      email: user.email,
-      status: UserStatus.ACTIVE,
-      verified: true,
     };
   }
 
@@ -190,30 +153,6 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.usersService.findByEmail(dto.email);
-
-    if (!user) {
-      return {
-        message: 'If this email exists, OTP has been sent',
-      };
-    }
-
-    const otpData = await this.otpService.createOtp({
-      email: user.email,
-      type: OtpType.FORGOT_PASSWORD,
-    });
-
-    await this.mailService.sendResetPasswordOtp(
-      user.email,
-      otpData.otp,
-    );
-
-    return {
-      message: 'If this email exists, OTP has been sent',
-    };
-  }
-
   async resetPassword(dto: ResetPasswordDto) {
     const user = await this.usersService.findByEmail(dto.email);
 
@@ -221,12 +160,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    await this.otpService.verifyOtp({
-      email: dto.email,
-      otp: dto.otp,
-      type: OtpType.FORGOT_PASSWORD,
-    });
-
+    await this.otpService.resetPasswordOtp(dto.email, dto.otp);
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
     await this.usersService.update(user.id, {

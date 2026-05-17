@@ -1,4 +1,3 @@
-import { UserStatus } from '@entities/user.entity';
 import { PartialType } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -7,6 +6,7 @@ import {
   IsOptional,
   MinLength,
 } from 'class-validator';
+import { UserStatus } from '../use.enum';
 export class CreateUserDto {
   @IsEmail()
   email!: string;
