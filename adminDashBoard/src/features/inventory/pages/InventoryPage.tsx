@@ -353,7 +353,7 @@ export default function InventoryPage() {
               <ShoppingBag className="size-5" />
             </div>
             <div>
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Đã bán (Mô phỏng)</p>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Đã bán</p>
               <h3 className="text-lg font-bold tabular-nums text-foreground mt-0.5">{inv.stats.daBan}</h3>
             </div>
           </CardContent>
