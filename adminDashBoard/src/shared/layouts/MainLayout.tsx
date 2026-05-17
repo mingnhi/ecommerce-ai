@@ -18,6 +18,8 @@ const LABELS: Record<string, string> = {
   "/dashboard": "Tổng quan",
   "/cart": "Giỏ hàng",
   "/orders": "Đơn hàng",
+  "/inventory": "Tồn kho",
+  "/inventory/history": "Lịch sử kho",
 }
 
 function breadcrumbLabel(pathname: string) {
