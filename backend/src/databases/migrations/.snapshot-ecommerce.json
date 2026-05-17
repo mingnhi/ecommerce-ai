@@ -424,15 +424,15 @@
           "length": 255,
           "mappedType": "string"
         },
-        "otp_hash": {
-          "name": "otp_hash",
-          "type": "varchar(255)",
+        "otp": {
+          "name": "otp",
+          "type": "int",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
-          "mappedType": "string"
+          "length": null,
+          "mappedType": "integer"
         },
         "type": {
           "name": "type",

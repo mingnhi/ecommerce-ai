@@ -1,12 +1,9 @@
 import { Collection, Entity, Enum, OneToMany, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
 import { UserRole } from './userRoles.entity';
+import { UserStatus } from '@modules/users/use.enum';
 
-export enum UserStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  BANNED = 'BANNED',
-}
+
 @Entity({ tableName: 'users' })
 export class User extends AuditableEntity {
   @Property({ type: 'varchar', length: 255, unique: true })
