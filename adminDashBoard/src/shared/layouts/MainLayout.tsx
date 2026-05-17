@@ -36,7 +36,7 @@ const MainLayout = () => {
       <AppSidebar />
       <SidebarInset className="h-svh overflow-hidden">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/30 px-4 backdrop-blur-sm md:h-16 md:px-6 sticky top-0 z-30">
-          <SidebarTrigger className="-ml-0.5" />
+          <SidebarTrigger className="-ml-0.5 hover:cursor-pointer" />
           
           <Breadcrumb>
             <BreadcrumbList className="text-sm">
