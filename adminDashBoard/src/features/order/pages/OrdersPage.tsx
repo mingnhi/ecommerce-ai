@@ -15,7 +15,7 @@ import {
   type OrderListFilters,
   filterOrders,
   groupOrdersByCustomer,
-} from "@/shared/lib/order-filters"
+} from "@/features/order/lib"
 import { cn } from "@/shared/lib/utils"
 
 const defaultFilters: OrderListFilters = {
