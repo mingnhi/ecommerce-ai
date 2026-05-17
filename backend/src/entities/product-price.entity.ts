@@ -21,6 +21,8 @@ export class ProductPriceEntity extends AuditableEntity {
     type: 'decimal',
     precision: 12,
     scale: 2,
+    serializer: value =>
+      Number(value),
   })
   price: number;
 
@@ -30,6 +32,10 @@ export class ProductPriceEntity extends AuditableEntity {
     precision: 12,
     scale: 2,
     nullable: true,
+    serializer: value =>
+      value
+        ? Number(value)
+        : null,
   })
   originalPrice?: number;
 
@@ -38,6 +44,18 @@ export class ProductPriceEntity extends AuditableEntity {
     nullable: true,
   })
   discountPercent?: number;
+
+  @Property({
+    length: 10,
+    default: 'VND',
+  })
+  currency: string = 'VND';
+
+  @Property({
+    fieldName: 'is_active',
+    default: true,
+  })
+  isActive: boolean = true;
 
   @Property({
     fieldName: 'start_at',

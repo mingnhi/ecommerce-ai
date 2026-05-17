@@ -17,6 +17,9 @@ export class ProductVariantEntity extends AuditableEntity {
   })
   product: ProductEntity;
 
+  @Property()
+  title: string;
+
   @Property({
     unique: true,
   })
@@ -26,7 +29,32 @@ export class ProductVariantEntity extends AuditableEntity {
     type: 'json',
     nullable: true,
   })
-  attributes?: Record<string, any>;
+  attributes?: Record<
+    string,
+    any
+  >;
+
+  @Property({
+    default: 0,
+  })
+  stock: number = 0;
+
+  @Property({
+    nullable: true,
+  })
+  image?: string;
+
+  @Property({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+    serializer: value =>
+      value
+        ? Number(value)
+        : null,
+  })
+  price?: number;
 
   @Property({
     fieldName: 'is_active',

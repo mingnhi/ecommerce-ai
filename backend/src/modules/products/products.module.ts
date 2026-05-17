@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { MikroOrmModule } from '@mikro-orm/nestjs';
+import {
+  MikroOrmModule,
+} from '@mikro-orm/nestjs';
 
 import { ProductEntity } from '@entities/product.entity';
 

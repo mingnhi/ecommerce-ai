@@ -11,11 +11,11 @@ import {
 
 import { ProductsService } from './products.service';
 
-import { CreateProductDto } from './dtos/create-product.dto';
+import { CreateProductRequest } from './dtos/requests/create-product.request';
 
-import { UpdateProductDto } from './dtos/update-product.dto';
+import { UpdateProductRequest } from './dtos/requests/update-product.request';
 
-import { QueryProductsDto } from './dtos/query-products.dto';
+import { QueryProductsRequest } from './dtos/requests/query-products.request';
 
 @Controller('products')
 export class ProductsController {
@@ -24,56 +24,107 @@ export class ProductsController {
   ) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query()
-    query: QueryProductsDto,
+    query: QueryProductsRequest,
   ) {
-    return this.productsService.findAll(
-      query,
-    );
+    const result =
+      await this.productsService.findAll(
+        query,
+      );
+
+    return {
+      status: 'success',
+
+      message:
+        'Products fetched successfully',
+
+      data: result.data,
+
+      meta: result.meta,
+    };
   }
 
   @Get(':slug')
-  findOne(
+  async findOne(
     @Param('slug')
     slug: string,
   ) {
-    return this.productsService.findOne(
-      slug,
-    );
+    const data =
+      await this.productsService.findOne(
+        slug,
+      );
+
+    return {
+      status: 'success',
+
+      message:
+        'Product fetched successfully',
+
+      data,
+    };
   }
 
   @Post()
-  create(
+  async create(
     @Body()
-    dto: CreateProductDto,
+    request: CreateProductRequest,
   ) {
-    return this.productsService.create(
-      dto,
-    );
+    const data =
+      await this.productsService.create(
+        request,
+      );
+
+    return {
+      status: 'success',
+
+      message:
+        'Product created successfully',
+
+      data,
+    };
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id')
     id: string,
 
     @Body()
-    dto: UpdateProductDto,
+    request: UpdateProductRequest,
   ) {
-    return this.productsService.update(
-      id,
-      dto,
-    );
+    const data =
+      await this.productsService.update(
+        id,
+        request,
+      );
+
+    return {
+      status: 'success',
+
+      message:
+        'Product updated successfully',
+
+      data,
+    };
   }
 
   @Delete(':id')
-  remove(
+  async remove(
     @Param('id')
     id: string,
   ) {
-    return this.productsService.remove(
+    await this.productsService.remove(
       id,
     );
+
+    return {
+      status: 'success',
+
+      message:
+        'Product deleted successfully',
+
+      data: null,
+    };
   }
 }

@@ -1,7 +1,5 @@
-import { Module } from '@nestjs/common';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from '@nestjs/common';
 
 import {
   ConfigModule,
@@ -16,19 +14,23 @@ import {
   mikroOrmConfig,
 } from '@config/mikro-orm.config';
 
+import { AppController } from './app.controller';
+
+import { AppService } from './app.service';
+
+import { CategoryModule } from './modules/categories/categories.module';
+
 import { ProductsModule } from './modules/products/products.module';
 
-import { CategoriesModule } from './modules/categories/categories.module';
+import { VariantsModule } from './modules/productvariant/productvariant.module';
 
-import { VariantsModule } from './modules/variants/variants.module';
+import { ProductPriceModule } from './modules/productprice/productprice.module';
 
-import { PricesModule } from './modules/prices/prices.module';
+import { ProductAttributeModule } from './modules/productattribute/productattribute.module';
 
-import { AttributesModule } from './modules/attributes/attributes.module';
+import { ProductImageModule } from './modules/productimage/productimage.module';
 
-import { ImagesModule } from './modules/images/images.module';
-
-import { ReviewsModule } from './modules/reviews/reviews.module';
+import { ProductReviewModule } from './modules/productreview/productreview.module';
 
 @Module({
   imports: [
@@ -49,19 +51,19 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
         ),
     }),
 
-    CategoriesModule,
+    CategoryModule,
 
     ProductsModule,
 
     VariantsModule,
 
-    PricesModule,
+    ProductPriceModule,
 
-    AttributesModule,
+    ProductAttributeModule,
 
-    ImagesModule,
+    ProductImageModule,
 
-    ReviewsModule,
+    ProductReviewModule,
   ],
 
   controllers: [AppController],
@@ -69,3 +71,4 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
   providers: [AppService],
 })
 export class AppModule {}
+

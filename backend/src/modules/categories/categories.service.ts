@@ -4,48 +4,61 @@ import {
 } from '@nestjs/common';
 
 import {
-  EntityManager,
+  InjectRepository,
+} from '@mikro-orm/nestjs';
+
+import {
   EntityRepository,
 } from '@mikro-orm/mysql';
 
-import { InjectRepository } from '@mikro-orm/nestjs';
+import slugify from 'slugify';
 
 import { CategoryEntity } from '@entities/category.entity';
 
-import { ApiResponse } from '@common/interfaces/api-response.interface';
+import { CreateCategoryRequest } from './dtos/requests/create-category.request';
 
-import { CreateCategoryDto } from './dtos/create-category.dto';
-
-import { UpdateCategoryDto } from './dtos/update-category.dto';
-
-import { QueryCategoriesDto } from './dtos/query-categories.dto';
-
-import { CategoryResponse } from './responses/category.response';
+import { UpdateCategoryRequest } from './dtos/requests/update-category.request';
 
 @Injectable()
-export class CategoriesService {
+export class CategoryService {
   constructor(
-    @InjectRepository(
-      CategoryEntity,
-    )
+    @InjectRepository(CategoryEntity)
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
-
-    private readonly em: EntityManager,
   ) {}
 
+  async findAll(type: string) {
+    const categories =
+      await this.categoryRepository.findAll({
+        populate: ['parent', 'children'],
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+    if (type === 'tree') {
+      return categories
+        .filter(category => !category.parent)
+        .map(category =>
+          this.mapCategoryTree(category),
+        );
+    }
+
+    return categories.map(category =>
+      this.mapCategory(category),
+    );
+  }
+
   async create(
-    dto: CreateCategoryDto,
-  ): Promise<
-    ApiResponse<CategoryResponse>
-  > {
+    request: CreateCategoryRequest,
+  ) {
     let parent:
       | CategoryEntity
       | null = null;
 
-    if (dto.parentId) {
+    if (request.parentId) {
       parent =
         await this.categoryRepository.findOne({
-          id: dto.parentId,
+          id: request.parentId,
         });
 
       if (!parent) {
@@ -55,144 +68,41 @@ export class CategoriesService {
       }
     }
 
+    const slug = slugify(
+      request.name,
+      {
+        lower: true,
+        strict: true,
+      },
+    );
+
     const category =
       this.categoryRepository.create({
-        name: dto.name,
-
-        slug:
-          dto.slug ||
-          dto.name
-            .toLowerCase()
-            .replace(/\s+/g, '-'),
-
+        name: request.name,
+        slug,
         parent,
       });
 
-    await this.em.persistAndFlush(
-      category,
-    );
+    await this.categoryRepository
+      .getEntityManager()
+      .persistAndFlush(category);
 
-    return {
-      status: 'success',
-
-      message:
-        'Category created successfully',
-
-      data: {
-        id: category.id,
-
-        name: category.name,
-
-        slug: category.slug,
-
-        parentId:
-          category.parent?.id,
-
-        createdAt:
-          category.createdAt,
-
-        updatedAt:
-          category.updatedAt,
-      },
-    };
-  }
-
-  async findAll(
-    query: QueryCategoriesDto,
-  ): Promise<
-    ApiResponse<CategoryResponse[]>
-  > {
-    const categories =
-      await this.categoryRepository.findAll({
-        populate: ['parent'],
-      });
-
-    const mapped =
-      categories.map(category => ({
-        id: category.id,
-
-        name: category.name,
-
-        slug: category.slug,
-
-        parentId:
-          category.parent?.id,
-
-        createdAt:
-          category.createdAt,
-
-        updatedAt:
-          category.updatedAt,
-
-        children: [],
-      }));
-
-    if (query.type === 'tree') {
-      const map =
-        new Map<
-          string,
-          CategoryResponse
-        >();
-
-      mapped.forEach(category => {
-        map.set(
-          category.id,
-          category,
-        );
-      });
-
-      const roots:
-        CategoryResponse[] = [];
-
-      mapped.forEach(category => {
-        if (
-          category.parentId
-        ) {
-          const parent =
-            map.get(
-              category.parentId,
-            );
-
-          if (parent) {
-            parent.children?.push(
-              category,
-            );
-          }
-        } else {
-          roots.push(category);
-        }
-      });
-
-      return {
-        status: 'success',
-
-        message:
-          'Categories fetched successfully',
-
-        data: roots,
-      };
-    }
-
-    return {
-      status: 'success',
-
-      message:
-        'Categories fetched successfully',
-
-      data: mapped,
-    };
+    return this.mapCategory(category);
   }
 
   async update(
     id: string,
-    dto: UpdateCategoryDto,
-  ): Promise<
-    ApiResponse<CategoryResponse>
-  > {
+    request: UpdateCategoryRequest,
+  ) {
     const category =
-      await this.categoryRepository.findOne({
-        id,
-      });
+      await this.categoryRepository.findOne(
+        {
+          id,
+        },
+        {
+          populate: ['parent'],
+        },
+      );
 
     if (!category) {
       throw new NotFoundException(
@@ -200,11 +110,23 @@ export class CategoriesService {
       );
     }
 
-    if (dto.parentId) {
-      const parent =
-        await this.categoryRepository.findOne({
-          id: dto.parentId,
+    if (request.name) {
+      category.name = request.name;
+
+      category.slug =
+        slugify(request.name, {
+          lower: true,
+          strict: true,
         });
+    }
+
+    if (request.parentId) {
+      const parent =
+        await this.categoryRepository.findOne(
+          {
+            id: request.parentId,
+          },
+        );
 
       if (!parent) {
         throw new NotFoundException(
@@ -212,50 +134,17 @@ export class CategoriesService {
         );
       }
 
-      category.parent =
-        parent;
+      category.parent = parent;
     }
 
-    if (dto.name) {
-      category.name = dto.name;
-    }
+    await this.categoryRepository
+      .getEntityManager()
+      .flush();
 
-    if (dto.slug) {
-      category.slug = dto.slug;
-    }
-
-    await this.em.persistAndFlush(
-      category,
-    );
-
-    return {
-      status: 'success',
-
-      message:
-        'Category updated successfully',
-
-      data: {
-        id: category.id,
-
-        name: category.name,
-
-        slug: category.slug,
-
-        parentId:
-          category.parent?.id,
-
-        createdAt:
-          category.createdAt,
-
-        updatedAt:
-          category.updatedAt,
-      },
-    };
+    return this.mapCategory(category);
   }
 
-  async remove(
-    id: string,
-  ): Promise<ApiResponse<null>> {
+  async remove(id: string) {
     const category =
       await this.categoryRepository.findOne({
         id,
@@ -267,17 +156,52 @@ export class CategoriesService {
       );
     }
 
-    await this.em.removeAndFlush(
-      category,
-    );
+    await this.categoryRepository
+      .getEntityManager()
+      .removeAndFlush(category);
 
+    return null;
+  }
+
+  private mapCategory(
+    category: CategoryEntity,
+  ) {
     return {
-      status: 'success',
+      id: category.id,
 
-      message:
-        'Category deleted successfully',
+      name: category.name,
 
-      data: null,
+      slug: category.slug,
+
+      isActive:
+        category.isActive,
+
+      createdAt:
+        category.createdAt,
+
+      parent: category.parent
+        ? {
+            id: category.parent.id,
+            name: category.parent.name,
+            slug: category.parent.slug,
+          }
+        : null,
+    };
+  }
+
+  private mapCategoryTree(
+    category: CategoryEntity,
+  ) {
+    return {
+      ...this.mapCategory(category),
+
+      children:
+        category.children?.getItems().map(
+          child =>
+            this.mapCategoryTree(
+              child,
+            ),
+        ) || [],
     };
   }
 }

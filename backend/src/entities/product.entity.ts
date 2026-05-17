@@ -11,18 +11,25 @@ import { AuditableEntity } from './base/auditable_entity';
 import { CategoryEntity } from './category.entity';
 
 import { ProductVariantEntity } from './product-variant.entity';
+
 import { ProductPriceEntity } from './product-price.entity';
+
 import { ProductImageEntity } from './product-image.entity';
+
 import { ProductAttributeEntity } from './product-attribute.entity';
+
 import { ProductReviewEntity } from './product-review.entity';
 
 @Entity({
   tableName: 'products',
 })
 export class ProductEntity extends AuditableEntity {
-  @ManyToOne(() => CategoryEntity, {
-    fieldName: 'category_id',
-  })
+  @ManyToOne(
+    () => CategoryEntity,
+    {
+      fieldName: 'category_id',
+    },
+  )
   category: CategoryEntity;
 
   @Property()
@@ -34,10 +41,36 @@ export class ProductEntity extends AuditableEntity {
   slug: string;
 
   @Property({
+    fieldName: 'short_description',
+    type: 'text',
+    nullable: true,
+  })
+  shortDescription?: string;
+
+  @Property({
     type: 'text',
     nullable: true,
   })
   description?: string;
+
+  @Property({
+    fieldName: 'seo_title',
+    nullable: true,
+  })
+  seoTitle?: string;
+
+  @Property({
+    fieldName: 'seo_description',
+    type: 'text',
+    nullable: true,
+  })
+  seoDescription?: string;
+
+  @Property({
+    fieldName: 'view_count',
+    default: 0,
+  })
+  viewCount: number = 0;
 
   @Property({
     fieldName: 'is_active',
@@ -47,7 +80,7 @@ export class ProductEntity extends AuditableEntity {
 
   @OneToMany(
     () => ProductVariantEntity,
-    (variant) => variant.product,
+    variant => variant.product,
   )
   variants =
     new Collection<ProductVariantEntity>(
@@ -56,7 +89,7 @@ export class ProductEntity extends AuditableEntity {
 
   @OneToMany(
     () => ProductPriceEntity,
-    (price) => price.product,
+    price => price.product,
   )
   prices =
     new Collection<ProductPriceEntity>(
@@ -65,7 +98,7 @@ export class ProductEntity extends AuditableEntity {
 
   @OneToMany(
     () => ProductImageEntity,
-    (image) => image.product,
+    image => image.product,
   )
   images =
     new Collection<ProductImageEntity>(
@@ -74,7 +107,8 @@ export class ProductEntity extends AuditableEntity {
 
   @OneToMany(
     () => ProductAttributeEntity,
-    (attr) => attr.product,
+    attribute =>
+      attribute.product,
   )
   attributes =
     new Collection<ProductAttributeEntity>(
@@ -83,10 +117,11 @@ export class ProductEntity extends AuditableEntity {
 
   @OneToMany(
     () => ProductReviewEntity,
-    (review) => review.product,
+    review => review.product,
   )
   reviews =
     new Collection<ProductReviewEntity>(
       this,
     );
 }
+

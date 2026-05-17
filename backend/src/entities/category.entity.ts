@@ -20,6 +20,12 @@ export class CategoryEntity extends AuditableEntity {
   })
   slug: string;
 
+  @Property({
+    fieldName: 'is_active',
+    default: true,
+  })
+  isActive: boolean = true;
+
   @ManyToOne(
     () => CategoryEntity,
     {
@@ -31,7 +37,7 @@ export class CategoryEntity extends AuditableEntity {
 
   @OneToMany(
     () => CategoryEntity,
-    (category) => category.parent,
+    category => category.parent,
   )
   children =
     new Collection<CategoryEntity>(

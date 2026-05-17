@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 
-import { MikroOrmModule } from '@mikro-orm/nestjs';
+import {
+  MikroOrmModule,
+} from '@mikro-orm/nestjs';
 
 import { CategoryEntity } from '@entities/category.entity';
 
-import { CategoriesController } from './categories.controller';
+import { CategoryController } from './categories.controller';
 
-import { CategoriesService } from './categories.service';
+import { CategoryService } from './categories.service';
 
 @Module({
   imports: [
@@ -16,11 +18,11 @@ import { CategoriesService } from './categories.service';
   ],
 
   controllers: [
-    CategoriesController,
+    CategoryController,
   ],
 
-  providers: [CategoriesService],
+  providers: [CategoryService],
 
-  exports: [CategoriesService],
+  exports: [CategoryService],
 })
-export class CategoriesModule {}
+export class CategoryModule {}
