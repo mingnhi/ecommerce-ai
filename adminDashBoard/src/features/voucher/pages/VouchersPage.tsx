@@ -151,7 +151,7 @@ export default function VouchersPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => remove(v)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 hover:cursor-pointer"
                         >
                           <Trash2 size={14} />
                         </Button>

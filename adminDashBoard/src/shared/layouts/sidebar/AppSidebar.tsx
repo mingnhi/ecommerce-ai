@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Package,
   ShoppingBag,
+  Warehouse,
 } from "lucide-react"
 import {
   Sidebar,
@@ -43,6 +44,15 @@ const nav = {
       url: "/orders",
       icon: <BaggageClaim className="size-4" />,
       items: [{ title: "Danh sách đơn hàng", url: "/orders" }],
+    },
+    {
+      title: "Tồn kho",
+      url: "/inventory",
+      icon: <Warehouse className="size-4" />,
+      items: [
+        { title: "Quản lý tồn kho", url: "/inventory" },
+        { title: "Lịch sử kho", url: "/inventory/history" },
+      ],
     },
   ],
 }

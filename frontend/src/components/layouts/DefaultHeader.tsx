@@ -162,7 +162,7 @@ function HeaderCartDropdown() {
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 shrink-0 cursor-pointer text-gray-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400"
+                                className="h-8 w-8 shrink-0 cursor-pointer text-gray-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 hover:cursor-pointer"
                                 onClick={() => removeLine(line.id)}
                                 aria-label="Xóa"
                               >
