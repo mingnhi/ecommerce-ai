@@ -154,7 +154,7 @@ html {
   --card-foreground: oklch(0 0 0);
   --popover: oklch(0.99 0 0);
   --popover-foreground: oklch(0 0 0);
-  --primary: #3a72ec;
+  --primary: oklch(0.685 0.169 237.323);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.94 0 0);
   --secondary-foreground: oklch(0 0 0);
@@ -214,8 +214,8 @@ html {
   --card-foreground: oklch(1 0 0);
   --popover: oklch(0.18 0 0);
   --popover-foreground: oklch(1 0 0);
-  --primary: oklch(1 0 0);
-  --primary-foreground: oklch(0 0 0);
+  --primary: oklch(0.746 0.16 236.711);
+  --primary-foreground: oklch(0.15 0.05 260);
   --secondary: oklch(0.25 0 0);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.23 0 0);
@@ -759,7 +759,7 @@ ol.ordered-list {
 }
 
 .driver-theme-learnking .driver-popover-next-btn {
-  background-color: #0166ff;
+  background-color: #0ea5e9;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -781,13 +781,13 @@ ol.ordered-list {
 }
 
 .driver-theme-learnking .driver-popover-next-btn:hover {
-  background-color: #0052cc;
+  background-color: #0284c7;
 }
 
 .driver-theme-learnking .driver-popover-prev-btn {
   background-color: transparent;
-  color: #0166ff;
-  border: 1px solid #0166ff;
+  color: #0ea5e9;
+  border: 1px solid #0ea5e9;
   border-radius: 12px;
   padding: 6px 14px;
   font-size: 14px;
@@ -806,7 +806,7 @@ ol.ordered-list {
 }
 
 .driver-theme-learnking .driver-popover-prev-btn:hover:not(:disabled) {
-  background-color: #0166ff;
+  background-color: #0ea5e9;
   color: #fff;
 }
 

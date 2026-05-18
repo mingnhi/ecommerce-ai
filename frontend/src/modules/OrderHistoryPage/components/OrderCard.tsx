@@ -27,12 +27,12 @@ export function OrderCard({ order }: OrderCardProps) {
   const orderDate = dayjs(order.createdAt).format("DD/MM/YYYY HH:mm");
 
   return (
-    <div className="group overflow-hidden rounded-sm border border-border/50 bg-card shadow-sm transition-all hover:shadow-md hover:border-primary/20">
+    <div className="group overflow-hidden rounded-sm border border-border/50 bg-card shadow-sm transition-all hover:shadow-md hover:border-sky-500/20">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between border-b border-border/50 bg-muted/30 px-5 py-4">
         <div className="flex flex-wrap items-center gap-4 text-sm">
           <div className="flex items-center gap-2 font-medium text-foreground">
-            <Package className="size-4 text-primary" />
+            <Package className="size-4 text-sky-500" />
             <span>Mã đơn: <span className="uppercase">{order.orderNumber}</span></span>
           </div>
           <div className="hidden h-4 w-px bg-border/80 sm:block" />
@@ -68,10 +68,10 @@ export function OrderCard({ order }: OrderCardProps) {
               )}
             </div>
             <div className="flex flex-1 flex-col justify-center">
-              <h3 className="line-clamp-2 text-base font-medium leading-snug text-foreground hover:text-primary transition-colors cursor-pointer">
+              <h3 className="line-clamp-2 text-base font-medium leading-snug text-foreground hover:text-sky-600 transition-colors cursor-pointer">
                 {product.name}
               </h3>
-              
+
               <div className="mt-2 font-medium text-muted-foreground sm:hidden">
                 x{product.quantity}
               </div>
@@ -102,7 +102,7 @@ export function OrderCard({ order }: OrderCardProps) {
             <div className="text-sm text-muted-foreground">
               Tổng tiền thanh toán
             </div>
-            <div className="text-xl font-bold tracking-tight text-primary">
+            <div className="text-xl font-bold tracking-tight text-sky-500">
               {formatVnd(order.total)}
             </div>
           </div>
@@ -114,7 +114,7 @@ export function OrderCard({ order }: OrderCardProps) {
               Xem chi tiết
             </Button>
             <Button
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 sm:flex-none font-medium shadow-md shadow-primary/20"
+              className="flex-1 bg-sky-500 hover:bg-sky-600 text-white sm:flex-none font-medium shadow-md shadow-sky-500/20 hover:cursor-pointer"
             >
               Mua lại
               <ChevronRight className="ml-1.5 size-4" />

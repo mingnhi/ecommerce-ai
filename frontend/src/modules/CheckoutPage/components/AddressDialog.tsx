@@ -84,7 +84,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <button type="button" className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors cursor-pointer hover:underline">
+        <button type="button" className="text-sky-600 hover:text-sky-700 text-sm font-medium transition-colors cursor-pointer hover:underline">
           Thay Đổi
         </button>
       </DialogTrigger>
@@ -104,7 +104,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Họ và tên"
-                  className="h-14 pt-4 pb-1 px-4 border-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg font-medium"
+                  className="h-14 pt-4 pb-1 px-4 border-muted-foreground/30 focus-visible:ring-sky-500/20 focus-visible:border-sky-500 transition-all rounded-lg font-medium"
                 />
                 <Label htmlFor="fullname" className="absolute left-4 top-1 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Họ và tên</Label>
               </div>
@@ -116,7 +116,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Số điện thoại"
-                  className="h-14 pt-4 pb-1 px-4 border-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg font-medium"
+                  className="h-14 pt-4 pb-1 px-4 border-muted-foreground/30 focus-visible:ring-sky-500/20 focus-visible:border-sky-500 transition-all rounded-lg font-medium"
                 />
                 <Label htmlFor="phone" className="absolute left-4 top-1 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Số điện thoại</Label>
               </div>
@@ -129,7 +129,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between h-14 pt-4 pb-1 px-4 border border-muted-foreground/30 focus:ring-1 focus:ring-primary/20 focus:border-primary rounded-lg font-medium text-left bg-background transition-all outline-none"
+                    className="w-full flex items-center justify-between h-14 pt-4 pb-1 px-4 border border-muted-foreground/30 focus:ring-1 focus:ring-sky-500/20 focus:border-sky-500 rounded-lg font-medium text-left bg-background transition-all outline-none"
                   >
                     <span className={cn(khuVucLabel === "Tỉnh/Thành Phố, Quận/Huyện" ? "text-muted-foreground/50" : "text-foreground")}>
                       {khuVucLabel}
@@ -147,7 +147,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                       <TabsList className="w-full h-12 bg-transparent border-b rounded-t-xl p-0">
                         <TabsTrigger
                           value="province"
-                          className="flex-1 h-full rounded-t-xl border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary font-bold text-sm"
+                          className="flex-1 h-full rounded-t-xl border-b-2 border-transparent data-[state=active]:border-sky-500 data-[state=active]:bg-transparent data-[state=active]:text-sky-600 font-bold text-sm"
                         >
                           Tỉnh/Thành Phố
                         </TabsTrigger>
@@ -155,7 +155,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                         <TabsTrigger
                           value="ward"
                           disabled={!province}
-                          className="flex-1 h-full rounded-t-xl border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary font-bold text-sm"
+                          className="flex-1 h-full rounded-t-xl border-b-2 border-transparent data-[state=active]:border-sky-500 data-[state=active]:bg-transparent data-[state=active]:text-sky-600 font-bold text-sm"
                         >
                           Phường/ Xã
                         </TabsTrigger>
@@ -177,9 +177,9 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                                     setActiveTab("ward");
                                   }}
                                   className={cn(
-                                    "flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-medium transition-all hover:bg-primary/5",
+                                    "flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-medium transition-all hover:bg-sky-500/5",
                                     province === p.id
-                                      ? "bg-primary/5 font-bold text-primary"
+                                      ? "bg-sky-500/5 font-bold text-sky-600"
                                       : "text-foreground/80"
                                   )}
                                 >
@@ -209,9 +209,9 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                                     setIsKhuVucOpen(false);
                                   }}
                                   className={cn(
-                                    "flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-medium transition-all hover:bg-primary/5",
+                                    "flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-medium transition-all hover:bg-sky-500/5",
                                     ward === w.id
-                                      ? "bg-primary/5 font-bold text-primary"
+                                      ? "bg-sky-500/5 font-bold text-sky-600"
                                       : "text-foreground/80"
                                   )}
                                 >
@@ -240,7 +240,7 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                 value={detail}
                 placeholder="Địa chỉ cụ thể"
                 onChange={handleTextareaChange}
-                className="min-h-[10px] pt-5 px-4 border-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg font-medium resize-none overflow-hidden"
+                className="min-h-[10px] pt-5 px-4 border-muted-foreground/30 focus-visible:ring-sky-500/20 focus-visible:border-sky-500 transition-all rounded-lg font-medium resize-none overflow-hidden"
               />
               <Label htmlFor="address-detail" className="absolute left-4 top-1 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Địa chỉ cụ thể</Label>
             </div>
@@ -253,8 +253,8 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                 type="button"
                 onClick={() => setAddrType("home")}
                 className={cn(
-                  "flex-1 h-10 rounded-xl border-2 font-bold transition-all cursor-pointer flex items-center justify-center gap-2",
-                  addrType === "home" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                  "flex-1 h-10 rounded-xl border-2 font-bold transition-all cursor-pointer flex items-center justify-center gap-2 hover:cursor-pointer",
+                  addrType === "home" ? "border-sky-500 bg-sky-500/5 text-sky-600" : "border-border text-muted-foreground hover:bg-muted"
                 )}
               >
                 Nhà Riêng
@@ -263,8 +263,8 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
                 type="button"
                 onClick={() => setAddrType("office")}
                 className={cn(
-                  "flex-1 h-10 rounded-xl border-2 font-bold transition-all cursor-pointer flex items-center justify-center gap-2",
-                  addrType === "office" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                  "flex-1 h-10 rounded-xl border-2 font-bold transition-all cursor-pointer flex items-center justify-center gap-2 hover:cursor-pointer",
+                  addrType === "office" ? "border-sky-500 bg-sky-500/5 text-sky-600" : "border-border text-muted-foreground hover:bg-muted"
                 )}
               >
                 Văn Phòng
@@ -276,13 +276,13 @@ export function AddressDialog({ open, onOpenChange, initialAddress, onUpdate }: 
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="px-8 h-12 rounded-xl font-bold text-muted-foreground hover:bg-muted transition-all cursor-pointer"
+              className="px-8 h-12 rounded-xl font-bold text-muted-foreground hover:bg-muted transition-all cursor-pointer hover:cursor-pointer"
             >
               Trở Lại
             </Button>
             <Button
               onClick={handleComplete}
-              className="px-10 h-12 rounded-xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer"
+              className="px-10 h-12 rounded-xl font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-lg shadow-sky-600/20 transition-all active:scale-95 cursor-pointer hover:cursor-pointer"
             >
               Hoàn thành
             </Button>
