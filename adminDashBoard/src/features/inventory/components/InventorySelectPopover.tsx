@@ -75,13 +75,13 @@ export function InventorySelectPopover({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-sm border border-primary/20 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all text-left cursor-pointer",
+            "flex h-10 w-full items-center justify-between rounded-sm border border-sky-500/20 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/10 transition-all text-left cursor-pointer",
             className,
           )}
         >
           {selectedItem ? (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="size-6 shrink-0 overflow-hidden rounded-sm border border-primary/15 bg-muted">
+              <div className="size-6 shrink-0 overflow-hidden rounded-sm border border-sky-500/15 bg-muted">
                 {selectedItem.anh ? (
                   <img
                     src={selectedItem.anh}
@@ -89,7 +89,7 @@ export function InventorySelectPopover({
                     className="size-full object-cover"
                   />
                 ) : (
-                  <div className="size-full bg-primary/5" />
+                  <div className="size-full bg-sky-500/5" />
                 )}
               </div>
               <div className="min-w-0">
@@ -113,17 +113,17 @@ export function InventorySelectPopover({
           ) : (
             <span className="text-muted-foreground text-xs">{resolvedPlaceholder}</span>
           )}
-          <ChevronsUpDown className="size-4 shrink-0 opacity-55 ml-2 text-primary" />
+          <ChevronsUpDown className="size-4 shrink-0 opacity-55 ml-2 text-sky-500" />
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
-        className="w-[320px] sm:w-[var(--radix-popover-trigger-width)] overflow-hidden p-0 shadow-lg border border-primary/15"
+        className="w-[320px] sm:w-[var(--radix-popover-trigger-width)] overflow-hidden p-0 shadow-lg border border-sky-500/15"
       >
-        <div className="relative flex items-center border-b border-primary/10 px-3">
-          <Search className="size-4 shrink-0 opacity-55 text-primary absolute left-3 pointer-events-none" />
+        <div className="relative flex items-center border-b border-sky-500/10 px-3">
+          <Search className="size-4 shrink-0 opacity-55 text-sky-500 absolute left-3 pointer-events-none" />
           <input
             className="flex h-9 w-full bg-transparent py-2 pl-7 pr-3 text-xs outline-none placeholder:text-muted-foreground/70"
             placeholder={
@@ -149,12 +149,12 @@ export function InventorySelectPopover({
                       setOpen(false)
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between gap-2 rounded-sm p-2 text-left text-xs transition-colors cursor-pointer select-none hover:bg-primary/5",
-                      isSelected ? "bg-primary/10" : "bg-transparent",
+                      "flex w-full items-center justify-between gap-2 rounded-sm p-2 text-left text-xs transition-colors cursor-pointer select-none hover:bg-sky-500/5",
+                      isSelected ? "bg-sky-500/10" : "bg-transparent",
                     )}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="size-8 shrink-0 overflow-hidden rounded-sm border border-primary/15 bg-muted">
+                      <div className="size-8 shrink-0 overflow-hidden rounded-sm border border-sky-500/15 bg-muted">
                         {item.anh ? (
                           <img
                             src={item.anh}
@@ -162,7 +162,7 @@ export function InventorySelectPopover({
                             className="size-full object-cover"
                           />
                         ) : (
-                          <div className="size-full bg-primary/5" />
+                          <div className="size-full bg-sky-500/5" />
                         )}
                       </div>
                       <div className="min-w-0">
@@ -179,7 +179,7 @@ export function InventorySelectPopover({
                       </div>
                     </div>
                     {isSelected && (
-                      <Check className="size-3.5 shrink-0 text-primary" />
+                      <Check className="size-3.5 shrink-0 text-sky-500" />
                     )}
                   </button>
                 )

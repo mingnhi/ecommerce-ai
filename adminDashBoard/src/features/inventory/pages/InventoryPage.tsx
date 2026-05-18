@@ -200,7 +200,7 @@ export default function InventoryPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         {/* Low Stock Alerts */}
         <div className="md:col-span-1 lg:col-span-3">
-          <Card className="h-full flex flex-col rounded-sm border-primary/20 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-primary/5 dark:bg-card">
+          <Card className="h-full flex flex-col rounded-sm border-sky-500/20 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-sky-500/5 dark:bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-3.5 space-y-0 shrink-0">
               <div className="space-y-1">
                 <CardTitle className="text-sm font-medium text-foreground">Sản phẩm cần lưu ý</CardTitle>
@@ -232,7 +232,7 @@ export default function InventoryPage() {
                             type="button"
                             onClick={() => handleSelectAlertProduct(item.id)}
                             className={cn(
-                              "w-full flex items-center justify-between rounded-sm border p-2.5 text-left transition-all hover:bg-primary/[0.04] cursor-pointer",
+                              "w-full flex items-center justify-between rounded-sm border p-2.5 text-left transition-all hover:bg-sky-500/[0.04] cursor-pointer",
                               statusTone[item.trangThai as keyof typeof statusTone] || "border-border bg-card"
                             )}
                           >
@@ -270,7 +270,7 @@ export default function InventoryPage() {
 
         {/* Charts tab */}
         <div className="md:col-span-1 lg:col-span-4">
-          <Card className="h-full flex flex-col rounded-sm border-primary/20 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-primary/5 dark:bg-card">
+          <Card className="h-full flex flex-col rounded-sm border-sky-500/20 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-sky-500/5 dark:bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-3.5 space-y-0 shrink-0">
               <div className="space-y-1">
                 <CardTitle className="text-sm font-medium text-foreground">Phân tích kho hàng</CardTitle>
@@ -278,7 +278,7 @@ export default function InventoryPage() {
                   Thống kê bán chạy và biến động nhập xuất 7 ngày qua
                 </p>
               </div>
-              <BarChart3 className="size-4.5 text-primary" />
+              <BarChart3 className="size-4.5 text-sky-500" />
             </CardHeader>
             <CardContent className="flex-1 min-h-0 pt-0">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -286,11 +286,11 @@ export default function InventoryPage() {
                   <p className="mb-2 text-center text-xs font-medium text-muted-foreground">Top 5 sản phẩm bán chạy</p>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={topSellingData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-primary/5" />
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-sky-500/5" />
                       <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
                       <YAxis tick={{ fontSize: 9 }} className="fill-muted-foreground" />
                       <Tooltip contentStyle={{ fontSize: "10px" }} />
-                      <Bar dataKey="Đã bán" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} className="fill-primary" />
+                      <Bar dataKey="Đã bán" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} className="fill-sky-500" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -308,7 +308,7 @@ export default function InventoryPage() {
                           <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-primary/5" />
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-sky-500/5" />
                       <XAxis dataKey="date" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
                       <YAxis tick={{ fontSize: 9 }} className="fill-muted-foreground" />
                       <Tooltip contentStyle={{ fontSize: "10px" }} />
@@ -325,9 +325,9 @@ export default function InventoryPage() {
 
       {/* Stats row */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
-        <Card className="rounded-sm border-primary/20 bg-card p-3 shadow-none lg:col-span-2">
+        <Card className="rounded-sm border-sky-500/20 bg-card p-3 shadow-none lg:col-span-2">
           <CardContent className="flex items-center gap-3 p-1">
-            <div className="flex size-10 items-center justify-center rounded-sm bg-primary/10 text-primary">
+            <div className="flex size-10 items-center justify-center rounded-sm bg-sky-500/10 text-sky-500">
               <Warehouse className="size-5" />
             </div>
             <div>
@@ -336,7 +336,7 @@ export default function InventoryPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-sm border-primary/20 bg-card p-3 shadow-none lg:col-span-2">
+        <Card className="rounded-sm border-sky-500/20 bg-card p-3 shadow-none lg:col-span-2">
           <CardContent className="flex items-center gap-3 p-1">
             <div className="flex size-10 items-center justify-center rounded-sm bg-sky-500/10 text-sky-500">
               <Layers className="size-5" />
@@ -347,7 +347,7 @@ export default function InventoryPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-sm border-primary/20 bg-card p-3 shadow-none lg:col-span-2">
+        <Card className="rounded-sm border-sky-500/20 bg-card p-3 shadow-none lg:col-span-2">
           <CardContent className="flex items-center gap-3 p-1">
             <div className="flex size-10 items-center justify-center rounded-sm bg-emerald-500/10 text-emerald-500">
               <ShoppingBag className="size-5" />
@@ -358,7 +358,7 @@ export default function InventoryPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-sm border-primary/20 bg-card p-3 shadow-none lg:col-span-2">
+        <Card className="rounded-sm border-sky-500/20 bg-card p-3 shadow-none lg:col-span-2">
           <CardContent className="flex items-center gap-3 p-1">
             <div className="flex size-10 items-center justify-center rounded-sm bg-indigo-500/10 text-indigo-500">
               <Lock className="size-5" />
@@ -369,7 +369,7 @@ export default function InventoryPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-sm border-primary/20 bg-card p-3 shadow-none lg:col-span-2">
+        <Card className="rounded-sm border-sky-500/20 bg-card p-3 shadow-none lg:col-span-2">
           <CardContent className="flex items-center gap-3 p-1">
             <div className="flex size-10 items-center justify-center rounded-sm bg-amber-500/10 text-amber-500">
               <AlertTriangle className="size-5" />
@@ -380,7 +380,7 @@ export default function InventoryPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-sm border-primary/20 bg-card p-3 shadow-none lg:col-span-2">
+        <Card className="rounded-sm border-sky-500/20 bg-card p-3 shadow-none lg:col-span-2">
           <CardContent className="flex items-center gap-3 p-1">
             <div className="flex size-10 items-center justify-center rounded-sm bg-rose-500/10 text-rose-500">
               <AlertTriangle className="size-5" />
@@ -396,7 +396,7 @@ export default function InventoryPage() {
             type="button"
             size="sm"
             onClick={() => setImportOpen(true)}
-            className="w-full gap-1 text-[10px] px-2 h-7.5 bg-primary text-primary-foreground hover:bg-primary/95 cursor-pointer rounded-sm"
+            className="w-full gap-1 text-[10px] px-2 h-7.5 bg-sky-500 text-white hover:bg-sky-600 cursor-pointer rounded-sm"
           >
             <PackagePlus className="size-3.5" />
             Nhập kho
@@ -406,7 +406,7 @@ export default function InventoryPage() {
             variant="outline"
             size="sm"
             onClick={() => setCheckOpen(true)}
-            className="w-full gap-1 text-[10px] px-2 h-7.5 border-primary/25 hover:bg-primary/10 hover:text-primary cursor-pointer rounded-sm"
+            className="w-full gap-1 text-[10px] px-2 h-7.5 border-sky-500/25 hover:bg-sky-500/10 hover:text-sky-500 cursor-pointer rounded-sm"
           >
             <ClipboardCheck className="size-3.5" />
             Kiểm kho
@@ -422,7 +422,7 @@ export default function InventoryPage() {
             type="button"
             variant="outline"
             size="sm"
-            className="h-8 gap-1.5 rounded-sm border-primary/20 hover:bg-primary/10 hover:text-primary hover:cursor-pointer text-xs"
+            className="h-8 gap-1.5 rounded-sm border-sky-500/20 hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer text-xs"
             onClick={() => navigate("/inventory/history")}
           >
             <History className="size-4" />

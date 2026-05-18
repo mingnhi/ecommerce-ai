@@ -8,10 +8,10 @@ const NotFoundPage = () => {
   return (
     <div className="relative flex min-h-[calc(100svh-8rem)] flex-col items-center justify-center px-6 pb-16 pt-8 md:min-h-[calc(100svh-8.5rem)]">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -right-24 top-1/4 size-72 rounded-full bg-primary/[0.06] blur-3xl" />
-        <div className="absolute -left-16 bottom-1/4 size-56 rounded-full bg-primary/[0.04] blur-2xl" />
+        <div className="absolute -right-24 top-1/4 size-72 rounded-full bg-sky-500/[0.06] blur-3xl" />
+        <div className="absolute -left-16 bottom-1/4 size-56 rounded-full bg-sky-500/[0.04] blur-2xl" />
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">
         Lỗi 404
       </p>
       <h1 className="mt-5 text-balance text-4xl font-semibold tracking-tight text-foreground md:text-5xl">

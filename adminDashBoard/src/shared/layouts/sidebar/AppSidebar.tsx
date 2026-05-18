@@ -69,10 +69,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
               className="gap-3 pr-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:pr-0"
             >
               <Link to="/dashboard" title="ecommerce ai">
-                <ShoppingBag className="size-4 shrink-0" />
+                <div className="size-8 shrink-0 flex items-center justify-center rounded-md bg-sky-500 text-white dark:text-sky-400">
+                  <ShoppingBag className="size-4.5" />
+                </div>
                 <span className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 font-semibold tracking-tight text-sidebar-foreground">
-                    <span className="truncate text-primary">Ecommerce-AI</span>
+                    <span className="truncate text-sky-500">ECOMMERCE-AI</span>
                   </span>
                   <span className="truncate text-[11px] text-muted-foreground">
                     Bán hàng thông minh
