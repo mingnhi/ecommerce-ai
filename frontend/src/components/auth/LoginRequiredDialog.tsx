@@ -30,8 +30,8 @@ export function LoginRequiredDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[380px] border border-slate-200/80 p-0 overflow-hidden rounded-2xl shadow-xl">
         <div className="bg-slate-50 px-6 pt-6">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-            <LogIn className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center mb-4">
+            <LogIn className="w-6 h-6 text-sky-600" />
           </div>
           <DialogTitle className="text-lg font-semibold text-slate-800">
             Yêu cầu đăng nhập
@@ -54,7 +54,7 @@ export function LoginRequiredDialog({
               Chưa có tài khoản?{' '}
               <Link
                 href={ROUTES.REGISTER}
-                className="text-primary font-medium hover:underline"
+                className="text-sky-600 font-medium hover:underline hover:cursor-pointer"
                 onClick={() => onOpenChange(false)}
               >
                 Đăng ký ngay

@@ -38,11 +38,11 @@ export function CartSummarySidebar({
       >
         <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-muted/20 px-4 py-3.5">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Ticket className="size-4 text-primary" />
+            <Ticket className="size-4 text-sky-500" />
             <span>Voucher</span>
           </div>
           <CartVoucherPopover>
-            <button type="button" className="cursor-pointer text-sm font-medium text-primary hover:underline">
+            <button type="button" className="cursor-pointer text-sm font-medium text-sky-600 hover:underline hover:cursor-pointer">
               Chọn hoặc nhập mã
             </button>
           </CartVoucherPopover>
@@ -51,20 +51,20 @@ export function CartSummarySidebar({
         <div className="space-y-5 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <Checkbox
-              className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+              className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground"
               checked={headerIndeterminate ? "indeterminate" : headerChecked}
               onCheckedChange={() => onToggleAll()}
             />
             <button
               type="button"
-              className="text-sm font-medium text-foreground hover:text-primary"
+              className="text-sm font-medium text-foreground hover:text-sky-600 hover:cursor-pointer"
               onClick={() => onToggleAll()}
             >
               Chọn tất cả ({selected.size})
             </button>
             <button
               type="button"
-              className="cursor-pointer text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+              className="cursor-pointer text-sm font-medium text-sky-600 hover:underline disabled:cursor-not-allowed disabled:opacity-40 hover:cursor-pointer"
               disabled={selected.size === 0}
               onClick={() => onDeleteSelected()}
             >
@@ -79,7 +79,7 @@ export function CartSummarySidebar({
             </div>
             <div className="flex items-center justify-between border-t border-border/40 pt-3">
               <span className="font-medium text-foreground">Tổng thanh toán</span>
-              <span className="text-xl font-bold tabular-nums text-primary">
+              <span className="text-xl font-bold tabular-nums text-sky-600">
                 {formatVnd(selectedSubtotal)}
               </span>
             </div>
@@ -92,7 +92,7 @@ export function CartSummarySidebar({
               const ids = Array.from(selected).join(",");
               router.push(`${ROUTES.CHECKOUT}?ids=${ids}`);
             }}
-            className="h-11 w-full cursor-pointer rounded-lg bg-primary text-base font-semibold text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-11 w-full cursor-pointer rounded-lg bg-sky-600 text-base font-semibold text-white shadow-md shadow-sky-600/20 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
           >
             Mua hàng
           </Button>
