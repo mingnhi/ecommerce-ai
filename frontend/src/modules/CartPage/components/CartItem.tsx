@@ -91,7 +91,7 @@ export function CartItem({ line, isSel, onToggle, onRemove, onQuantityChange }: 
             type="button"
             variant="ghost"
             size="icon"
-            className="size-9 shrink-0 cursor-pointer text-muted-foreground hover:bg-destructive/10 hover:text-destructive lg:justify-self-center"
+            className="size-9 shrink-0 cursor-pointer text-muted-foreground hover:bg-destructive/10 hover:text-destructive lg:justify-self-center hover:cursor-pointer"
             onClick={() => onRemove(line.id)}
             aria-label="Xóa"
           >
