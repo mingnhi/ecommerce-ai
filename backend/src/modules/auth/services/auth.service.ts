@@ -80,27 +80,31 @@ export class AuthService {
       status: UserStatus.INACTIVE,
     });
 
-    const userRole = await this.rolesService.findByName('USER');
+    const roleUser = await this.rolesService.findByName('USER');
 
-    if (!userRole) {
+    if (!roleUser) {
       throw new NotFoundException('Role USER not found');
     }
     await this.userRolesService.create({
       userId: user.id,
-      roleId: userRole.id,
+      roleId: roleUser.id,
     });
 
     await this.otpService.sendRegisterOtp(user.email);
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        status: user.status,
-        role: 'USER',
+      status: 'success',
+      message: 'User registered successfully',
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          status: user.status,
+          role: 'USER',
+        },
       },
-      message: 'OTP has been sent to your email',
+      meta: { timestamp: new Date().toISOString(), },
     };
   }
 
@@ -147,15 +151,20 @@ export class AuthService {
     });
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        status: user.status,
-        roles,
+      status: 'success',
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          status: user.status,
+          roles,
+        },
+        accessToken,
+        refreshToken,
       },
-      accessToken,
-      refreshToken,
+      meta: { timestamp: new Date().toISOString(), },
     };
   }
 
@@ -175,7 +184,9 @@ export class AuthService {
     });
 
     return {
-      message: 'Reset password success',
+      status: 'success',
+      message: 'Password reset successfully',
+      meta: { timestamp: new Date().toISOString(), },
     };
   }
   async refresh(refreshToken: string) {
@@ -232,13 +243,18 @@ export class AuthService {
     const roles = await this.getUserRoles(user.id);
 
     return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      status: user.status,
-      roles,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      status: 'success',
+      message: 'User profile retrieved successfully',
+      data: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        status: user.status,
+        roles,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      meta: { timestamp: new Date().toISOString(), },
     };
   }
 }

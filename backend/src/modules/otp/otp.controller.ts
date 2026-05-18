@@ -5,6 +5,8 @@ import { OtpService } from './otp.service';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
 import { CreateOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { Otp } from '@entities/otp.entity';
+import { CreateOtpResponse, ResendOtpResponse, VerifyOtpResponse, VerifyRegisterOtpResponse } from './dto/otp-response.type';
 
 @Controller('otp')
 export class OtpController {
@@ -13,7 +15,7 @@ export class OtpController {
   @Post('send')
   async createOtp(
     @Body() dto: CreateOtpDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<CreateOtpResponse>> {
     const data = await this.otpService.createOtp(dto);
 
     return {
@@ -26,7 +28,7 @@ export class OtpController {
   @Post('verify')
   async verifyOtp(
     @Body() dto: VerifyOtpDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<VerifyOtpResponse>> {
     const data = await this.otpService.verifyOtp(dto);
 
     return {
@@ -39,7 +41,7 @@ export class OtpController {
   @Post('resend')
   async resendOtp(
     @Body() dto: CreateOtpDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<ResendOtpResponse>> {
     const data = await this.otpService.resendOtp(dto);
 
     return {
@@ -52,7 +54,7 @@ export class OtpController {
   @Post('verify-register')
   async verifyRegisterOtp(
     @Body() dto: VerifyOtpDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<VerifyRegisterOtpResponse>> {
     const data = await this.otpService.verifyRegisterOtp(dto);
 
     return {
@@ -65,7 +67,7 @@ export class OtpController {
   @Post('forgot-password')
   async forgotPasswordOtp(
     @Body() dto: ForgotPasswordDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<{ message: string }>> {
     const data = await this.otpService.forgotPasswordOtp(dto.email);
 
     return {
@@ -75,7 +77,7 @@ export class OtpController {
     };
   }
   @Delete('expired')
-  async removeExpiredOtps(): Promise<ApiResponse<any>> {
+  async removeExpiredOtps(): Promise<ApiResponse<{ deleted: number }>> {
     const data = await this.otpService.removeExpiredOtps();
 
     return {

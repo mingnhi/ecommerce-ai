@@ -15,15 +15,16 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/guards/roles.decorator';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
+import { User } from '@entities/user.entity';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
-  async findAll(): Promise<ApiResponse<any>> {
+  async findAll(): Promise<ApiResponse<UserResponse[]>> {
     const data = await this.usersService.findAll();
 
     return {
@@ -37,7 +38,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ApiResponse<any>> {
+  async findOne(@Param('id') id: string): Promise<ApiResponse<UserResponse>> {
     const data = await this.usersService.findOne(id);
 
     return {
@@ -47,12 +48,12 @@ export class UsersController {
     };
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN','USER')
+  @Roles('ADMIN', 'USER')
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<User>> {
     const data = await this.usersService.update(id, updateUserDto);
 
     return {
@@ -66,7 +67,7 @@ export class UsersController {
   async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<UpdateStatusResponse>> {
     const data = await this.usersService.updateStatus(id, dto);
 
     return {
@@ -77,7 +78,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<ApiResponse<any>> {
+  async remove(@Param('id') id: string): Promise<ApiResponse<{ message: string }>> {
     const data = await this.usersService.remove(id);
 
     return {

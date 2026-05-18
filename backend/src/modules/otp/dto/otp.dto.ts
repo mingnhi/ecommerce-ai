@@ -1,5 +1,5 @@
 // src/modules/otp/dto/create-otp.dto.ts
-import { IsEmail, IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, Length, Max, Min } from 'class-validator';
 import { OtpType } from '../otp.enum';
 
 export class CreateOtpDto {
@@ -14,9 +14,8 @@ export class VerifyOtpDto {
     @IsEmail()
     email!: string;
 
-    @IsString()
-    @IsNotEmpty()
-    @Length(6, 6)
+    @Min(100000)
+    @Max(999999)
     otp!: number;
 
     @IsEnum(OtpType)
