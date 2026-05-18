@@ -4,7 +4,6 @@ import {
   BaggageClaim,
   LayoutDashboard,
   Package,
-  ShoppingBag,
   Warehouse,
 } from "lucide-react"
 import {
@@ -19,6 +18,8 @@ import {
 } from "@/shared/components/ui/sidebar"
 import { NavMain } from "@/shared/layouts/sidebar/NavMain"
 import { NavUser } from "@/shared/layouts/sidebar/NavUser"
+import logo from "@/assets/logo.png"
+import logoSmall from "@/assets/logo-small.png"
 
 const nav = {
   user: {
@@ -60,26 +61,27 @@ const nav = {
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="border-b border-sidebar-border/60 pb-2">
+      <SidebarHeader className="flex h-14 shrink-0 items-center justify-center border-b border-sidebar-border/60 px-2 md:h-16">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
               asChild
-              className="gap-3 pr-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:pr-0"
+              className="h-auto py-1 px-1 justify-center flex hover:bg-transparent"
             >
-              <Link to="/dashboard" title="ecommerce ai">
-                <div className="size-8 shrink-0 flex items-center justify-center rounded-md bg-sky-500 text-white dark:text-sky-400">
-                  <ShoppingBag className="size-4.5" />
-                </div>
-                <span className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 font-semibold tracking-tight text-sidebar-foreground">
-                    <span className="truncate text-sky-500">ECOMMERCE-AI</span>
-                  </span>
-                  <span className="truncate text-[11px] text-muted-foreground">
-                    Bán hàng thông minh
-                  </span>
-                </span>
+              <Link to="/dashboard" title="ecommerce ai" className="flex items-center justify-center w-full">
+                {/* Full Logo when expanded */}
+                <img
+                  src={logo}
+                  alt="Ecommerce AI Logo"
+                  className="h-10 md:h-9 w-auto object-contain transition-all duration-300 group-data-[collapsible=icon]:hidden"
+                />
+                {/* Small Logo when collapsed */}
+                <img
+                  src={logoSmall}
+                  alt="Ecommerce AI Small Logo"
+                  className="hidden h-10 w-10 object-contain transition-all duration-300 group-data-[collapsible=icon]:block"
+                />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
