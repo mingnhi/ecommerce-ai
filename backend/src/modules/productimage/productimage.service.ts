@@ -8,8 +8,11 @@ import {
 } from '@mikro-orm/nestjs';
 
 import {
+  EntityManager,
   EntityRepository,
 } from '@mikro-orm/mysql';
+
+import cloudinary from '@config/cloudinary.config';
 
 import { ProductEntity } from '@entities/product.entity';
 
@@ -18,29 +21,31 @@ import {
   ProductImageType,
 } from '@entities/product-image.entity';
 
-import { UploadProductImageRequest } from './dtos/requests/upload-product-image.request';
-
 @Injectable()
 export class ProductImageService {
   constructor(
-    @InjectRepository(ProductImageEntity)
-    private readonly imageRepository: EntityRepository<ProductImageEntity>,
+    private readonly em: EntityManager,
 
     @InjectRepository(ProductEntity)
     private readonly productRepository: EntityRepository<ProductEntity>,
+
+    @InjectRepository(ProductImageEntity)
+    private readonly imageRepository: EntityRepository<ProductImageEntity>,
   ) {}
 
+  /**
+   * upload image
+   */
   async upload(
     productId: string,
     file: Express.Multer.File,
-    request: UploadProductImageRequest,
+    type: ProductImageType,
+    sortOrder: number,
   ) {
     const product =
-      await this.productRepository.findOne(
-        {
-          id: productId,
-        },
-      );
+      await this.productRepository.findOne({
+        id: productId,
+      });
 
     if (!product) {
       throw new NotFoundException(
@@ -48,66 +53,97 @@ export class ProductImageService {
       );
     }
 
-    const imageUrl =
-      `/uploads/${file.filename}`;
+    /**
+     * upload cloudinary
+     */
+    const uploaded =
+      await cloudinary.uploader.upload(
+        file.path,
+        {
+          folder: 'products',
+        },
+      );
 
+    /**
+     * set old thumbnail false
+     */
+    if (
+      type ===
+      ProductImageType.THUMBNAIL
+    ) {
+      await this.em.nativeUpdate(
+        ProductImageEntity,
+        {
+          product: product.id,
+          isPrimary: true,
+        },
+        {
+          isPrimary: false,
+        },
+      );
+    }
+
+    /**
+     * create image
+     */
     const image =
-      this.imageRepository.create({
-        product,
+      this.em.create(
+        ProductImageEntity,
+        {
+          product,
 
-        imageUrl,
+          imageUrl:
+            uploaded.secure_url,
+
+          type,
+
+          sortOrder,
+
+          isPrimary:
+            type ===
+            ProductImageType.THUMBNAIL,
+        },
+      );
+
+    await this.em.persistAndFlush(
+      image,
+    );
+
+    return {
+      message:
+        'Upload image successfully',
+
+      image: {
+        id: image.id,
+
+        imageUrl:
+          image.imageUrl,
 
         type:
-          request.type ||
-          ProductImageType.GALLERY,
+          image.type,
 
         sortOrder:
-          request.sortOrder ||
-          0,
+          image.sortOrder,
 
-        isPrimary: false,
-      });
+        isPrimary:
+          image.isPrimary,
 
-    await this.imageRepository
-      .getEntityManager()
-      .persistAndFlush(image);
-
-    return this.mapImage(image);
+        createdAt:
+          image.createdAt,
+      },
+    };
   }
 
-  async delete(id: string) {
-    const image =
-      await this.imageRepository.findOne(
-        {
-          id,
-        },
-      );
-
-    if (!image) {
-      throw new NotFoundException(
-        'Image not found',
-      );
-    }
-
-    await this.imageRepository
-      .getEntityManager()
-      .removeAndFlush(image);
-
-    return null;
-  }
-
+  /**
+   * set thumbnail
+   */
   async setThumbnail(
-    id: string,
+    imageId: string,
   ) {
     const image =
-      await this.imageRepository.findOne(
-        {
-          id,
-        },
-        {
-          populate: ['product'],
-        },
-      );
+      await this.imageRepository.findOne({
+        id: imageId,
+      });
 
     if (!image) {
       throw new NotFoundException(
@@ -115,57 +151,54 @@ export class ProductImageService {
       );
     }
 
-    const images =
-      await this.imageRepository.find(
-        {
-          product:
-            image.product.id,
-        },
-      );
-
-    for (const item of images) {
-      item.isPrimary = false;
-
-      if (
-        item.type ===
-        ProductImageType.THUMBNAIL
-      ) {
-        item.type =
-          ProductImageType.GALLERY;
-      }
-    }
+    await this.em.nativeUpdate(
+      ProductImageEntity,
+      {
+        product:
+          image.product.id,
+        isPrimary: true,
+      },
+      {
+        isPrimary: false,
+      },
+    );
 
     image.isPrimary = true;
 
     image.type =
       ProductImageType.THUMBNAIL;
 
-    await this.imageRepository
-      .getEntityManager()
-      .flush();
+    await this.em.flush();
 
-    return this.mapImage(image);
+    return {
+      message:
+        'Thumbnail updated successfully',
+    };
   }
 
-  private mapImage(
-    image: ProductImageEntity,
-  ) {
+  /**
+   * delete image
+   */
+  async remove(imageId: string) {
+    const image =
+      await this.imageRepository.findOne({
+        id: imageId,
+      });
+
+    if (!image) {
+      throw new NotFoundException(
+        'Image not found',
+      );
+    }
+
+    await this.em.removeAndFlush(
+      image,
+    );
+
     return {
-      id: image.id,
-
-      imageUrl:
-        image.imageUrl,
-
-      type: image.type,
-
-      sortOrder:
-        image.sortOrder,
-
-      isPrimary:
-        image.isPrimary,
-
-      createdAt:
-        image.createdAt,
+      message:
+        'Image deleted successfully',
     };
   }
 }
+

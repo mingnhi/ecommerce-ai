@@ -1,8 +1,12 @@
+// upload-productimage.request.ts
+
 import {
   IsEnum,
   IsOptional,
-  IsNumber,
+  IsInt,
 } from 'class-validator';
+
+import { Type } from 'class-transformer';
 
 import {
   ProductImageType,
@@ -14,6 +18,7 @@ export class UploadProductImageRequest {
   type?: ProductImageType;
 
   @IsOptional()
-  @IsNumber()
-  sortOrder?: number;
+  @Type(() => Number)
+  @IsInt()
+  sortOrder?: number = 0;
 }

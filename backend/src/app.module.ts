@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 
 import {
@@ -10,23 +9,18 @@ import {
   MikroOrmModule,
 } from '@mikro-orm/nestjs';
 
-import {
-  mikroOrmConfig,
-} from '@config/mikro-orm.config';
+import { mikroOrmConfig } from '@config/mikro-orm.config';
 
 import { AppController } from './app.controller';
 
 import { AppService } from './app.service';
 
+/**
+ * modules
+ */
 import { CategoryModule } from './modules/categories/categories.module';
 
 import { ProductsModule } from './modules/products/products.module';
-
-import { VariantsModule } from './modules/productvariant/productvariant.module';
-
-import { ProductPriceModule } from './modules/productprice/productprice.module';
-
-import { ProductAttributeModule } from './modules/productattribute/productattribute.module';
 
 import { ProductImageModule } from './modules/productimage/productimage.module';
 
@@ -34,10 +28,16 @@ import { ProductReviewModule } from './modules/productreview/productreview.modul
 
 @Module({
   imports: [
+    /**
+     * env
+     */
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
+    /**
+     * mikro orm
+     */
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
 
@@ -51,24 +51,22 @@ import { ProductReviewModule } from './modules/productreview/productreview.modul
         ),
     }),
 
+    /**
+     * modules
+     */
     CategoryModule,
 
     ProductsModule,
-
-    VariantsModule,
-
-    ProductPriceModule,
-
-    ProductAttributeModule,
 
     ProductImageModule,
 
     ProductReviewModule,
   ],
 
-  controllers: [AppController],
+  controllers: [
+    AppController,
+  ],
 
   providers: [AppService],
 })
 export class AppModule {}
-

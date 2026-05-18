@@ -8,12 +8,12 @@ import {
 } from 'class-validator';
 
 export class CreateProductReviewRequest {
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   productId: string;
 
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   userId: string;
 
   @IsNumber()
@@ -25,3 +25,4 @@ export class CreateProductReviewRequest {
   @IsString()
   comment?: string;
 }
+

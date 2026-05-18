@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Delete,
   Param,
@@ -7,6 +6,7 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  Body,
 } from '@nestjs/common';
 
 import {
@@ -19,7 +19,7 @@ import { extname } from 'path';
 
 import { ProductImageService } from './productimage.service';
 
-import { UploadProductImageRequest } from './dtos/requests/upload-product-image.request';
+import { UploadProductImageRequest } from './dtos/requests/upload-productimage.request';
 
 @Controller()
 export class ProductImageController {
@@ -27,37 +27,45 @@ export class ProductImageController {
     private readonly productImageService: ProductImageService,
   ) {}
 
+  /**
+   * upload image
+   */
   @Post(
     'products/:id/images',
   )
   @UseInterceptors(
-    FileInterceptor(
-      'file',
-      {
-        storage: diskStorage({
-          destination:
-            './uploads',
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination:
+          './temp',
 
-          filename: (
-            req,
-            file,
-            callback,
-          ) => {
-            const uniqueName =
-              `${Date.now()}${extname(file.originalname)}`;
-
-            callback(
-              null,
-              uniqueName,
+        filename: (
+          req,
+          file,
+          callback,
+        ) => {
+          const unique =
+            Date.now() +
+            '-' +
+            Math.round(
+              Math.random() *
+                1e9,
             );
-          },
-        }),
-      },
-    ),
+
+          callback(
+            null,
+            unique +
+              extname(
+                file.originalname,
+              ),
+          );
+        },
+      }),
+    }),
   )
   async upload(
     @Param('id')
-    productId: string,
+    id: string,
 
     @UploadedFile()
     file: Express.Multer.File,
@@ -65,42 +73,17 @@ export class ProductImageController {
     @Body()
     request: UploadProductImageRequest,
   ) {
-    const data =
-      await this.productImageService.upload(
-        productId,
-        file,
-        request,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Image uploaded successfully',
-
-      data,
-    };
-  }
-
-  @Delete('images/:id')
-  async delete(
-    @Param('id')
-    id: string,
-  ) {
-    await this.productImageService.delete(
+    return await this.productImageService.upload(
       id,
+      file,
+      request.type,
+      request.sortOrder,
     );
-
-    return {
-      status: 'success',
-
-      message:
-        'Image deleted successfully',
-
-      data: null,
-    };
   }
 
+  /**
+   * set thumbnail
+   */
   @Patch(
     'images/:id/thumbnail',
   )
@@ -108,18 +91,22 @@ export class ProductImageController {
     @Param('id')
     id: string,
   ) {
-    const data =
-      await this.productImageService.setThumbnail(
-        id,
-      );
+    return await this.productImageService.setThumbnail(
+      id,
+    );
+  }
 
-    return {
-      status: 'success',
-
-      message:
-        'Thumbnail updated successfully',
-
-      data,
-    };
+  /**
+   * delete image
+   */
+  @Delete('images/:id')
+  async remove(
+    @Param('id')
+    id: string,
+  ) {
+    return await this.productImageService.remove(
+      id,
+    );
   }
 }
+

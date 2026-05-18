@@ -15,52 +15,43 @@ import { CreateCategoryRequest } from './dtos/requests/create-category.request';
 
 import { UpdateCategoryRequest } from './dtos/requests/update-category.request';
 
+import { QueryCategoryRequest } from './dtos/requests/query-category.request';
+
 @Controller('categories')
 export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService,
   ) {}
 
+  /**
+   * GET /categories
+   */
   @Get()
   async findAll(
-    @Query('type')
-    type: string = 'flat',
+    @Query()
+    query: QueryCategoryRequest,
   ) {
-    const data =
-      await this.categoryService.findAll(
-        type,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Categories fetched successfully',
-
-      data,
-    };
+    return await this.categoryService.findAll(
+      query,
+    );
   }
 
+  /**
+   * POST /categories
+   */
   @Post()
   async create(
     @Body()
     request: CreateCategoryRequest,
   ) {
-    const data =
-      await this.categoryService.create(
-        request,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Category created successfully',
-
-      data,
-    };
+    return await this.categoryService.create(
+      request,
+    );
   }
 
+  /**
+   * PUT /categories/:id
+   */
   @Put(':id')
   async update(
     @Param('id')
@@ -69,38 +60,23 @@ export class CategoryController {
     @Body()
     request: UpdateCategoryRequest,
   ) {
-    const data =
-      await this.categoryService.update(
-        id,
-        request,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Category updated successfully',
-
-      data,
-    };
+    return await this.categoryService.update(
+      id,
+      request,
+    );
   }
 
+  /**
+   * DELETE /categories/:id
+   */
   @Delete(':id')
   async remove(
     @Param('id')
     id: string,
   ) {
-    await this.categoryService.remove(
+    return await this.categoryService.remove(
       id,
     );
-
-    return {
-      status: 'success',
-
-      message:
-        'Category deleted successfully',
-
-      data: null,
-    };
   }
 }
+

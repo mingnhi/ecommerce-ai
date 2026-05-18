@@ -5,13 +5,16 @@ export class ProductReviewResponse {
 
   comment?: string;
 
+  createdAt: Date;
+
   user: {
     id: string;
+
+    email: string;
 
     displayName?: string;
 
     avatarUrl?: string;
   };
-
-  createdAt: Date;
 }
+

@@ -1,17 +1,14 @@
 import {
-  IsNumberString,
   IsOptional,
   IsString,
 } from 'class-validator';
 
-export class QueryProductsRequest {
+export class QueryProductRequest {
   @IsOptional()
-  @IsNumberString()
-  page?: string = '1';
+  page?: number;
 
   @IsOptional()
-  @IsNumberString()
-  limit?: string = '10';
+  limit?: number;
 
   @IsOptional()
   @IsString()
@@ -23,5 +20,5 @@ export class QueryProductsRequest {
 
   @IsOptional()
   @IsString()
-  sort?: string = 'latest';
+  sort?: string;
 }

@@ -18,7 +18,9 @@ import { ProductReviewService } from './productreview.service';
   imports: [
     MikroOrmModule.forFeature([
       ProductEntity,
+
       ProductReviewEntity,
+
       Users,
     ]),
   ],
@@ -36,3 +38,4 @@ import { ProductReviewService } from './productreview.service';
   ],
 })
 export class ProductReviewModule {}
+

@@ -19,9 +19,10 @@ export class ProductReviewController {
     private readonly productReviewService: ProductReviewService,
   ) {}
 
-  @Get(
-    'products/:id/reviews',
-  )
+  /**
+   * GET /products/:id/reviews
+   */
+  @Get('products/:id/reviews')
   async findByProduct(
     @Param('id')
     productId: string,
@@ -29,42 +30,23 @@ export class ProductReviewController {
     @Query()
     query: QueryProductReviewRequest,
   ) {
-    const result =
-      await this.productReviewService.findByProduct(
-        productId,
-        query,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Reviews fetched successfully',
-
-      data: result.data,
-
-      pagination:
-        result.pagination,
-    };
+    return await this.productReviewService.findByProduct(
+      productId,
+      query,
+    );
   }
 
+  /**
+   * POST /reviews
+   */
   @Post('reviews')
   async create(
     @Body()
     request: CreateProductReviewRequest,
   ) {
-    const data =
-      await this.productReviewService.create(
-        request,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Review created successfully',
-
-      data,
-    };
+    return await this.productReviewService.create(
+      request,
+    );
   }
 }
+

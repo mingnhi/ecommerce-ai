@@ -5,12 +5,13 @@ import {
 
 export class QueryProductReviewRequest {
   @IsOptional()
-  page?: number;
+  page?: number = 1;
 
   @IsOptional()
-  limit?: number;
+  limit?: number = 10;
 
   @IsOptional()
   @IsString()
-  sort?: string;
+  sort?: 'latest' | 'oldest';
 }
+
