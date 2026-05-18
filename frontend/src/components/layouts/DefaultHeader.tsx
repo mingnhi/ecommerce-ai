@@ -223,8 +223,8 @@ export function DefaultHeader() {
   const userName =
     user
       ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-        user?.name ||
-        undefined
+      user?.name ||
+      undefined
       : undefined;
 
   return (
@@ -233,11 +233,13 @@ export function DefaultHeader() {
         <div className="flex items-center gap-6">
           <Link
             href={ROUTES.HOME}
-            className="items-center gap-2 cursor-pointer shrink-0 w-15 md:w-30 flex"
+            className="items-center gap-2 cursor-pointer shrink-0 flex hover:opacity-90 transition-opacity"
           >
-            <span className="text-lg font-bold tracking-tight text-gray-900">
-              {siteConfig.name}
-            </span>
+            <img
+              src="/images/logo.png"
+              alt="Ecommerce AI Logo"
+              className="h-14 md:h-8 w-auto object-contain transition-all duration-300"
+            />
           </Link>
           <nav className="hidden sm:flex items-center gap-6">
             <Link
