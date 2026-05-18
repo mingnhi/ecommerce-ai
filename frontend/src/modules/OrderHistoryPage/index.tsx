@@ -61,9 +61,9 @@ function OrderHistoryEmptyView({
   return (
     <div className="flex min-h-[360px] flex-col items-center justify-center rounded-sm border border-dashed border-border/60 bg-card/50 px-6 py-14 text-center animate-in fade-in duration-300">
       <div className="relative inline-flex">
-        <div className="absolute inset-0 rounded-full bg-primary/10 blur-2xl" />
-        <div className="relative flex size-20 items-center justify-center rounded-full border border-primary/15 bg-background shadow-sm">
-          <Icon className="size-9 text-primary/50" strokeWidth={1.5} />
+        <div className="absolute inset-0 rounded-full bg-sky-500/10 blur-2xl" />
+        <div className="relative flex size-20 items-center justify-center rounded-full border border-sky-500/15 bg-background shadow-sm">
+          <Icon className="size-9 text-sky-500/50" strokeWidth={1.5} />
         </div>
       </div>
       <h3 className="mt-6 text-lg font-semibold text-foreground">{title}</h3>
@@ -75,7 +75,7 @@ function OrderHistoryEmptyView({
           </Button>
         ) : null}
         {type === "all" ? (
-          <Button asChild className="rounded-full bg-primary px-8 shadow-md shadow-primary/20">
+          <Button asChild className="rounded-full bg-sky-600 hover:bg-sky-700 px-8 shadow-md shadow-sky-600/20 text-white hover:cursor-pointer">
             <Link href={ROUTES.HOME}>Mua sắm ngay</Link>
           </Button>
         ) : type === "tab" ? (
@@ -134,8 +134,8 @@ export default function OrderHistoryPage() {
                     value={tab.value}
                     className={cn(
                       "min-w-fit flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all",
-                      "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                      "data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+                      "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:cursor-pointer",
+                      "data-[state=active]:bg-sky-500/10 data-[state=active]:text-sky-600 data-[state=active]:shadow-none"
                     )}
                   >
                     {tab.label}
@@ -151,7 +151,7 @@ export default function OrderHistoryPage() {
               placeholder="Tìm kiếm theo mã đơn hàng hoặc tên sản phẩm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-12 w-full rounded-sm border-border/60 bg-card pl-11 shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary"
+              className="h-12 w-full rounded-sm border-border/60 bg-card pl-11 shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-sky-500"
             />
           </div>
 

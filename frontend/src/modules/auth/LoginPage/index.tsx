@@ -62,8 +62,8 @@ export default function LoginPage() {
       <div className="w-full max-w-full xl:w-screen mx-4 my-4 sm:mx-6 xl:mx-36 bg-white shadow rounded-2xl justify-center grid grid-cols-1 xl:grid-cols-2 overflow-hidden">
         <div className="px-4 py-6 col-span-1 min-w-0">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
-              <Crown className="h-6 w-6 text-primary" />
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-500/10 mb-3">
+              <Crown className="h-6 w-6 text-sky-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-800">
               Chào mừng đến với LearnKing
@@ -159,7 +159,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="mt-5 tracking-wide font-semibold bg-blue-400 text-white w-full py-4 rounded-lg hover:bg-blue-700 transition-all duration-300 ease-in-out"
+                  className="mt-5 tracking-wide font-semibold bg-sky-600 hover:bg-sky-700 text-white w-full py-4 rounded-lg transition-all duration-300 ease-in-out hover:cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </Button>
@@ -169,7 +169,7 @@ export default function LoginPage() {
                 Chưa có tài khoản?{' '}
                 <Link
                   href={ROUTES.REGISTER}
-                  className="text-primary font-semibold hover:underline ml-1"
+                  className="text-sky-600 font-semibold hover:underline ml-1 hover:cursor-pointer"
                 >
                   Đăng kí ngay
                 </Link>
@@ -188,7 +188,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="bg-primary-50 hidden xl:flex rounded-r-2xl col-span-1 relative overflow-hidden min-h-[480px] w-full">
+        <div className="bg-sky-50 hidden xl:flex rounded-r-2xl col-span-1 relative overflow-hidden min-h-[480px] w-full">
           <div className="absolute inset-0 w-full h-full min-h-[480px]">
             <Image
               src="/images/bn-login.png"

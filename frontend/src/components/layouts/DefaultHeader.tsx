@@ -242,7 +242,7 @@ export function DefaultHeader() {
           <nav className="hidden sm:flex items-center gap-6">
             <Link
               href={ROUTES.HOME}
-              className="text-gray-700 font-semibold hover:text-primary transition"
+              className="text-gray-700 font-semibold hover:text-sky-600 transition hover:cursor-pointer"
             >
               Trang chủ
             </Link>
@@ -255,7 +255,7 @@ export function DefaultHeader() {
             <div className="flex items-center gap-2 text-gray-700">
               <Avatar className="h-8 w-8 border border-gray-300">
                 <AvatarImage src={getImageUrl(user?.image)} alt={userName} />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                <AvatarFallback className="bg-sky-500/10 text-sky-600 text-sm font-semibold">
                   {userName ? userName.charAt(0).toUpperCase() : "…"}
                 </AvatarFallback>
               </Avatar>
