@@ -15,3 +15,4 @@ export class ProductImageResponse {
 
   createdAt: Date;
 }
+

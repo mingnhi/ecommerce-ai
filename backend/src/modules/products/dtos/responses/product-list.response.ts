@@ -1,4 +1,4 @@
-export class ProductSummaryResponse {
+export class ProductListResponse {
   id: string;
 
   name: string;
@@ -9,16 +9,24 @@ export class ProductSummaryResponse {
 
   thumbnail?: string;
 
-  price?: number;
-
-  originalPrice?: number;
-
-  discountPercent?: number;
+  isActive: boolean;
 
   category: {
     id: string;
+
     name: string;
+
     slug: string;
+  };
+
+  price?: {
+    price: number;
+
+    originalPrice?: number;
+
+    discountPercent?: number;
+
+    currency: string;
   };
 
   createdAt: Date;

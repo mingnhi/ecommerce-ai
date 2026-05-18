@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import {
@@ -8,12 +9,10 @@ import {
 } from '@mikro-orm/nestjs';
 
 import {
+  EntityManager,
   EntityRepository,
-} from '@mikro-orm/mysql';
-
-import {
   QueryOrder,
-} from '@mikro-orm/core';
+} from '@mikro-orm/mysql';
 
 import { ProductEntity } from '@entities/product.entity';
 
@@ -28,38 +27,49 @@ import { QueryProductReviewRequest } from './dtos/requests/query-product-review.
 @Injectable()
 export class ProductReviewService {
   constructor(
-    @InjectRepository(ProductReviewEntity)
-    private readonly reviewRepository: EntityRepository<ProductReviewEntity>,
+    private readonly em: EntityManager,
 
     @InjectRepository(ProductEntity)
     private readonly productRepository: EntityRepository<ProductEntity>,
+
+    @InjectRepository(ProductReviewEntity)
+    private readonly reviewRepository: EntityRepository<ProductReviewEntity>,
 
     @InjectRepository(Users)
     private readonly userRepository: EntityRepository<Users>,
   ) {}
 
+  /**
+   * get reviews
+   */
   async findByProduct(
     productId: string,
     query: QueryProductReviewRequest,
   ) {
+    const product =
+      await this.productRepository.findOne({
+        id: productId,
+      });
+
+    if (!product) {
+      throw new NotFoundException(
+        'Product not found',
+      );
+    }
+
     const page =
       Number(query.page || 1);
 
     const limit =
       Number(query.limit || 10);
 
-    const [reviews, count] =
+    const [reviews, total] =
       await this.reviewRepository.findAndCount(
         {
-          product: productId,
+          product,
         },
         {
           populate: ['user'],
-
-          limit,
-
-          offset:
-            (page - 1) * limit,
 
           orderBy: {
             createdAt:
@@ -68,12 +78,65 @@ export class ProductReviewService {
                 ? QueryOrder.ASC
                 : QueryOrder.DESC,
           },
+
+          limit,
+
+          offset:
+            (page - 1) * limit,
         },
       );
 
+    const allReviews =
+      await this.reviewRepository.find(
+        {
+          product,
+        },
+      );
+
+    const averageRating =
+      allReviews.length > 0
+        ? allReviews.reduce(
+            (
+              total,
+              review,
+            ) =>
+              total +
+              review.rating,
+            0,
+          ) /
+          allReviews.length
+        : 0;
+
     return {
-      data: reviews.map(review =>
-        this.mapReview(review),
+      items: reviews.map(
+        review => ({
+          id: review.id,
+
+          rating:
+            review.rating,
+
+          comment:
+            review.comment,
+
+          createdAt:
+            review.createdAt,
+
+          user: {
+            id:
+              review.user.id,
+
+            email:
+              review.user.email,
+
+            displayName:
+              review.user
+                .displayName,
+
+            avatarUrl:
+              review.user
+                .avatarUrl,
+          },
+        }),
       ),
 
       pagination: {
@@ -81,25 +144,38 @@ export class ProductReviewService {
 
         limit,
 
-        total: count,
+        total,
 
         totalPages:
           Math.ceil(
-            count / limit,
+            total / limit,
           ),
+      },
+
+      summary: {
+        averageRating:
+          Number(
+            averageRating.toFixed(
+              1,
+            ),
+          ),
+
+        totalReviews:
+          allReviews.length,
       },
     };
   }
 
+  /**
+   * create review
+   */
   async create(
     request: CreateProductReviewRequest,
   ) {
     const product =
-      await this.productRepository.findOne(
-        {
-          id: request.productId,
-        },
-      );
+      await this.productRepository.findOne({
+        id: request.productId,
+      });
 
     if (!product) {
       throw new NotFoundException(
@@ -122,58 +198,76 @@ export class ProductReviewService {
 
     /**
      * TODO:
-     * kiểm tra user đã mua hàng
+     * check user purchased product
      */
 
+    /**
+     * check duplicate review
+     */
+    const existedReview =
+      await this.reviewRepository.findOne(
+        {
+          product,
+          user,
+        },
+      );
+
+    if (existedReview) {
+      throw new BadRequestException(
+        'You already reviewed this product',
+      );
+    }
+
     const review =
-      this.reviewRepository.create({
-        product,
+      this.em.create(
+        ProductReviewEntity,
+        {
+          product,
 
-        user,
+          user,
 
-        rating:
-          request.rating,
+          rating:
+            request.rating,
 
-        comment:
-          request.comment,
-      });
+          comment:
+            request.comment,
+        },
+      );
 
-    await this.reviewRepository
-      .getEntityManager()
-      .persistAndFlush(review);
-
-    return this.mapReview(
+    await this.em.persistAndFlush(
       review,
     );
-  }
 
-  private mapReview(
-    review: ProductReviewEntity,
-  ) {
     return {
-      id: review.id,
+      message:
+        'Review created successfully',
 
-      rating:
-        review.rating,
+      review: {
+        id: review.id,
 
-      comment:
-        review.comment,
+        rating:
+          review.rating,
 
-      user: {
-        id:
-          review.user.id,
+        comment:
+          review.comment,
 
-        displayName:
-          review.user
-            .displayName,
+        createdAt:
+          review.createdAt,
 
-        avatarUrl:
-          review.user
-            .avatarUrl,
+        user: {
+          id: user.id,
+
+          email:
+            user.email,
+
+          displayName:
+            user.displayName,
+
+          avatarUrl:
+            user.avatarUrl,
+        },
       },
-
-      createdAt:
-        review.createdAt,
     };
   }
 }
+

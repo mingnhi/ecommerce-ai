@@ -5,11 +5,12 @@ import {
 } from 'class-validator';
 
 export class CreateCategoryRequest {
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   name: string;
 
   @IsOptional()
   @IsString()
   parentId?: string;
 }
+

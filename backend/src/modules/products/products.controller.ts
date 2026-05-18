@@ -15,7 +15,7 @@ import { CreateProductRequest } from './dtos/requests/create-product.request';
 
 import { UpdateProductRequest } from './dtos/requests/update-product.request';
 
-import { QueryProductsRequest } from './dtos/requests/query-products.request';
+import { QueryProductRequest } from './dtos/requests/query-product.request';
 
 @Controller('products')
 export class ProductsController {
@@ -23,68 +23,48 @@ export class ProductsController {
     private readonly productsService: ProductsService,
   ) {}
 
+  /**
+   * GET /products
+   */
   @Get()
   async findAll(
     @Query()
-    query: QueryProductsRequest,
+    query: QueryProductRequest,
   ) {
-    const result =
-      await this.productsService.findAll(
-        query,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Products fetched successfully',
-
-      data: result.data,
-
-      meta: result.meta,
-    };
+    return await this.productsService.findAll(
+      query,
+    );
   }
 
+  /**
+   * GET /products/:slug
+   */
   @Get(':slug')
-  async findOne(
+  async findBySlug(
     @Param('slug')
     slug: string,
   ) {
-    const data =
-      await this.productsService.findOne(
-        slug,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Product fetched successfully',
-
-      data,
-    };
+    return await this.productsService.findBySlug(
+      slug,
+    );
   }
 
+  /**
+   * POST /products
+   */
   @Post()
   async create(
     @Body()
     request: CreateProductRequest,
   ) {
-    const data =
-      await this.productsService.create(
-        request,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Product created successfully',
-
-      data,
-    };
+    return await this.productsService.create(
+      request,
+    );
   }
 
+  /**
+   * PUT /products/:id
+   */
   @Put(':id')
   async update(
     @Param('id')
@@ -93,38 +73,23 @@ export class ProductsController {
     @Body()
     request: UpdateProductRequest,
   ) {
-    const data =
-      await this.productsService.update(
-        id,
-        request,
-      );
-
-    return {
-      status: 'success',
-
-      message:
-        'Product updated successfully',
-
-      data,
-    };
+    return await this.productsService.update(
+      id,
+      request,
+    );
   }
 
+  /**
+   * DELETE /products/:id
+   */
   @Delete(':id')
   async remove(
     @Param('id')
     id: string,
   ) {
-    await this.productsService.remove(
+    return await this.productsService.remove(
       id,
     );
-
-    return {
-      status: 'success',
-
-      message:
-        'Product deleted successfully',
-
-      data: null,
-    };
   }
 }
+

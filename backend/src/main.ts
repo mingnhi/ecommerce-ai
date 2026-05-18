@@ -12,9 +12,9 @@ import {
   SwaggerModule,
 } from '@nestjs/swagger';
 
-import { MikroORM } from '@mikro-orm/core';
-
 import { ConfigService } from '@nestjs/config';
+
+import { MikroORM } from '@mikro-orm/core';
 
 import { join } from 'path';
 
@@ -27,26 +27,36 @@ import { ResponseInterceptor } from '@common/interceptors/response.interceptor';
 import { HttpExceptionFilter } from '@common/filters/exception.filter';
 
 async function bootstrap() {
+  /**
+   * create app
+   */
   const app =
     await NestFactory.create<NestExpressApplication>(
       AppModule,
     );
 
+  /**
+   * config
+   */
   const configService =
     app.get(ConfigService);
 
   /**
-   * MikroORM
+   * mikro orm
    */
   const orm =
     app.get(MikroORM);
 
+  /**
+   * update schema
+   */
+  // chỉ dùng dev
   await orm
     .getSchemaGenerator()
     .updateSchema();
 
   /**
-   * CORS
+   * cors
    */
   app.enableCors({
     origin: '*',
@@ -60,12 +70,11 @@ async function bootstrap() {
   });
 
   /**
-   * Static uploads
+   * static uploads
    */
   app.useStaticAssets(
     join(
-      __dirname,
-      '..',
+      process.cwd(),
       'uploads',
     ),
     {
@@ -74,7 +83,39 @@ async function bootstrap() {
   );
 
   /**
-   * Swagger
+   * global prefix
+   */
+  app.setGlobalPrefix('api');
+
+  /**
+   * validation
+   */
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+
+      whitelist: true,
+
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  /**
+   * response interceptor
+   */
+  app.useGlobalInterceptors(
+    new ResponseInterceptor(),
+  );
+
+  /**
+   * exception filter
+   */
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+  );
+
+  /**
+   * swagger
    */
   const document =
     SwaggerModule.createDocument(
@@ -89,34 +130,7 @@ async function bootstrap() {
   );
 
   /**
-   * Validation
-   */
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-
-      whitelist: true,
-
-      forbidNonWhitelisted: true,
-    }),
-  );
-
-  /**
-   * Global response
-   */
-  app.useGlobalInterceptors(
-    new ResponseInterceptor(),
-  );
-
-  /**
-   * Exception filter
-   */
-  app.useGlobalFilters(
-    new HttpExceptionFilter(),
-  );
-
-  /**
-   * Port
+   * port
    */
   const port =
     configService.get<number>(
@@ -127,13 +141,12 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(
-    `Server running on port ${port}`,
+    `Server running: http://localhost:${port}`,
   );
 
   console.log(
-    `Swagger: http://localhost:${port}/docs`,
+    `Swagger docs: http://localhost:${port}/docs`,
   );
 }
 
 bootstrap();
-

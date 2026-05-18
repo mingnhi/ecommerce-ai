@@ -6,9 +6,7 @@ import {
 
 import { ProductEntity } from '@entities/product.entity';
 
-import {
-  ProductImageEntity,
-} from '@entities/product-image.entity';
+import { ProductImageEntity } from '@entities/product-image.entity';
 
 import { ProductImageController } from './productimage.controller';
 
@@ -35,3 +33,4 @@ import { ProductImageService } from './productimage.service';
   ],
 })
 export class ProductImageModule {}
+

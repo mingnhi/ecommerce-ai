@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,58 +9,75 @@ import {
 } from '@mikro-orm/nestjs';
 
 import {
+  EntityManager,
   EntityRepository,
 } from '@mikro-orm/mysql';
 
-import slugify from 'slugify';
-
 import { CategoryEntity } from '@entities/category.entity';
+
+import slugify from 'slugify';
 
 import { CreateCategoryRequest } from './dtos/requests/create-category.request';
 
 import { UpdateCategoryRequest } from './dtos/requests/update-category.request';
 
+import { QueryCategoryRequest } from './dtos/requests/query-category.request';
+
 @Injectable()
 export class CategoryService {
   constructor(
+    private readonly em: EntityManager,
+
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
   ) {}
 
-  async findAll(type: string) {
-    const categories =
-      await this.categoryRepository.findAll({
-        populate: ['parent', 'children'],
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+  /**
+   * generate slug
+   */
+  private async generateSlug(
+    name: string,
+  ) {
+    const baseSlug = slugify(name, {
+      lower: true,
 
-    if (type === 'tree') {
-      return categories
-        .filter(category => !category.parent)
-        .map(category =>
-          this.mapCategoryTree(category),
-        );
+      strict: true,
+    });
+
+    let slug = baseSlug;
+
+    let count = 1;
+
+    while (
+      await this.categoryRepository.findOne({
+        slug,
+      })
+    ) {
+      slug = `${baseSlug}-${count}`;
+
+      count++;
     }
 
-    return categories.map(category =>
-      this.mapCategory(category),
-    );
+    return slug;
   }
 
+  /**
+   * create category
+   */
   async create(
     request: CreateCategoryRequest,
   ) {
     let parent:
       | CategoryEntity
-      | null = null;
+      | undefined;
 
     if (request.parentId) {
       parent =
-        await this.categoryRepository.findOne({
-          id: request.parentId,
-        });
+        await this.categoryRepository.findOne(
+          {
+            id: request.parentId,
+          },
+        );
 
       if (!parent) {
         throw new NotFoundException(
@@ -68,28 +86,120 @@ export class CategoryService {
       }
     }
 
-    const slug = slugify(
-      request.name,
-      {
-        lower: true,
-        strict: true,
-      },
-    );
+    const slug =
+      await this.generateSlug(
+        request.name,
+      );
 
     const category =
-      this.categoryRepository.create({
-        name: request.name,
-        slug,
-        parent,
-      });
+      this.em.create(
+        CategoryEntity,
+        {
+          name: request.name,
 
-    await this.categoryRepository
-      .getEntityManager()
-      .persistAndFlush(category);
+          slug,
 
-    return this.mapCategory(category);
+          parent,
+        },
+      );
+
+    await this.em.persistAndFlush(
+      category,
+    );
+
+    return {
+      message:
+        'Category created successfully',
+
+      category: {
+        id: category.id,
+
+        name:
+          category.name,
+
+        slug:
+          category.slug,
+
+        createdAt:
+          category.createdAt,
+
+        updatedAt:
+          category.updatedAt,
+      },
+    };
   }
 
+  /**
+   * get categories
+   */
+  async findAll(
+    query: QueryCategoryRequest,
+  ) {
+    const categories =
+      await this.categoryRepository.findAll(
+        {
+          populate: ['children'],
+        },
+      );
+
+    if (
+      query.type === 'flat'
+    ) {
+      return categories.map(
+        category => ({
+          id: category.id,
+
+          name:
+            category.name,
+
+          slug:
+            category.slug,
+
+          createdAt:
+            category.createdAt,
+
+          updatedAt:
+            category.updatedAt,
+        }),
+      );
+    }
+
+    const buildTree = (
+      parentId?: string,
+    ): any[] => {
+      return categories
+        .filter(category => {
+          if (!parentId) {
+            return !category.parent;
+          }
+
+          return (
+            category.parent?.id ===
+            parentId
+          );
+        })
+        .map(category => ({
+          id: category.id,
+
+          name:
+            category.name,
+
+          slug:
+            category.slug,
+
+          children:
+            buildTree(
+              category.id,
+            ),
+        }));
+    };
+
+    return buildTree();
+  }
+
+  /**
+   * update category
+   */
   async update(
     id: string,
     request: UpdateCategoryRequest,
@@ -98,9 +208,6 @@ export class CategoryService {
       await this.categoryRepository.findOne(
         {
           id,
-        },
-        {
-          populate: ['parent'],
         },
       );
 
@@ -111,16 +218,24 @@ export class CategoryService {
     }
 
     if (request.name) {
-      category.name = request.name;
+      category.name =
+        request.name;
 
       category.slug =
-        slugify(request.name, {
-          lower: true,
-          strict: true,
-        });
+        await this.generateSlug(
+          request.name,
+        );
     }
 
     if (request.parentId) {
+      if (
+        request.parentId === id
+      ) {
+        throw new BadRequestException(
+          'Category cannot be parent of itself',
+        );
+      }
+
       const parent =
         await this.categoryRepository.findOne(
           {
@@ -134,21 +249,44 @@ export class CategoryService {
         );
       }
 
-      category.parent = parent;
+      category.parent =
+        parent;
     }
 
-    await this.categoryRepository
-      .getEntityManager()
-      .flush();
+    await this.em.flush();
 
-    return this.mapCategory(category);
+    return {
+      message:
+        'Category updated successfully',
+
+      category: {
+        id: category.id,
+
+        name:
+          category.name,
+
+        slug:
+          category.slug,
+
+        createdAt:
+          category.createdAt,
+
+        updatedAt:
+          category.updatedAt,
+      },
+    };
   }
 
+  /**
+   * delete category
+   */
   async remove(id: string) {
     const category =
-      await this.categoryRepository.findOne({
-        id,
-      });
+      await this.categoryRepository.findOne(
+        {
+          id,
+        },
+      );
 
     if (!category) {
       throw new NotFoundException(
@@ -156,52 +294,16 @@ export class CategoryService {
       );
     }
 
-    await this.categoryRepository
-      .getEntityManager()
-      .removeAndFlush(category);
+    await this.em.removeAndFlush(
+      category,
+    );
 
-    return null;
-  }
-
-  private mapCategory(
-    category: CategoryEntity,
-  ) {
     return {
-      id: category.id,
+      success: true,
 
-      name: category.name,
-
-      slug: category.slug,
-
-      isActive:
-        category.isActive,
-
-      createdAt:
-        category.createdAt,
-
-      parent: category.parent
-        ? {
-            id: category.parent.id,
-            name: category.parent.name,
-            slug: category.parent.slug,
-          }
-        : null,
-    };
-  }
-
-  private mapCategoryTree(
-    category: CategoryEntity,
-  ) {
-    return {
-      ...this.mapCategory(category),
-
-      children:
-        category.children?.getItems().map(
-          child =>
-            this.mapCategoryTree(
-              child,
-            ),
-        ) || [],
+      message:
+        'Category deleted successfully',
     };
   }
 }
+
