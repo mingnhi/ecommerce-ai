@@ -90,12 +90,14 @@ export default function OrdersPage() {
 
   const rowClassName = (row: Row<OrdersTableRow>) => {
     const isCust = row.original.rowType === "customer"
-    return cn(
-      "border-primary/10 transition-colors dark:border-border/80",
-      isCust &&
-        "bg-primary/6 hover:bg-primary/9 dark:bg-primary/10 dark:hover:bg-primary/[0.14]",
-      !isCust &&
-        "bg-card hover:bg-primary/4 dark:bg-card dark:hover:bg-primary/5",
+    return (
+      cn(
+        "border-sky-500/10 transition-colors dark:border-border/80",
+        isCust &&
+          "bg-sky-500/6 hover:bg-sky-500/9 dark:bg-sky-500/10 dark:hover:bg-sky-500/[0.14]",
+        !isCust &&
+          "bg-card hover:bg-sky-500/4 dark:bg-card dark:hover:bg-sky-500/5",
+      )
     )
   }
 

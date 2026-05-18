@@ -70,7 +70,7 @@ const targetPieConfig = {
 
 function MetricIcon({ kind }: { kind: SummaryMetric["kind"] }) {
   const c =
-    "flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary"
+    "flex size-11 shrink-0 items-center justify-center rounded-full bg-sky-500/15 text-sky-500"
   if (kind === "revenue")
     return (
       <div className={c}>
@@ -111,8 +111,8 @@ const DashboardPage = () => {
   return (
     <div className="mx-auto w-full w-full space-y-8 pb-2">
       <header className="relative border-b border-border/50 pb-4">
-        <div className="absolute left-0 top-1.5 h-1 w-12 rounded-full bg-primary shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_35%,transparent)]" />
-        <p className="pt-5 text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-primary">
+        <div className="absolute left-0 top-1.5 h-1 w-12 rounded-full bg-sky-500 shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_35%,transparent)]" />
+        <p className="pt-5 text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-sky-500">
           ecommerce-ai · quản trị
         </p>
         <h1 className="mt-4 max-w-xl text-balance font-semibold tracking-tight text-foreground text-[1.625rem] leading-tight md:text-[1.875rem]">
@@ -205,11 +205,11 @@ const DashboardPage = () => {
                   <span
                     className={cn(
                       "mt-2 inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold tabular-nums",
-                      s.variant === "income" && "bg-primary/15 text-primary",
+                      s.variant === "income" && "bg-sky-500/15 text-sky-500",
                       s.variant === "expense" &&
-                        "bg-orange-500/15 text-orange-600 dark:text-orange-400",
+                      "bg-orange-500/15 text-orange-600 dark:text-orange-400",
                       s.variant === "balance" &&
-                        "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                      "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
                     )}
                   >
                     {s.deltaPercent >= 0 ? "+" : ""}
@@ -253,7 +253,7 @@ const DashboardPage = () => {
                     active && payload?.length ? (
                       <div className="rounded-lg border border-border/60 bg-popover px-2.5 py-2 text-xs shadow-lg">
                         <p className="font-medium text-foreground">{label}</p>
-                        <p className="mt-0.5 font-mono font-medium tabular-nums text-primary">
+                        <p className="mt-0.5 font-mono font-medium tabular-nums text-sky-500">
                           {formatVnd(Number(payload[0].value))}
                         </p>
                       </div>
@@ -266,7 +266,7 @@ const DashboardPage = () => {
                   stroke="var(--color-value)"
                   strokeWidth={2.5}
                   fill="url(#fillRevenue)"
-                  activeDot={{ r: 5, className: "fill-primary stroke-primary-foreground" }}
+                  activeDot={{ r: 5, className: "fill-sky-500 stroke-white" }}
                 />
               </AreaChart>
             </ChartContainer>
@@ -342,7 +342,7 @@ const DashboardPage = () => {
           </CardContent>
           <CardFooter className="flex flex-col items-stretch gap-1.5 border-t border-border/60 pt-4 text-sm">
             <div className="flex items-center gap-2 font-medium leading-none text-foreground">
-              <TrendingUpIcon className="size-4 shrink-0 text-primary" />
+              <TrendingUpIcon className="size-4 shrink-0 text-sky-500" />
               Tổng tiến độ {t.centerPercent}% so với kế hoạch
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">

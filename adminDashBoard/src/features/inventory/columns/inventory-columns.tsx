@@ -62,11 +62,11 @@ function ThresholdInput({
 
   return (
     <div className="flex justify-center w-full">
-      <div className="flex h-8 w-28 items-center overflow-hidden rounded-sm border border-primary/20 bg-background/50 transition-all hover:border-primary/40 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 shadow-xs">
+      <div className="flex h-8 w-28 items-center overflow-hidden rounded-sm border border-sky-500/20 bg-background/50 transition-all hover:border-sky-500/40 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/10 shadow-xs">
         <button
           type="button"
           onClick={handleDecrement}
-          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors border-r border-primary/10 select-none cursor-pointer"
+          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors border-r border-sky-500/10 select-none cursor-pointer"
         >
           <Minus className="size-3" />
         </button>
@@ -86,7 +86,7 @@ function ThresholdInput({
         <button
           type="button"
           onClick={handleIncrement}
-          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors border-l border-primary/10 select-none cursor-pointer"
+          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors border-l border-sky-500/10 select-none cursor-pointer"
         >
           <Plus className="size-3" />
         </button>
@@ -146,7 +146,7 @@ function QuantityStepper({
       onPointerDown={stop}
     >
       <span className="font-medium text-foreground text-xs">{label}</span>
-      <div className="flex h-7 w-24 items-center overflow-hidden rounded-sm border border-primary/20 bg-background/50">
+      <div className="flex h-7 w-24 items-center overflow-hidden rounded-sm border border-sky-500/20 bg-background/50">
         <button
           type="button"
           disabled={disableDecrement}
@@ -154,7 +154,7 @@ function QuantityStepper({
             e.stopPropagation()
             onDecrement()
           }}
-          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none border-r border-primary/10 select-none cursor-pointer"
+          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors disabled:opacity-30 disabled:pointer-events-none border-r border-sky-500/10 select-none cursor-pointer"
         >
           <Minus className="size-3" />
         </button>
@@ -168,7 +168,7 @@ function QuantityStepper({
             e.stopPropagation()
             onIncrement()
           }}
-          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none border-l border-primary/10 select-none cursor-pointer"
+          className="flex h-full w-8 items-center justify-center bg-transparent text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors disabled:opacity-30 disabled:pointer-events-none border-l border-sky-500/10 select-none cursor-pointer"
         >
           <Plus className="size-3" />
         </button>
@@ -193,7 +193,7 @@ function ActionsCell({ row, table, handlers }: ActionsCellProps) {
         type="button"
         variant="ghost"
         size="icon-xs"
-        className="text-muted-foreground hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+        className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
         aria-label="Chỉnh tồn"
         onClick={() => handlers.onAdjust(r)}
       >
@@ -215,7 +215,7 @@ function ActionsCell({ row, table, handlers }: ActionsCellProps) {
             type="button"
             variant="ghost"
             size="icon-xs"
-            className="text-muted-foreground hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+            className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
             aria-label="Mô phỏng giữ hàng"
           >
             <MoreHorizontal className="size-4" />
@@ -270,7 +270,7 @@ export function buildInventoryColumns(
         const r = row.original
         return (
           <div className="flex min-w-[200px] items-center gap-3">
-            <div className="size-11 shrink-0 overflow-hidden rounded-sm border border-primary/20 bg-muted">
+            <div className="size-11 shrink-0 overflow-hidden rounded-sm border border-sky-500/20 bg-muted">
               {r.anh ? (
                 <img src={r.anh} alt="" className="size-full object-cover" />
               ) : null}

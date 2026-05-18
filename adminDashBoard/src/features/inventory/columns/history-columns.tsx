@@ -134,7 +134,7 @@ export function buildMovementHistoryColumns(
               type="button"
               variant="ghost"
               size="icon-xs"
-              className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-sm hover:cursor-pointer"
+              className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 rounded-sm hover:cursor-pointer"
               onClick={() => onView(row.original)}
               aria-label="Xem chi tiết phiếu"
             >

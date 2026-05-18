@@ -148,12 +148,12 @@ export function DataTableBase<T>({
     <div className="space-y-5">
       {/* Dynamic Toolbar */}
       {toolbarConfig && (
-        <Card className="rounded-sm border-primary/20 bg-card/90 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-primary/5 dark:bg-card">
+        <Card className="rounded-sm border-sky-500/20 bg-card/90 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-sky-500/5 dark:bg-card">
           <CardContent className="flex flex-col gap-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-sm border border-primary/25 bg-primary/10">
-                  <SlidersHorizontal className="size-4 text-primary" />
+                <div className="flex size-10 items-center justify-center rounded-sm border border-sky-500/25 bg-sky-500/10">
+                  <SlidersHorizontal className="size-4 text-sky-500" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
@@ -170,7 +170,7 @@ export function DataTableBase<T>({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="shrink-0 gap-1.5 rounded-full border-primary/25 px-4 text-xs hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+                className="shrink-0 gap-1.5 rounded-full border-sky-500/25 px-4 text-xs hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
                 onClick={toolbarConfig.onReset}
               >
                 <RotateCcw className="size-3.5" />
@@ -196,9 +196,9 @@ export function DataTableBase<T>({
                         "sm:col-span-2 lg:col-span-1",
                       )}
                     >
-                      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-primary/70" />
+                      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-sky-500/70" />
                       <Input
-                        className="h-10 border-primary/20 bg-background pl-10 text-sm ring-offset-background placeholder:text-muted-foreground/70 focus-visible:border-primary/40 focus-visible:ring-primary/20"
+                        className="h-10 border-sky-500/20 bg-background pl-10 text-sm ring-offset-background placeholder:text-muted-foreground/70 focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20"
                         placeholder={field.placeholder}
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
@@ -214,7 +214,7 @@ export function DataTableBase<T>({
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="h-10 py-5 w-full border-primary/20 bg-background text-sm focus:ring-primary/20">
+                      <SelectTrigger className="h-10 py-5 w-full border-sky-500/20 bg-background text-sm focus:ring-sky-500/20">
                         <SelectValue placeholder={field.placeholder} />
                       </SelectTrigger>
                       <SelectContent>
@@ -231,7 +231,7 @@ export function DataTableBase<T>({
                   return (
                     <Input
                       key={idx}
-                      className="h-10 border-primary/20 bg-background text-sm focus-visible:border-primary/40 focus-visible:ring-primary/20"
+                      className="h-10 border-sky-500/20 bg-background text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20"
                       type="date"
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
@@ -247,19 +247,19 @@ export function DataTableBase<T>({
       )}
 
       {/* Main Table */}
-      <div className="overflow-x-auto rounded-sm border border-primary/20 bg-card shadow-sm ring-1 ring-primary/5">
+      <div className="overflow-x-auto rounded-sm border border-sky-500/20 bg-card shadow-sm ring-1 ring-sky-500/5">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow
                 key={hg.id}
-                className="border-primary/15 bg-primary/[0.06] hover:bg-transparent"
+                className="border-sky-500/15 bg-sky-500/[0.06] hover:bg-transparent"
               >
                 {hg.headers.map((h) => (
                   <TableHead
                     key={h.id}
                     className={cn(
-                      "whitespace-nowrap h-11 bg-primary/[0.07] text-sm font-medium text-muted-foreground dark:bg-primary/10",
+                      "whitespace-nowrap h-11 bg-sky-500/[0.07] text-sm font-medium text-muted-foreground dark:bg-sky-500/10",
                       h.column.id === "expander" && "w-10 px-2",
                       h.column.id === "total" && "text-right",
                       h.column.id === "actions" && "pr-3 pl-2",
@@ -279,10 +279,10 @@ export function DataTableBase<T>({
                 const resolvedRowClass = rowClassName
                   ? rowClassName(row)
                   : cn(
-                    "border-primary/10 transition-colors",
+                    "border-sky-500/10 transition-colors",
                     highlightedRowId && (row.original as { id?: string }).id === highlightedRowId
                       ? "bg-rose-500/15 hover:bg-rose-500/20"
-                      : "hover:bg-primary/[0.03]",
+                      : "hover:bg-sky-500/[0.03]",
                   )
 
                 return (
@@ -306,7 +306,7 @@ export function DataTableBase<T>({
                           </div>
                         ) : (
                           flexRender(
-                            cell.column.columnDef.cell,
+                             cell.column.columnDef.cell,
                             cell.getContext(),
                           )
                         )}
@@ -330,7 +330,7 @@ export function DataTableBase<T>({
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex flex-col gap-4 rounded-sm border border-primary/20 bg-card px-4 py-3.5 ring-1 ring-primary/5 sm:flex-row sm:items-center sm:justify-between dark:bg-card">
+      <div className="flex flex-col gap-4 rounded-sm border border-sky-500/20 bg-card px-4 py-3.5 ring-1 ring-sky-500/5 sm:flex-row sm:items-center sm:justify-between dark:bg-card">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span>Hiển thị</span>
           <Select
@@ -340,7 +340,7 @@ export function DataTableBase<T>({
               setPageIndex(0)
             }}
           >
-            <SelectTrigger size="sm" className="h-8 w-18 border-primary/25 bg-transparent">
+            <SelectTrigger size="sm" className="h-8 w-18 border-sky-500/25 bg-transparent">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -362,7 +362,7 @@ export function DataTableBase<T>({
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 rounded-full border-primary/25 px-3 text-xs hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+              className="h-8 rounded-full border-sky-500/25 px-3 text-xs hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
               disabled={!table.getCanPreviousPage()}
               onClick={() => table.previousPage()}
             >
@@ -372,7 +372,7 @@ export function DataTableBase<T>({
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 rounded-full border-primary/25 px-3 text-xs hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+              className="h-8 rounded-full border-sky-500/25 px-3 text-xs hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
               disabled={!table.getCanNextPage()}
               onClick={() => table.nextPage()}
             >
@@ -400,7 +400,7 @@ export function DataTableBase<T>({
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border-primary/20 sm:w-auto hover:cursor-pointer"
+                className="w-full border-sky-500/20 sm:w-auto hover:cursor-pointer"
                 onClick={() => setDeleteTarget(null)}
               >
                 Hủy

@@ -45,8 +45,8 @@ function QuantityController({
   onBlur?: () => void
 }) {
   return (
-    <div className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-primary/20 bg-background/50 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
-      <button type="button" onClick={onDecrement} className="flex h-full w-12 items-center justify-center text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors border-r border-primary/10 cursor-pointer">
+    <div className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-sky-500/20 bg-background/50 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/10">
+      <button type="button" onClick={onDecrement} className="flex h-full w-12 items-center justify-center text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors border-r border-sky-500/10 cursor-pointer">
         <Minus className="size-3.5" />
       </button>
       <input
@@ -56,7 +56,7 @@ function QuantityController({
         onBlur={onBlur}
         className="h-full w-full bg-transparent border-0 outline-none text-center font-bold text-sm tabular-nums text-foreground p-0 focus-visible:ring-0 focus-visible:border-0"
       />
-      <button type="button" onClick={onIncrement} className="flex h-full w-12 items-center justify-center text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors border-l border-primary/10 cursor-pointer">
+      <button type="button" onClick={onIncrement} className="flex h-full w-12 items-center justify-center text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors border-l border-sky-500/10 cursor-pointer">
         <Plus className="size-3.5" />
       </button>
     </div>
@@ -206,10 +206,25 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
 
   const activePhieu = successPhieu || viewPhieu
 
+  const resolvedPhieu = useMemo(() => {
+    if (!activePhieu) return null
+    if ("tieuDe" in activePhieu) return activePhieu
+    return {
+      maPhieu: activePhieu.maPhieu,
+      tieuDe: "PHIẾU NHẬP KHO",
+      doiTacLabel: "Thông tin nhà cung cấp",
+      doiTacValue: activePhieu.nhaCungCap,
+      ngayNhap: activePhieu.ngayNhap,
+      ghiChu: activePhieu.ghiChu || "Phiếu được tạo tự động từ hệ thống",
+      nguoiTao: activePhieu.nguoiTao,
+      chiTiet: activePhieu.chiTiet,
+    }
+  }, [activePhieu])
+
   const handleDownloadPdf = () => {
-    if (!activePhieu || !printRef.current) return
-    const prefix = activePhieu.maPhieu.startsWith("PN") ? "Phieu_Nhap_Kho" : (activePhieu.maPhieu.startsWith("PX") ? "Phieu_Xuat_Kho" : "Phieu_Dieu_Chinh_Kho")
-    void exportReceiptPdf(printRef.current, `${prefix}_${activePhieu.maPhieu}.pdf`)
+    if (!resolvedPhieu || !printRef.current) return
+    const prefix = resolvedPhieu.maPhieu.startsWith("PN") ? "Phieu_Nhap_Kho" : (resolvedPhieu.maPhieu.startsWith("PX") ? "Phieu_Xuat_Kho" : "Phieu_Dieu_Chinh_Kho")
+    void exportReceiptPdf(printRef.current, `${prefix}_${resolvedPhieu.maPhieu}.pdf`)
   }
 
   const handleImportSubmit = (data: ImportStockForm) => {
@@ -227,7 +242,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
       <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-10 px-4 text-xs font-semibold rounded-sm hover:cursor-pointer">
         Hủy
       </Button>
-      <Button type="submit" disabled={disabled} className="h-10 px-4 text-xs font-semibold rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 hover:cursor-pointer">
+      <Button type="submit" disabled={disabled} className="h-10 px-4 text-xs font-semibold rounded-sm bg-sky-500 hover:bg-sky-600 text-white disabled:opacity-50 hover:cursor-pointer">
         {submitLabel}
       </Button>
     </div>
@@ -238,17 +253,17 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
       ? activePhieu
         ? "max-h-[95vh] overflow-hidden sm:max-w-4xl rounded-sm p-6"
         : "max-h-[90vh] overflow-y-auto sm:max-w-lg rounded-sm"
-      : "sm:max-w-md rounded-sm border-primary/20 bg-card shadow-[0_10px_30px_rgba(0,0,0,0.1)] ring-1 ring-primary/5"
+      : "sm:max-w-md rounded-sm border-sky-500/20 bg-card shadow-[0_10px_30px_rgba(0,0,0,0.1)] ring-1 ring-sky-500/5"
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={contentClassName}>
         {mode === "adjust" && adjustItem && (
           <>
-            <DialogHeader className="space-y-1.5 pb-2 border-b border-primary/10">
+            <DialogHeader className="space-y-1.5 pb-2 border-b border-sky-500/10">
               <DialogTitle className="text-base font-bold text-foreground">Chỉnh sửa tồn kho</DialogTitle>
               <p className="text-xs text-muted-foreground leading-normal">
-                {adjustItem.tenSanPham} <span className="mx-1 text-primary/30">·</span> {adjustItem.sku}
+                {adjustItem.tenSanPham} <span className="mx-1 text-sky-500/30">·</span> {adjustItem.sku}
               </p>
             </DialogHeader>
             <form className="space-y-4 pt-2" onSubmit={adjustForm.handleSubmit(handleAdjustSubmit)}>
@@ -269,15 +284,15 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                   rows={3}
                   {...adjustForm.register("ghiChu")}
                   placeholder="Nhập lý do thay đổi tồn kho..."
-                  className="border-primary/20 bg-background/50 text-sm focus-visible:border-primary/40 focus-visible:ring-primary/20"
+                  className="border-sky-500/20 bg-background/50 text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4 rounded-sm border border-primary/10 bg-primary/5 p-4 text-center">
+              <div className="grid grid-cols-2 gap-4 rounded-sm border border-sky-500/10 bg-sky-50/5 dark:bg-sky-950/5 p-4 text-center">
                 <div>
                   <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn kho hiện tại</span>
                   <p className="mt-1 text-lg text-muted-foreground/80 tabular-nums">{adjustItem.tonKhaDung}</p>
                 </div>
-                <div className="border-l border-primary/10">
+                <div className="border-l border-sky-500/10">
                   <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn kho dự kiến</span>
                   <p className={`mt-1 text-lg tabular-nums transition-colors duration-200 ${adjustPreview < 0 ? "text-red-500 animate-pulse" : adjustPreview === adjustItem.tonKhaDung ? "text-muted-foreground" : "text-emerald-500 dark:text-emerald-400"}`}>
                     {adjustPreview}
@@ -291,7 +306,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
 
         {mode === "check" && (
           <>
-            <DialogHeader className="space-y-1.5 pb-2 border-b border-primary/10">
+            <DialogHeader className="space-y-1.5 pb-2 border-b border-sky-500/10">
               <DialogTitle className="text-base font-bold text-foreground">Kiểm kho định kỳ</DialogTitle>
               <p className="text-xs text-muted-foreground leading-normal">Kiểm kê thực tế và khớp số lượng tồn kho hệ thống</p>
             </DialogHeader>
@@ -312,7 +327,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kỳ kiểm kho (Tháng)</Label>
-                  <Input type="month" {...checkForm.register("thang")} className="h-10 border-primary/20 bg-background/50 text-sm focus-visible:border-primary/40 focus-visible:ring-primary/20" />
+                  <Input type="month" {...checkForm.register("thang")} className="h-10 border-sky-500/20 bg-background/50 text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Số lượng thực tế</Label>
@@ -330,22 +345,22 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                   rows={2}
                   {...checkForm.register("ghiChu")}
                   placeholder="Nhập ghi chú kiểm kho nếu có..."
-                  className="border-primary/20 bg-background/50 text-sm focus-visible:border-primary/40 focus-visible:ring-primary/20"
+                  className="border-sky-500/20 bg-background/50 text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20"
                 />
               </div>
               {checkItem && (
-                <div className="rounded-sm border border-primary/10 bg-primary/5 p-4 space-y-3">
+                <div className="rounded-sm border border-sky-500/10 bg-sky-50/5 dark:bg-sky-950/5 p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
                       <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn hệ thống</span>
                       <p className="mt-1 text-base text-muted-foreground/80 tabular-nums">{checkItem.tonKhaDung}</p>
                     </div>
-                    <div className="border-l border-primary/10">
+                    <div className="border-l border-sky-500/10">
                       <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn thực tế</span>
                       <p className="mt-1 text-base text-foreground tabular-nums">{checkThucTe}</p>
                     </div>
                   </div>
-                  <div className="pt-2.5 border-t border-primary/10 text-center">
+                  <div className="pt-2.5 border-t border-sky-500/10 text-center">
                     {checkChenhLech !== 0 ? (
                       <p className="text-xs font-medium text-muted-foreground leading-normal">
                         Lệch điều chỉnh: <span className={`font-bold tabular-nums ${checkChenhLech > 0 ? "text-emerald-500" : "text-red-500 animate-pulse"}`}>{checkChenhLech > 0 ? `+${checkChenhLech}` : checkChenhLech}</span>
@@ -363,9 +378,9 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
 
         {(mode === "import" || mode === "view") && (
           <>
-            {activePhieu ? (
+            {resolvedPhieu ? (
               <>
-                <DialogHeader className="pb-3 border-b border-primary/5">
+                <DialogHeader className="pb-3 border-b border-sky-500/5">
                   <DialogTitle className="text-center font-bold text-base text-foreground">
                     {mode === "view" ? "Chi tiết chứng từ kho" : "Nhập kho thành công"}
                   </DialogTitle>
@@ -380,7 +395,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                     {mode === "import" ? "Ghi nhận phiếu nhập thành công!" : "Thông tin chứng từ kho"}
                   </h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Hệ thống trích xuất phiếu <span className="font-semibold text-primary">{activePhieu.maPhieu}</span> kích thước chuẩn A4.
+                    Hệ thống trích xuất phiếu <span className="font-semibold text-sky-500">{resolvedPhieu.maPhieu}</span> kích thước chuẩn A4.
                   </p>
                 </div>
                 <style dangerouslySetInnerHTML={{
@@ -391,7 +406,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                     #receipt-slip-content { padding: 0 !important; box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; background: #ffffff !important; }
                   }
                 `}} />
-                <ScrollArea className="h-[50vh] border border-primary/10 rounded-sm bg-muted/10">
+                <ScrollArea className="h-[50vh] border border-sky-500/10 rounded-sm bg-muted/10">
                   <div className="p-4 flex justify-center items-start">
                     <div ref={printRef} id="receipt-slip-content" className="bg-white w-[210mm] max-w-full shrink-0">
                       <Paper size="A4" style={{ padding: "30px" }}>
@@ -403,24 +418,24 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                           </div>
                           <div style={{ textAlign: "right" }}>
                             <h1 style={{ fontSize: "18px", fontWeight: "extrabold", margin: 0, color: "#2563EB" }}>
-                              {activePhieu.tieuDe}
+                              {resolvedPhieu.tieuDe}
                             </h1>
-                            <p style={{ fontSize: "11px", color: "#4B5563", margin: "4px 0 0 0" }}>Số phiếu: <b>{activePhieu.maPhieu}</b></p>
-                            <p style={{ fontSize: "11px", color: "#4B5563", margin: "2px 0 0 0" }}>Ngày lập: {activePhieu.ngayNhap}</p>
+                            <p style={{ fontSize: "11px", color: "#4B5563", margin: "4px 0 0 0" }}>Số phiếu: <b>{resolvedPhieu.maPhieu}</b></p>
+                            <p style={{ fontSize: "11px", color: "#4B5563", margin: "2px 0 0 0" }}>Ngày lập: {resolvedPhieu.ngayNhap}</p>
                           </div>
                         </div>
                         <div style={{ borderTop: "2px solid #2563EB", marginBottom: "20px" }} />
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px", fontSize: "11px", color: "#1F2937" }}>
                           <div style={{ backgroundColor: "#F9FAFB", padding: "12px", borderRadius: "2px", border: "1px solid #E5E7EB" }}>
                             <p style={{ margin: "0 0 6px 0", color: "#4B5563", fontWeight: "bold", fontSize: "10px", textTransform: "uppercase" }}>
-                              {activePhieu.doiTacLabel}
+                              {resolvedPhieu.doiTacLabel}
                             </p>
-                            <p style={{ margin: "2px 0" }}><b>Tên:</b> {activePhieu.doiTacValue}</p>
+                            <p style={{ margin: "2px 0" }}><b>Tên:</b> {resolvedPhieu.doiTacValue}</p>
                             <p style={{ margin: "2px 0" }}><b>Liên hệ:</b> Phân phối ủy quyền chính thức</p>
                           </div>
                           <div style={{ backgroundColor: "#F9FAFB", padding: "12px", borderRadius: "2px", border: "1px solid #E5E7EB" }}>
                             <p style={{ margin: "0 0 6px 0", color: "#4B5563", fontWeight: "bold", fontSize: "10px", textTransform: "uppercase" }}>Thông tin giao nhận</p>
-                            <p style={{ margin: "2px 0" }}><b>Người lập phiếu:</b> {activePhieu.nguoiTao}</p>
+                            <p style={{ margin: "2px 0" }}><b>Người lập phiếu:</b> {resolvedPhieu.nguoiTao}</p>
                             <p style={{ margin: "2px 0" }}><b>Kho nhận:</b> Kho Tổng Hà Nội (Kho A1)</p>
                           </div>
                         </div>
@@ -435,7 +450,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                             </tr>
                           </thead>
                           <tbody>
-                            {activePhieu.chiTiet.map((line, idx) => (
+                            {resolvedPhieu.chiTiet.map((line, idx) => (
                               <TableRow key={line.id || idx} style={{ borderBottom: "1px solid #E5E7EB" }}>
                                 <TableCell align="center" style={{ color: "#4B5563" }}>{idx + 1}</TableCell>
                                 <TableCell align="left"><div style={{ fontWeight: "bold", color: "#111827" }}>{line.tenSanPham}</div></TableCell>
@@ -448,22 +463,22 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                         </DataTable>
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "20px" }}>
                           <div style={{ width: "55%" }}>
-                            {activePhieu.ghiChu && (
+                            {resolvedPhieu.ghiChu && (
                               <div style={{ border: "1px solid #E5E7EB", padding: "10px", borderRadius: "2px", backgroundColor: "#FCFDFD" }}>
                                 <p style={{ margin: "0 0 4px 0", fontWeight: "bold", fontSize: "10.5px", color: "#4B5563" }}>Ghi chú phiếu:</p>
-                                <p style={{ margin: 0, fontSize: "11px", color: "#1F2937", lineHeight: "1.4" }}>{activePhieu.ghiChu}</p>
+                                <p style={{ margin: 0, fontSize: "11px", color: "#1F2937", lineHeight: "1.4" }}>{resolvedPhieu.ghiChu}</p>
                               </div>
                             )}
                           </div>
                           <div style={{ width: "40%", textAlign: "right" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #E5E7EB", fontSize: "11px" }}>
                               <span style={{ color: "#4B5563" }}>Tổng sản phẩm:</span>
-                              <span style={{ fontWeight: "bold", color: "#111827" }}>{activePhieu.chiTiet.length}</span>
+                              <span style={{ fontWeight: "bold", color: "#111827" }}>{resolvedPhieu.chiTiet.length}</span>
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: "12px" }}>
                               <span style={{ fontWeight: "bold", color: "#111827" }}>Tổng số lượng:</span>
                               <span style={{ fontWeight: "extrabold", color: "#2563EB" }}>
-                                {activePhieu.chiTiet.reduce((sum, item) => sum + item.soLuong, 0)} cái
+                                {resolvedPhieu.chiTiet.reduce((sum, item) => sum + item.soLuong, 0)} cái
                               </span>
                             </div>
                           </div>
@@ -481,7 +496,7 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                     </div>
                   </div>
                 </ScrollArea>
-                <div className="flex gap-2 justify-end mt-4 pt-3 border-t border-primary/5">
+                <div className="flex gap-2 justify-end mt-4 pt-3 border-t border-sky-500/5">
                   <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="hover:cursor-pointer">Đóng</Button>
                   <Button type="button" size="sm" onClick={handleDownloadPdf} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm hover:cursor-pointer">
                     <Download className="size-4" />Tải xuống PDF

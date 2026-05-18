@@ -23,7 +23,7 @@ function statusTone(status: OrderStatus) {
     pending:
       "border-amber-500/35 bg-amber-500/[0.07] text-amber-950 dark:text-amber-100",
     confirmed:
-      "border-primary/40 bg-primary/[0.1] text-primary",
+      "border-sky-500/40 bg-sky-500/[0.1] text-sky-600 dark:text-sky-400",
     shipping:
       "border-violet-500/35 bg-violet-500/[0.07] text-violet-950 dark:text-violet-100",
     delivered:
@@ -69,7 +69,7 @@ export function buildOrderColumns({
             type="button"
             variant="ghost"
             size="icon-xs"
-            className="text-muted-foreground hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+            className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
             onClick={row.getToggleExpandedHandler()}
             aria-expanded={row.getIsExpanded()}
             aria-label={row.getIsExpanded() ? "Thu gọn" : "Mở rộng"}
@@ -105,8 +105,8 @@ export function buildOrderColumns({
                 {r.avatar ? (
                   <AvatarImage src={r.avatar} alt={r.name} className="rounded-sm" />
                 ) : null}
-                <AvatarFallback className="rounded-sm border border-primary/30 bg-primary/10">
-                  <User className="size-4 text-primary" aria-hidden />
+                <AvatarFallback className="rounded-sm border border-sky-500/30 bg-sky-500/10">
+                  <User className="size-4 text-sky-500" aria-hidden />
                   <span className="sr-only">{r.name}</span>
                 </AvatarFallback>
               </Avatar>
@@ -238,7 +238,7 @@ export function buildOrderColumns({
               type="button"
               variant="ghost"
               size="icon-xs"
-              className="text-muted-foreground hover:bg-primary/10 hover:text-primary hover:cursor-pointer"
+              className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
               aria-label="Xem chi tiết"
               onClick={() => onPreview(r as IAdminOrder)}
             >
