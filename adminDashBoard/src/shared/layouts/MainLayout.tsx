@@ -17,6 +17,9 @@ import { AppSidebar } from "@/shared/layouts/sidebar/AppSidebar"
 const LABELS: Record<string, string> = {
   "/dashboard": "Tổng quan",
   "/cart": "Giỏ hàng",
+  "/orders": "Đơn hàng",
+  "/inventory": "Tồn kho",
+  "/inventory/history": "Lịch sử kho",
 }
 
 function breadcrumbLabel(pathname: string) {
@@ -33,9 +36,9 @@ const MainLayout = () => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/30 px-4 backdrop-blur-sm md:h-16 md:px-6">
-          <SidebarTrigger className="-ml-0.5" />
+      <SidebarInset className="h-svh overflow-hidden">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/30 px-4 backdrop-blur-sm md:h-16 md:px-6 sticky top-0 z-30">
+          <SidebarTrigger className="-ml-0.5 hover:cursor-pointer" />
           
           <Breadcrumb>
             <BreadcrumbList className="text-sm">
@@ -53,7 +56,7 @@ const MainLayout = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <main className="flex min-h-[calc(100svh-3.5rem)] flex-1 flex-col bg-[#F9FAFB] p-4 md:min-h-[calc(100svh-4rem)] md:p-6 dark:bg-background">
+        <main className="flex overflow-y-auto min-h-[calc(100svh-3.5rem)] flex-1 flex-col bg-[#F9FAFB] p-4 md:min-h-[calc(100svh-4rem)] md:p-6 dark:bg-background">
           <Outlet />
         </main>
       </SidebarInset>

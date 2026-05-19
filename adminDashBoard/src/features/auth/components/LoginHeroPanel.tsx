@@ -13,7 +13,7 @@ export function LoginHeroPanel() {
   return (
     <aside
       className={cn(
-        "relative z-[1] hidden h-screen min-w-0 flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground lg:flex xl:px-10 xl:py-8",
+        "relative z-[1] hidden h-screen min-w-0 flex-col justify-between overflow-hidden bg-sky-700 p-10 text-primary-foreground lg:flex xl:px-10 xl:py-8",
       )}
       style={heroClip}
     >
@@ -55,7 +55,7 @@ export function LoginHeroPanel() {
             Chỉ thành viên được cấp quyền mới truy cập được khu vực này. Hãy đăng xuất khi dùng chung thiết bị để bảo vệ dữ liệu khách
             hàng.
           </p>
-        
+
         </div>
 
         <div className="mt-12 flex w-full min-w-0 flex-1 items-center justify-start lg:mt-10">

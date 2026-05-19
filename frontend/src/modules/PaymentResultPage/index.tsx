@@ -147,7 +147,7 @@ export default function PaymentResultPage({ params }: PaymentResultPageProps) {
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">Tổng thanh toán</dt>
-              <dd className="mt-1 text-xl font-semibold tabular-nums text-primary">
+              <dd className="mt-1 text-xl font-semibold tabular-nums text-sky-600">
                 {formatVnd(order.total)}
               </dd>
             </div>

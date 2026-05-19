@@ -31,9 +31,9 @@ function EmptyCheckout() {
     <div className="min-h-[calc(100vh-66px)] bg-muted/25 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="relative inline-flex">
-          <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl scale-150" />
+          <div className="absolute inset-0 bg-sky-500/10 rounded-full blur-3xl scale-150" />
           <div className="relative size-32 rounded-3xl bg-card border-2 border-border/50 flex items-center justify-center shadow-2xl rotate-3">
-            <ShoppingBag className="size-14 text-primary/30 -rotate-3 stroke-[1.5]" />
+            <ShoppingBag className="size-14 text-sky-500/30 -rotate-3 stroke-[1.5]" />
           </div>
         </div>
         <div className="space-y-3">
@@ -45,7 +45,7 @@ function EmptyCheckout() {
         <div className="flex flex-col gap-3">
           <Button
             asChild
-            className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 transition-all cursor-pointer"
+            className="h-12 px-8 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold shadow-lg shadow-sky-600/20 transition-all cursor-pointer hover:cursor-pointer"
           >
             <Link href={ROUTES.CART}>Quay về giỏ hàng</Link>
           </Button>
@@ -102,8 +102,8 @@ export default function CheckoutPage() {
         <div className="bg-card shadow-sm rounded-sm overflow-hidden border border-border/40 relative">
           <div className="h-[3px] w-full bg-[repeating-linear-gradient(45deg,#6fa6d6,#6fa6d6_33px,transparent_0,transparent_41px,#f18d9b_0,#f18d9b_74px,transparent_0,transparent_82px)]" />
           <div className="p-6 md:p-7">
-            <div className="flex items-center gap-2 text-primary font-medium text-lg mb-4">
-              <MapPin className="size-5 fill-primary text-primary-foreground" />
+            <div className="flex items-center gap-2 text-sky-600 font-medium text-lg mb-4">
+              <MapPin className="size-5 fill-sky-600 text-white" />
               Địa Chỉ Nhận Hàng
             </div>
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-base">
@@ -151,7 +151,7 @@ export default function CheckoutPage() {
           <div className="p-6 border-b border-border/40 bg-[#fafdff] dark:bg-muted/10">
             <div className="flex justify-end items-center gap-3">
               <span className="text-muted-foreground text-sm">Tổng số tiền ({totalQty} sản phẩm):</span>
-              <span className="text-xl font-semibold text-primary">{formatVnd(subTotal)}</span>
+              <span className="text-xl font-semibold text-sky-600">{formatVnd(subTotal)}</span>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function CheckoutPage() {
         <div className="bg-card shadow-sm rounded-sm border border-border/40 overflow-hidden text-sm">
           <div className="p-6 py-5 flex items-center justify-between border-b border-border/40">
             <div className="flex items-center gap-2">
-              <Ticket className="size-5 text-primary" />
+              <Ticket className="size-5 text-sky-500" />
               <span className="text-foreground text-base">Voucher</span>
             </div>
             <CartVoucherPopover>
@@ -183,16 +183,16 @@ export default function CheckoutPage() {
                       key={method.id}
                       onClick={() => setSelectedPayment(method.id)}
                       className={cn(
-                        "relative flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all cursor-pointer group",
+                        "relative flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all cursor-pointer group hover:cursor-pointer",
                         isSelected
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border hover:border-primary/50 hover:bg-muted/30 text-muted-foreground"
+                          ? "border-sky-500 bg-sky-500/5 text-sky-600"
+                          : "border-border hover:border-sky-500/50 hover:bg-muted/30 text-muted-foreground"
                       )}
                     >
-                      <Icon className={cn("size-5 transition-colors", isSelected ? "text-primary" : "group-hover:text-primary")} />
+                      <Icon className={cn("size-5 transition-colors", isSelected ? "text-sky-600" : "group-hover:text-sky-600")} />
                       <span className="text-sm font-bold">{method.label}</span>
                       {isSelected && (
-                        <div className="absolute -top-2 -right-2 bg-primary text-white size-5 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                        <div className="absolute -top-2 -right-2 bg-sky-500 text-white size-5 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
                           <Check className="size-3 stroke-[4]" />
                         </div>
                       )}
@@ -207,11 +207,11 @@ export default function CheckoutPage() {
             <div className="flex flex-col md:flex-row gap-8 items-start">
               <div className="flex-1 space-y-4">
                 <div className="flex items-center gap-3 text-foreground/80">
-                  <div className="bg-primary/10 p-2 rounded-lg">
+                  <div className="bg-sky-500/10 p-2 rounded-lg">
                     {(() => {
                       const method = PAYMENT_METHODS.find(m => m.id === selectedPayment);
                       const Icon = method?.icon || Banknote;
-                      return <Icon className="size-5 text-primary" />;
+                      return <Icon className="size-5 text-sky-600" />;
                     })()}
                   </div>
                   <div>
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
               <div className="w-full md:w-[350px] space-y-3">
                 <div className="pt-4  flex justify-between items-center">
                   <span className="text-base font-bold text-foreground">Tổng thanh toán</span>
-                  <span className="text-2xl font-black text-primary tracking-tight">
+                  <span className="text-2xl font-black text-sky-600 tracking-tight">
                     {formatVnd(totalAmount)}
                   </span>
                 </div>
@@ -245,11 +245,11 @@ export default function CheckoutPage() {
               <Button
                 asChild
                 variant="ghost"
-                className="h-10 px-8 text-md font-bold border border-primary text-primary hover:text-blue-500 hover:bg-white transition-all cursor-pointer rounded-xl hover:scale-[1.02]"
+                className="h-10 px-8 text-md font-bold border border-sky-500 text-sky-600 hover:text-sky-500 hover:bg-white transition-all cursor-pointer rounded-xl hover:scale-[1.02] hover:cursor-pointer"
               >
                 <Link href={ROUTES.CART}>Trở lại giỏ hàng</Link>
               </Button>
-              <Button className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer">
+              <Button className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xl shadow-sky-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer hover:cursor-pointer">
                 Đặt hàng
               </Button>
             </div>
