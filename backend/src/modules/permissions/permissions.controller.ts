@@ -13,39 +13,43 @@ export class PermissionsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get()
-  async findAll(): Promise<ApiResponse<any>> {
+  async findAll(): Promise<ApiResponse<PermissionResponse[]>> {
     const data = await this.permissionsService.findAll();
 
     return {
       status: 'success',
-      message: 'Get permissions successfully',
+      message: 'Permissions retrieved successfully',
       data,
+      meta: {
+        count: data.length,
+      },
     };
   }
 
   @Get(':id')
   async findOne(
     @Param('id') id: string,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<PermissionResponse>> {
     const data = await this.permissionsService.findOne(id);
 
     return {
       status: 'success',
-      message: 'Get permission successfully',
+      message: 'Permission retrieved successfully',
       data,
     };
   }
 
+
   @Post()
   async create(
     @Body() dto: CreatePermissionDto,
-  ): Promise<ApiResponse<any>> {
-    const data = await this.permissionsService.create(dto);
+  ): Promise<ApiResponse<PermissionResponse>> {
+    const result = await this.permissionsService.create(dto);
 
     return {
       status: 'success',
-      message: 'Create permission successfully',
-      data,
+      message: 'Permission retrieved successfully',
+      data: result.data,
     };
   }
 
@@ -53,20 +57,20 @@ export class PermissionsController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdatePermissionDto,
-  ): Promise<ApiResponse<any>> {
-    const data = await this.permissionsService.update(id, dto);
+  ): Promise<ApiResponse<PermissionResponse>> {
+    const result = await this.permissionsService.update(id, dto);
 
     return {
       status: 'success',
-      message: 'Update permission successfully',
-      data,
+      message: result.message,
+      data: result.data,
     };
   }
 
   @Delete(':id')
   async remove(
     @Param('id') id: string,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<{ message: string }>>{
     const data = await this.permissionsService.remove(id);
 
     return {
