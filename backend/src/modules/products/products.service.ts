@@ -45,6 +45,47 @@ export class ProductsService {
   ) {}
 
   /**
+   * generate slug
+   */
+  private async generateSlug(
+    name: string,
+    productId?: string,
+  ) {
+    const baseSlug = slugify(
+      name,
+      {
+        lower: true,
+
+        strict: true,
+      },
+    );
+
+    let slug = baseSlug;
+
+    let count = 1;
+
+    while (
+      await this.productRepository.findOne(
+        {
+          slug,
+
+          ...(productId && {
+            id: {
+              $ne: productId,
+            },
+          }),
+        },
+      )
+    ) {
+      slug = `${baseSlug}-${count}`;
+
+      count++;
+    }
+
+    return slug;
+  }
+
+  /**
    * get products
    */
   async findAll(
@@ -77,7 +118,7 @@ export class ProductsService {
     }
 
     /**
-     * get data
+     * products
      */
     const [products, total] =
       await this.productRepository.findAndCount(
@@ -105,85 +146,90 @@ export class ProductsService {
       );
 
     return {
-      items: products.map(
-        product => {
-          const thumbnail =
-            product.images.find(
-              image =>
-                image.isPrimary,
-            );
+      message:
+        'Get products successfully',
 
-          const activePrice =
-            product.prices.find(
-              price =>
-                price.isActive,
-            );
+      data: {
+        products: products.map(
+          product => {
+            const thumbnail =
+              product.images.find(
+                image =>
+                  image.isPrimary,
+              );
 
-          return {
-            id: product.id,
+            const activePrice =
+              product.prices.find(
+                price =>
+                  price.isActive,
+              );
 
-            name:
-              product.name,
-
-            slug:
-              product.slug,
-
-            shortDescription:
-              product.shortDescription,
-
-            isActive:
-              product.isActive,
-
-            thumbnail:
-              thumbnail?.imageUrl,
-
-            category: {
-              id:
-                product.category
-                  .id,
+            return {
+              id: product.id,
 
               name:
-                product.category
-                  .name,
+                product.name,
 
               slug:
-                product.category
-                  .slug,
-            },
+                product.slug,
 
-            price: activePrice
-              ? {
-                  price:
-                    activePrice.price,
+              shortDescription:
+                product.shortDescription,
 
-                  originalPrice:
-                    activePrice.originalPrice,
+              isActive:
+                product.isActive,
 
-                  discountPercent:
-                    activePrice.discountPercent,
+              thumbnail:
+                thumbnail?.imageUrl,
 
-                  currency:
-                    activePrice.currency,
-                }
-              : null,
+              category: {
+                id:
+                  product.category.id,
 
-            createdAt:
-              product.createdAt,
-          };
+                name:
+                  product.category.name,
+
+                slug:
+                  product.category.slug,
+              },
+
+              price: activePrice
+                ? {
+                    price:
+                      activePrice.price,
+
+                    originalPrice:
+                      activePrice.originalPrice,
+
+                    discountPercent:
+                      activePrice.discountPercent,
+
+                    currency:
+                      activePrice.currency,
+                  }
+                : null,
+
+              createdAt:
+                product.createdAt,
+            };
+          },
+        ),
+      },
+
+      meta: {
+        pagination: {
+          page,
+
+          limit,
+
+          totalItems:
+            total,
+
+          totalPages:
+            Math.ceil(
+              total / limit,
+            ),
         },
-      ),
-
-      pagination: {
-        page,
-
-        limit,
-
-        total,
-
-        totalPages:
-          Math.ceil(
-            total / limit,
-          ),
       },
     };
   }
@@ -234,131 +280,141 @@ export class ProductsService {
         : 0;
 
     return {
-      id: product.id,
+      message:
+        'Get product successfully',
 
-      name: product.name,
+      data: {
+        product: {
+          id: product.id,
 
-      slug: product.slug,
+          name:
+            product.name,
 
-      shortDescription:
-        product.shortDescription,
+          slug:
+            product.slug,
 
-      description:
-        product.description,
+          shortDescription:
+            product.shortDescription,
 
-      isActive:
-        product.isActive,
+          description:
+            product.description,
 
-      createdAt:
-        product.createdAt,
+          isActive:
+            product.isActive,
 
-      updatedAt:
-        product.updatedAt,
+          createdAt:
+            product.createdAt,
 
-      category: {
-        id:
-          product.category.id,
+          updatedAt:
+            product.updatedAt,
 
-        name:
-          product.category
-            .name,
+          category: {
+            id:
+              product.category.id,
 
-        slug:
-          product.category
-            .slug,
-      },
+            name:
+              product.category.name,
 
-      prices:
-        product.prices.map(
-          price => ({
-            id: price.id,
+            slug:
+              product.category.slug,
+          },
 
-            price:
-              price.price,
+          prices:
+            product.prices.map(
+              price => ({
+                id: price.id,
 
-            originalPrice:
-              price.originalPrice,
+                price:
+                  price.price,
 
-            discountPercent:
-              price.discountPercent,
+                originalPrice:
+                  price.originalPrice,
 
-            currency:
-              price.currency,
+                discountPercent:
+                  price.discountPercent,
 
-            isActive:
-              price.isActive,
-          }),
-        ),
+                currency:
+                  price.currency,
 
-      variants:
-        product.variants.map(
-          variant => ({
-            id: variant.id,
-
-            title:
-              variant.title,
-
-            sku:
-              variant.sku,
-
-            stock:
-              variant.stock,
-
-            image:
-              variant.image,
-
-            price:
-              variant.price,
-
-            isActive:
-              variant.isActive,
-
-            attributes:
-              variant.attributes,
-          }),
-        ),
-
-      attributes:
-        product.attributes.map(
-          attr => ({
-            id: attr.id,
-
-            name: attr.name,
-
-            value:
-              attr.value,
-          }),
-        ),
-
-      images:
-        product.images.map(
-          image => ({
-            id: image.id,
-
-            imageUrl:
-              image.imageUrl,
-
-            type:
-              image.type,
-
-            sortOrder:
-              image.sortOrder,
-
-            isPrimary:
-              image.isPrimary,
-          }),
-        ),
-
-      reviewSummary: {
-        averageRating:
-          Number(
-            averageRating.toFixed(
-              1,
+                isActive:
+                  price.isActive,
+              }),
             ),
-          ),
 
-        totalReviews,
+          variants:
+            product.variants.map(
+              variant => ({
+                id: variant.id,
+
+                title:
+                  variant.title,
+
+                sku:
+                  variant.sku,
+
+                stock:
+                  variant.stock,
+
+                image:
+                  variant.image,
+
+                price:
+                  variant.price,
+
+                isActive:
+                  variant.isActive,
+
+                attributes:
+                  variant.attributes,
+              }),
+            ),
+
+          attributes:
+            product.attributes.map(
+              attr => ({
+                id: attr.id,
+
+                name:
+                  attr.name,
+
+                value:
+                  attr.value,
+              }),
+            ),
+
+          images:
+            product.images.map(
+              image => ({
+                id: image.id,
+
+                imageUrl:
+                  image.imageUrl,
+
+                type:
+                  image.type,
+
+                sortOrder:
+                  image.sortOrder,
+
+                isPrimary:
+                  image.isPrimary,
+              }),
+            ),
+
+          reviewSummary: {
+            averageRating:
+              Number(
+                averageRating.toFixed(
+                  1,
+                ),
+              ),
+
+            totalReviews,
+          },
+        },
       },
+
+      meta: {},
     };
   }
 
@@ -382,39 +438,17 @@ export class ProductsService {
     }
 
     /**
-     * generate slug
+     * slug
      */
-    const baseSlug =
-      slugify(
+    const slug =
+      await this.generateSlug(
         request.name,
-        {
-          lower: true,
-
-          strict: true,
-        },
       );
-
-    let slug =
-      baseSlug;
-
-    let count = 1;
-
-    while (
-      await this.productRepository.findOne(
-        {
-          slug,
-        },
-      )
-    ) {
-      slug = `${baseSlug}-${count}`;
-
-      count++;
-    }
 
     return await this.em.transactional(
       async em => {
         /**
-         * create product
+         * product
          */
         const product =
           em.create(
@@ -554,9 +588,23 @@ export class ProductsService {
 
         await em.flush();
 
-        return await this.findBySlug(
-          slug,
-        );
+        const productDetail =
+          await this.findBySlug(
+            slug,
+          );
+
+        return {
+          message:
+            'Create product successfully',
+
+          data: {
+            product:
+              productDetail.data
+                .product,
+          },
+
+          meta: {},
+        };
       },
     );
   }
@@ -609,38 +657,11 @@ export class ProductsService {
       product.name =
         request.name;
 
-      const baseSlug =
-        slugify(
+      product.slug =
+        await this.generateSlug(
           request.name,
-          {
-            lower: true,
-
-            strict: true,
-          },
+          id,
         );
-
-      let slug =
-        baseSlug;
-
-      let count = 1;
-
-      while (
-        await this.productRepository.findOne(
-          {
-            slug,
-
-            id: {
-              $ne: id,
-            },
-          },
-        )
-      ) {
-        slug = `${baseSlug}-${count}`;
-
-        count++;
-      }
-
-      product.slug = slug;
     }
 
     if (
@@ -812,38 +833,56 @@ export class ProductsService {
 
         await em.flush();
 
-        return await this.findBySlug(
-          product.slug,
-        );
+        const productDetail =
+          await this.findBySlug(
+            product.slug,
+          );
+
+        return {
+          message:
+            'Update product successfully',
+
+          data: {
+            product:
+              productDetail.data
+                .product,
+          },
+
+          meta: {},
+        };
       },
     );
   }
 
-  
- async remove(id: string) {
-  const product =
-    await this.productRepository.findOne(
-      {
-        id,
-      },
+  /**
+   * delete product
+   */
+  async remove(id: string) {
+    const product =
+      await this.productRepository.findOne(
+        {
+          id,
+        },
+      );
+
+    if (!product) {
+      throw new NotFoundException(
+        'Product not found',
+      );
+    }
+
+    await this.em.removeAndFlush(
+      product,
     );
 
-  if (!product) {
-    throw new NotFoundException(
-      'Product not found',
-    );
+    return {
+      message:
+        'Delete product successfully',
+
+      data: null,
+
+      meta: {},
+    };
   }
-
-  await this.em.removeAndFlush(
-    product,
-  );
-
-  return {
-    success: true,
-
-    message:
-      'Product deleted successfully',
-  };
-}
 }
 

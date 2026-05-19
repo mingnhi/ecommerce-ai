@@ -11,7 +11,9 @@ import { ProductEntity } from './product.entity';
 
 export enum ProductImageType {
   THUMBNAIL = 'THUMBNAIL',
+
   GALLERY = 'GALLERY',
+
   ZOOM = 'ZOOM',
 }
 
@@ -19,32 +21,55 @@ export enum ProductImageType {
   tableName: 'product_images',
 })
 export class ProductImageEntity extends AuditableEntity {
-  @ManyToOne(() => ProductEntity, {
-    fieldName: 'product_id',
-  })
+  @ManyToOne(
+    () => ProductEntity,
+    {
+      fieldName:
+        'product_id',
+    },
+  )
   product: ProductEntity;
 
   @Property({
-    fieldName: 'image_url',
+    fieldName:
+      'image_url',
   })
   imageUrl: string;
 
+  /**
+   * cloudinary public id
+   */
+  @Property({
+    fieldName:
+      'public_id',
+  })
+  publicId: string;
+
   @Enum({
-    items: () => ProductImageType,
-    default: ProductImageType.GALLERY,
+    items:
+      () =>
+        ProductImageType,
+
+    default:
+      ProductImageType.GALLERY,
   })
   type: ProductImageType =
     ProductImageType.GALLERY;
 
   @Property({
-    fieldName: 'sort_order',
+    fieldName:
+      'sort_order',
+
     default: 0,
   })
   sortOrder: number = 0;
 
   @Property({
-    fieldName: 'is_primary',
+    fieldName:
+      'is_primary',
+
     default: false,
   })
   isPrimary: boolean = false;
 }
+
