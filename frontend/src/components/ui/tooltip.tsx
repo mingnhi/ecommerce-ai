@@ -90,12 +90,12 @@ function TooltipContent({
             }
           }}
           className={cn(
-            "bg-primary text-primary-foreground w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+            "bg-sky-500 text-white w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance font-medium shadow-md",
             className
           )}
         >
           {children}
-          <TooltipPrimitive.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+          <TooltipPrimitive.Arrow className="bg-sky-500 fill-sky-500 z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
         </motion.div>
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>

@@ -62,7 +62,7 @@ export const useLogin = () => {
                                 }));
                             }
                         })
-                        .catch(() => {});
+                        .catch(() => { });
                 }
             } else {
                 const error = { messages: response.messages || ['Đăng nhập thất bại'] };
@@ -128,7 +128,7 @@ export const useRegister = () => {
                                 }));
                             }
                         })
-                        .catch(() => {});
+                        .catch(() => { });
                 }
             } else {
                 const error = { messages: response.messages || ['Đăng ký thất bại'] };

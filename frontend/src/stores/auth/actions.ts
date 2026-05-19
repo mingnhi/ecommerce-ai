@@ -9,6 +9,8 @@ import {
     CLEAR_AUTH,
     SET_TOKENS,
 } from './constants';
+import type { AppDispatch } from '@/stores';
+import { clearUserAction } from '@/stores/user/actions';
 import { LoginRequest, RegisterRequest, AuthenticatedResponse, AuthError } from '@/apis/auth/types';
 
 export const loginAction = createAction<LoginRequest>(LOGIN);
@@ -21,4 +23,9 @@ export const registerFailureAction = createAction<AuthError>(REGISTER_FAILURE);
 
 export const clearAuthAction = createAction(CLEAR_AUTH);
 export const setTokensAction = createAction<{ token: string; refreshToken: string }>(SET_TOKENS);
+
+export function logoutSession(dispatch: AppDispatch) {
+  dispatch(clearUserAction());
+  dispatch(clearAuthAction());
+}
 

@@ -158,8 +158,8 @@ function DropdownMenuContent({
           >
             <div className={cn(
               "absolute inset-0 z-0",
-              "bg-blue-300/20",
-              "dark:from-indigo-500/20 dark:to-blue-500/20"
+              "bg-sky-300/20",
+              "dark:from-sky-500/20 dark:to-sky-400/20"
             )} />
 
             <div className="absolute inset-0 backdrop-blur-sm z-10" />
@@ -271,7 +271,7 @@ function DropdownMenuItem({
                 "absolute inset-0 rounded-lg",
                 variant === "destructive"
                   ? "bg-gradient-to-r from-red-500/10 to-red-600/10 dark:from-red-500/20 dark:to-red-600/20"
-                  : "bg-gradient-to-r from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/20 dark:to-blue-500/20"
+                  : "bg-gradient-to-r from-sky-500/10 to-sky-400/10 dark:from-sky-500/20 dark:to-sky-400/20"
               )}
             />
           )}
@@ -386,7 +386,7 @@ function DropdownMenuCheckboxItem({
                 },
               }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/20 dark:to-blue-500/20"
+              className="absolute inset-0 rounded-lg bg-gradient-to-r from-sky-500/10 to-sky-400/10 dark:from-sky-500/20 dark:to-sky-400/20"
             />
           )}
         </AnimatePresence>
@@ -480,7 +480,7 @@ function DropdownMenuRadioItem({
                 },
               }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/20 dark:to-blue-500/20"
+              className="absolute inset-0 rounded-lg bg-gradient-to-r from-sky-500/10 to-sky-400/10 dark:from-sky-500/20 dark:to-sky-400/20"
             />
           )}
         </AnimatePresence>
@@ -611,9 +611,9 @@ function DropdownMenuSubTrigger({
         "focus:outline-none",
         "text-neutral-900 dark:text-neutral-50",
         "data-[inset]:pl-8",
-        "data-[state=open]:bg-gradient-to-r data-[state=open]:from-indigo-500/10 data-[state=open]:to-blue-500/10",
-        "dark:data-[state=open]:from-indigo-500/20 dark:data-[state=open]:to-blue-500/20",
-        !isMobile && isHovered && "bg-gradient-to-r from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/20 dark:to-blue-500/20",
+        "data-[state=open]:bg-gradient-to-r data-[state=open]:from-sky-500/10 data-[state=open]:to-sky-400/10",
+        "dark:data-[state=open]:from-sky-500/20 dark:data-[state=open]:to-sky-400/20",
+        !isMobile && isHovered && "bg-gradient-to-r from-sky-500/10 to-sky-400/10 dark:from-sky-500/20 dark:to-sky-400/20",
         className
       )}
       onMouseEnter={() => !isMobile && setIsHovered(true)}
@@ -679,8 +679,8 @@ function DropdownMenuSubContent({
       >
         <div className={cn(
           "absolute inset-0 z-0",
-          "bg-gradient-to-br from-indigo-500/10 to-blue-500/10",
-          "dark:from-indigo-500/20 dark:to-blue-500/20"
+          "bg-gradient-to-br from-sky-500/10 to-sky-400/10",
+          "dark:from-sky-500/20 dark:to-sky-400/20"
         )} />
 
         <div className="absolute inset-0 backdrop-blur-sm z-10" />
