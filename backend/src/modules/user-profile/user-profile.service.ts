@@ -4,6 +4,7 @@ import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { UserProfile } from '@entities/userProfile.entity';
 import { User } from '@entities/user.entity';
+import { CloudinaryService } from '@modules/cloudinary/cloudinary.service';
 
 
 @Injectable()
@@ -16,6 +17,7 @@ export class UserProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: EntityRepository<User>,
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
   async findOne(id: string) {
     const profile = await this.profileRepo.findOne(
@@ -98,6 +100,35 @@ export class UserProfileService {
     return profile;
   }
 
+  async updateAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Avatar file is required');
+    }
+
+    let profile = await this.profileRepo.findOne({
+      user: userId,
+    });
+
+    if (!profile) {
+      const user = await this.userRepo.findOne({ id: userId });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      profile = this.profileRepo.create({
+        user,
+      });
+    }
+
+    const uploaded = await this.cloudinaryService.uploadAvatar(file);
+
+    profile.avatarUrl = uploaded.secure_url;
+
+    await this.em.persistAndFlush(profile);
+
+    return profile;
+  }
   async remove(id: string) {
     const profile = await this.profileRepo.findOne({ id });
 
