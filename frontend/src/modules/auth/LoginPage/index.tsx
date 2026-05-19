@@ -77,7 +77,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   disabled={googleLoading}
-                  className="w-full max-w-md font-bold rounded-lg py-2 hover:bg-blue-100 border border-blue-200 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out cursor-pointer"
+                  className="w-full max-w-md font-bold rounded-lg py-2 hover:bg-sky-50 border border-sky-200 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out cursor-pointer"
                   onClick={async () => {
                     setGoogleLoading(true);
                     try {

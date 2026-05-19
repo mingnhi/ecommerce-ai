@@ -112,7 +112,7 @@ export default function RegisterPage() {
                       setGoogleLoading(false);
                     }
                   }}
-                  className="w-full max-w-md font-bold rounded-lg py-2 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out border border-blue-200 cursor-pointer hover:bg-blue-50 disabled:opacity-60"
+                  className="w-full max-w-md font-bold rounded-lg py-2 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out border border-sky-200 cursor-pointer hover:bg-sky-50 disabled:opacity-60"
                 >
                   <div className="bg-white p-2 rounded-full">
                     <svg className="w-4" viewBox="0 0 533.5 544.3">

@@ -51,7 +51,7 @@ export function CartSummarySidebar({
         <div className="space-y-5 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <Checkbox
-              className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground"
+              className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
               checked={headerIndeterminate ? "indeterminate" : headerChecked}
               onCheckedChange={() => onToggleAll()}
             />
