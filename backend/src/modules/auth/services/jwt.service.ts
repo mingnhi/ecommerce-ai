@@ -15,9 +15,8 @@ export class JwtService {
   async generateRefreshToken(payload: any): Promise<string> {
     return this.nestJwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get<string>(
-        'JWT_REFRESH_EXPIRATION_TIME'
-      ) as '7d',
+      expiresIn:
+        this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME') || '7d',
     });
   }
   async verifyAccessToken(token: string): Promise<any> {
