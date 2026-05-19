@@ -1,4 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -9,6 +12,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
+import { loginSchema, type LoginForm } from "@/shared/lib/validations/auth-schema";
 import { LoginHeroPanel } from "../components/LoginHeroPanel";
 import { loginErrorMessage, useLogin } from "../hooks";
 
@@ -20,20 +24,30 @@ const labelClass =
 
 export function LoginPage() {
   const { mutateAsync: login, isPending, isError, error } = useLogin();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [searchParams] = useSearchParams();
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  async function onSubmit(data: LoginForm) {
     try {
-      await login({ email: email.trim(), password });
+      await login({ email: data.email.trim(), password: data.password });
     } catch {
       return;
     }
   }
 
-  const errMsg = isError ? loginErrorMessage(error) : null;
+  const errorParam = searchParams.get("error");
+  let errMsg = isError ? loginErrorMessage(error) : null;
+  if (!errMsg && errorParam === "unauthorized") {
+    errMsg = "Tài khoản của bạn không có quyền truy cập trang quản trị.";
+  }
 
   return (
     <div className="min-h-svh w-full max-w-full bg-background text-left antialiased">
@@ -58,22 +72,27 @@ export function LoginPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6 pb-6">
-                <form onSubmit={onSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div>
                     <label htmlFor="login-email" className={labelClass}>
                       Email
                     </label>
                     <input
                       id="login-email"
-                      name="email"
                       type="email"
                       autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={fieldClass}
+                      {...register("email")}
+                      className={cn(
+                        fieldClass,
+                        errors.email && "border-destructive focus-visible:border-destructive/35 focus-visible:ring-destructive/15"
+                      )}
                       placeholder="name@company.com"
                     />
+                    {errors.email && (
+                      <p className="mt-1.5 text-xs text-destructive font-medium" role="alert">
+                        {errors.email.message}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -83,28 +102,34 @@ export function LoginPage() {
                     <div className="relative">
                       <input
                         id="login-password"
-                        name="password"
                         type={showPassword ? "text" : "password"}
                         autoComplete="current-password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={cn(fieldClass, "pr-11")}
+                        {...register("password")}
+                        className={cn(
+                          fieldClass,
+                          "pr-11",
+                          errors.password && "border-destructive focus-visible:border-destructive/35 focus-visible:ring-destructive/15"
+                        )}
                         placeholder="••••••••"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((v) => !v)}
-                        className="absolute right-px top-px flex h-[calc(100%-2px)] w-10 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground"
+                        className="absolute right-px top-px flex h-[calc(100%-2px)] w-10 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground hover:cursor-pointer"
                         aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                       >
                         {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
                     </div>
+                    {errors.password && (
+                      <p className="mt-1.5 text-xs text-destructive font-medium" role="alert">
+                        {errors.password.message}
+                      </p>
+                    )}
                   </div>
 
                   {errMsg ? (
-                    <p className="text-sm text-destructive" role="alert">
+                    <p className="text-sm text-destructive font-medium" role="alert">
                       {errMsg}
                     </p>
                   ) : null}
@@ -113,7 +138,7 @@ export function LoginPage() {
                     type="submit"
                     disabled={isPending}
                     size="lg"
-                    className="h-12 w-full rounded-md text-sm font-medium tracking-wide"
+                    className="h-12 w-full rounded-md text-sm font-medium tracking-wide hover:cursor-pointer"
                   >
                     {isPending ? "Đang xử lý…" : "Đăng nhập"}
                   </Button>
