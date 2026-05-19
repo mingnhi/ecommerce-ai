@@ -19,7 +19,8 @@ import { BulkUpdateStatusDto } from './dto/bulk-status.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
-import { AdminGuard } from '@common/guards/admin.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
 import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
 import { UserRolesService } from '@modules/user-roles/user-roles.service';
 
@@ -41,7 +42,8 @@ export class OrderController {
 
   @Post('bulk-status')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AdminGuard)
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
   @ApiOperation({
     summary:
       '[S5-03] Bulk update status (Admin only) — skip đơn invalid, trả {succeeded, failed}',
@@ -76,7 +78,8 @@ export class OrderController {
   }
 
   @Patch(':id/status')
-  @UseGuards(AdminGuard)
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
   @ApiOperation({
     summary: '[S5-03] Cập nhật trạng thái đơn (Admin only, state machine)',
   })
