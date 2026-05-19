@@ -22,7 +22,7 @@ export const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
         description="Xác thực quyền quản trị..."
       />
     );
-  }
+  } 
 
   if (isError || !user || !isAdmin(user)) {
     clearAuthSession();
