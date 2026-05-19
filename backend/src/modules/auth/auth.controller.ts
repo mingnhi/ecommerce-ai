@@ -4,6 +4,7 @@ import {
   Get,
   Headers,
   Post,
+  Put,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -17,10 +18,16 @@ import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
+import { UserProfileService } from 'src/user-profile/user-profile.service';
+import { UpdateUserProfileDto } from 'src/user-profile/dto/user-profile.dto';
+import { UserProfile } from '@entities/userProfile.entity';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userProfileService: UserProfileService,
+  ) { }
 
   @Post('register')
   async register(@Body() dto: RegisterDto): Promise<ApiResponse<any>> {
@@ -90,6 +97,21 @@ export class AuthController {
     return {
       status: 'success',
       message: 'Get current user successfully',
+      data,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('me/profile')
+  async updateMeProfile(
+    @Req() req: any,
+    @Body() dto: UpdateUserProfileDto,
+  ): Promise<ApiResponse<UserProfile>> {
+    const data = await this.userProfileService.updateMe(req.user.sub, dto);
+
+    return {
+      status: 'success',
+      message: 'Update profile successfully',
       data,
     };
   }

@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MailModule } from './modules/mail/mail.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     PermissionsModule,
     MailModule,
+    UserProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
