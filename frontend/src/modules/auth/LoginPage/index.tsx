@@ -56,10 +56,10 @@ export default function LoginPage() {
 
 
       {/* Card chính */}
-      <div className="w-full max-w-[960px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-850 rounded-[2rem] shadow-[0_20px_50px_rgba(14,165,233,0.05)] overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10 min-h-[580px]">
+      <div className="w-full max-w-[960px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-855 rounded-[2rem] shadow-[0_20px_50px_rgba(14,165,233,0.05)] overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10 min-h-[580px]">
 
         {/* Họa tiết tia hoa hướng dương góc dưới bên trái */}
-        <div className="absolute -bottom-6 -left-23 pointer-events-none select-none z-0">
+        <div className="absolute bottom-6 -left-23 pointer-events-none select-none z-0">
           <svg
             width="160"
             height="160"
@@ -85,27 +85,30 @@ export default function LoginPage() {
         </div>
 
         {/* Cột trái: Form Đăng nhập */}
-        <div className="p-8 lg:p-10 flex flex-col justify-center relative overflow-hidden min-w-0">
+        <div className="p-7 lg:p-9 flex flex-col justify-center relative overflow-hidden min-w-0">
           <div className="w-full max-w-[320px] mx-auto z-10">
-            <div className="mb-8 flex flex-col items-start gap-4">
-              <Link
-                href={ROUTES.HOME}
-                className="items-center gap-2 cursor-pointer shrink-0 flex hover:opacity-90 transition-opacity"
-              >
-                <img
+            {/* Logo thương hiệu hiển thị trên mobile (ẩn trên desktop vì đã có ở cột phải) */}
+            <div className="md:hidden mb-6 flex justify-center">
+              <Link href={ROUTES.HOME} className="block hover:opacity-85 transition-opacity">
+                <Image
                   src="/images/logo.png"
-                  alt="Ecommerce AI Logo"
-                  className="h-14 md:h-10 w-auto object-contain transition-all duration-300"
+                  alt="eCommerce AI Logo"
+                  width={240}
+                  height={72}
+                  className="h-14 w-auto object-contain"
+                  priority
                 />
               </Link>
-              <div>
-                <h1 className="text-[36px] font-black text-neutral-900 dark:text-white leading-none tracking-tight">
-                  Đăng nhập
-                </h1>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 font-medium tracking-wide mt-2">
-                  Nền tảng mua sắm thông minh tối ưu bởi AI
-                </p>
-              </div>
+            </div>
+
+            {/* Tiêu đề Đăng nhập */}
+            <div className="mb-8">
+              <h1 className="text-[36px] font-black text-neutral-900 dark:text-white leading-none tracking-tight">
+                Đăng nhập
+              </h1>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 font-medium tracking-wide mt-2">
+                Nền tảng mua sắm thông minh tối ưu bởi AI
+              </p>
             </div>
 
             {/* Form tài khoản & mật khẩu */}
@@ -160,7 +163,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Dòng phân cách phương thức đăng nhập khác */}
+            {/* Dòng phân cách */}
             <div className="my-6 relative flex items-center justify-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-neutral-100 dark:border-neutral-800"></div>
@@ -170,7 +173,7 @@ export default function LoginPage() {
               </span>
             </div>
 
-            {/* Đăng nhập qua mạng xã hội*/}
+            {/* Đăng nhập với Google */}
             <div className="space-y-3">
               <Button
                 type="button"
@@ -217,22 +220,34 @@ export default function LoginPage() {
           </div>
         </div>
 
-
-        <div className="bg-sky-50/30 dark:bg-sky-950/10 hidden md:flex rounded-r-[2rem] col-span-1 relative overflow-hidden min-h-[500px] w-full items-center justify-center p-2 md:p-4 border-l border-sky-100/50 dark:border-neutral-800">
+        {/* Cột phải: Hình minh họa đăng nhập 3D & Logo thương hiệu ở trên */}
+        <div className="bg-sky-50/30 dark:bg-sky-950/10 hidden md:flex rounded-r-[2rem] col-span-1 relative overflow-hidden min-h-[500px] w-full flex-col items-center justify-center p-6 md:p-8 border-l border-sky-100/50 dark:border-neutral-800 gap-2">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#e0f2fe_1px,transparent_1px),linear-gradient(to_bottom,#e0f2fe_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35 pointer-events-none" />
 
-          <div className="relative w-[120%] h-[120%] z-10 flex items-center justify-center scale-110 transition-transform duration-700">
+          {/* Logo thương hiệu đặt ở giữa bên trên */}
+          <Link href={ROUTES.HOME} className="block hover:opacity-85 transition-opacity z-20 mb-2">
+            <Image
+              src="/images/logo.png"
+              alt="eCommerce AI Logo"
+              width={320}
+              height={96}
+              className="h-20 md:h-24 w-auto object-contain"
+              priority
+            />
+          </Link>
+
+          <div className="relative w-[100%] z-10 flex items-center justify-center scale-110 transition-transform duration-700">
             <Image
               src="/images/login.png"
               alt="Welcome Shopping Illustration"
-              width={800}
-              height={800}
+              width={500}
+              height={500}
               className="object-contain"
               priority
             />
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }
