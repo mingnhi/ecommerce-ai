@@ -1,0 +1,8 @@
+import { IOrderListParams } from '@/types/order';
+
+export const orderKeys = {
+  all: ['orders'] as const,
+  lists: () => [...orderKeys.all, 'list'] as const,
+  list: (params?: IOrderListParams) => [...orderKeys.lists(), params] as const,
+  detail: (id: string) => [...orderKeys.all, 'detail', id] as const,
+};
