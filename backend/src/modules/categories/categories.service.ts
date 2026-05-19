@@ -71,6 +71,9 @@ export class CategoryService {
       | CategoryEntity
       | undefined;
 
+    /**
+     * parent category
+     */
     if (request.parentId) {
       parent =
         await this.categoryRepository.findOne(
@@ -86,11 +89,17 @@ export class CategoryService {
       }
     }
 
+    /**
+     * slug
+     */
     const slug =
       await this.generateSlug(
         request.name,
       );
 
+    /**
+     * category
+     */
     const category =
       this.em.create(
         CategoryEntity,
@@ -109,23 +118,13 @@ export class CategoryService {
 
     return {
       message:
-        'Category created successfully',
+        'Create category successfully',
 
-      category: {
-        id: category.id,
-
-        name:
-          category.name,
-
-        slug:
-          category.slug,
-
-        createdAt:
-          category.createdAt,
-
-        updatedAt:
-          category.updatedAt,
+      data: {
+        category,
       },
+
+      meta: {},
     };
   }
 
@@ -138,32 +137,52 @@ export class CategoryService {
     const categories =
       await this.categoryRepository.findAll(
         {
-          populate: ['children'],
+          populate: ['parent', 'children'],
         },
       );
 
+    /**
+     * flat
+     */
     if (
       query.type === 'flat'
     ) {
-      return categories.map(
-        category => ({
-          id: category.id,
+      return {
+        message:
+          'Get categories successfully',
 
-          name:
-            category.name,
+        data: {
+          categories:
+            categories.map(
+              category => ({
+                id: category.id,
 
-          slug:
-            category.slug,
+                name:
+                  category.name,
 
-          createdAt:
-            category.createdAt,
+                slug:
+                  category.slug,
 
-          updatedAt:
-            category.updatedAt,
-        }),
-      );
+                parentId:
+                  category.parent?.id ??
+                  null,
+
+                createdAt:
+                  category.createdAt,
+
+                updatedAt:
+                  category.updatedAt,
+              }),
+            ),
+        },
+
+        meta: {},
+      };
     }
 
+    /**
+     * tree
+     */
     const buildTree = (
       parentId?: string,
     ): any[] => {
@@ -194,7 +213,21 @@ export class CategoryService {
         }));
     };
 
-    return buildTree();
+    return {
+      message:
+        'Get categories successfully',
+
+      data: {
+        categories:
+          buildTree(),
+      },
+
+      meta: {
+        type:
+          query.type ??
+          'tree',
+      },
+    };
   }
 
   /**
@@ -217,6 +250,9 @@ export class CategoryService {
       );
     }
 
+    /**
+     * name
+     */
     if (request.name) {
       category.name =
         request.name;
@@ -227,6 +263,9 @@ export class CategoryService {
         );
     }
 
+    /**
+     * parent
+     */
     if (request.parentId) {
       if (
         request.parentId === id
@@ -257,23 +296,13 @@ export class CategoryService {
 
     return {
       message:
-        'Category updated successfully',
+        'Update category successfully',
 
-      category: {
-        id: category.id,
-
-        name:
-          category.name,
-
-        slug:
-          category.slug,
-
-        createdAt:
-          category.createdAt,
-
-        updatedAt:
-          category.updatedAt,
+      data: {
+        category,
       },
+
+      meta: {},
     };
   }
 
@@ -299,10 +328,12 @@ export class CategoryService {
     );
 
     return {
-      success: true,
-
       message:
-        'Category deleted successfully',
+        'Delete category successfully',
+
+      data: null,
+
+      meta: {},
     };
   }
 }

@@ -1,6 +1,7 @@
 import {
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class UpdateCategoryRequest {
@@ -9,7 +10,7 @@ export class UpdateCategoryRequest {
   name?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   parentId?: string;
 }
 

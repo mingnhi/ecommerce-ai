@@ -1,16 +1,15 @@
 import {
-  IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateCategoryRequest {
-  @IsNotEmpty()
   @IsString()
   name: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   parentId?: string;
 }
 

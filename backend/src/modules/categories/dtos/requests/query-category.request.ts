@@ -1,11 +1,11 @@
 import {
+  IsIn,
   IsOptional,
-  IsString,
 } from 'class-validator';
 
 export class QueryCategoryRequest {
   @IsOptional()
-  @IsString()
+  @IsIn(['tree', 'flat'])
   type?: 'tree' | 'flat' = 'tree';
 }
 

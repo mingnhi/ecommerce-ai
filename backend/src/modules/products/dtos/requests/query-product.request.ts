@@ -1,14 +1,21 @@
+import { Type } from 'class-transformer';
+
 import {
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
 
 export class QueryProductRequest {
   @IsOptional()
-  page?: number;
+  @Type(() => Number)
+  @IsNumber()
+  page?: number = 1;
 
   @IsOptional()
-  limit?: number;
+  @Type(() => Number)
+  @IsNumber()
+  limit?: number = 10;
 
   @IsOptional()
   @IsString()
@@ -22,3 +29,4 @@ export class QueryProductRequest {
   @IsString()
   sort?: string;
 }
+

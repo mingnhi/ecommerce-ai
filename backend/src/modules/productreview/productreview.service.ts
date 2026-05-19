@@ -108,60 +108,68 @@ export class ProductReviewService {
         : 0;
 
     return {
-      items: reviews.map(
-        review => ({
-          id: review.id,
+      message:
+        'Get reviews successfully',
 
-          rating:
-            review.rating,
+      data: {
+        reviews: reviews.map(
+          review => ({
+            id: review.id,
 
-          comment:
-            review.comment,
+            rating:
+              review.rating,
 
-          createdAt:
-            review.createdAt,
+            comment:
+              review.comment,
 
-          user: {
-            id:
-              review.user.id,
+            createdAt:
+              review.createdAt,
 
-            email:
-              review.user.email,
+            user: {
+              id:
+                review.user.id,
 
-            displayName:
-              review.user
-                .displayName,
+              email:
+                review.user.email,
 
-            avatarUrl:
-              review.user
-                .avatarUrl,
-          },
-        }),
-      ),
+              displayName:
+                review.user
+                  .displayName,
 
-      pagination: {
-        page,
-
-        limit,
-
-        total,
-
-        totalPages:
-          Math.ceil(
-            total / limit,
-          ),
+              avatarUrl:
+                review.user
+                  .avatarUrl,
+            },
+          }),
+        ),
       },
 
-      summary: {
-        averageRating:
-          Number(
-            averageRating.toFixed(
-              1,
-            ),
-          ),
+      meta: {
+        pagination: {
+          page,
 
-        totalReviews:
-          allReviews.length,
+          limit,
+
+          totalItems:
+            total,
+
+          totalPages:
+            Math.ceil(
+              total / limit,
+            ),
+        },
+
+        summary: {
+          averageRating:
+            Number(
+              averageRating.toFixed(
+                1,
+              ),
+            ),
+
+          totalReviews:
+            allReviews.length,
+        },
       },
     };
   }
@@ -197,12 +205,7 @@ export class ProductReviewService {
     }
 
     /**
-     * TODO:
-     * check user purchased product
-     */
-
-    /**
-     * check duplicate review
+     * duplicate review
      */
     const existedReview =
       await this.reviewRepository.findOne(
@@ -242,31 +245,35 @@ export class ProductReviewService {
       message:
         'Review created successfully',
 
-      review: {
-        id: review.id,
+      data: {
+        review: {
+          id: review.id,
 
-        rating:
-          review.rating,
+          rating:
+            review.rating,
 
-        comment:
-          review.comment,
+          comment:
+            review.comment,
 
-        createdAt:
-          review.createdAt,
+          createdAt:
+            review.createdAt,
 
-        user: {
-          id: user.id,
+          user: {
+            id: user.id,
 
-          email:
-            user.email,
+            email:
+              user.email,
 
-          displayName:
-            user.displayName,
+            displayName:
+              user.displayName,
 
-          avatarUrl:
-            user.avatarUrl,
+            avatarUrl:
+              user.avatarUrl,
+          },
         },
       },
+
+      meta: {},
     };
   }
 }

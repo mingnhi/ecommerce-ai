@@ -1,21 +1,25 @@
 import {
+  Type,
+} from 'class-transformer';
+
+import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   Min,
 } from 'class-validator';
 
 export class CreateProductReviewRequest {
-  @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   productId: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   userId: string;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @Max(5)

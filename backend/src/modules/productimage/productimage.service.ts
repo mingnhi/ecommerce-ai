@@ -65,7 +65,7 @@ export class ProductImageService {
       );
 
     /**
-     * set old thumbnail false
+     * old thumbnail false
      */
     if (
       type ===
@@ -74,7 +74,9 @@ export class ProductImageService {
       await this.em.nativeUpdate(
         ProductImageEntity,
         {
-          product: product.id,
+          product:
+            product.id,
+
           isPrimary: true,
         },
         {
@@ -95,6 +97,9 @@ export class ProductImageService {
           imageUrl:
             uploaded.secure_url,
 
+          publicId:
+            uploaded.public_id,
+
           type,
 
           sortOrder,
@@ -113,24 +118,28 @@ export class ProductImageService {
       message:
         'Upload image successfully',
 
-      image: {
-        id: image.id,
+      data: {
+        image: {
+          id: image.id,
 
-        imageUrl:
-          image.imageUrl,
+          imageUrl:
+            image.imageUrl,
 
-        type:
-          image.type,
+          type:
+            image.type,
 
-        sortOrder:
-          image.sortOrder,
+          sortOrder:
+            image.sortOrder,
 
-        isPrimary:
-          image.isPrimary,
+          isPrimary:
+            image.isPrimary,
 
-        createdAt:
-          image.createdAt,
+          createdAt:
+            image.createdAt,
+        },
       },
+
+      meta: {},
     };
   }
 
@@ -141,9 +150,11 @@ export class ProductImageService {
     imageId: string,
   ) {
     const image =
-      await this.imageRepository.findOne({
-        id: imageId,
-      });
+      await this.imageRepository.findOne(
+        {
+          id: imageId,
+        },
+      );
 
     if (!image) {
       throw new NotFoundException(
@@ -156,6 +167,7 @@ export class ProductImageService {
       {
         product:
           image.product.id,
+
         isPrimary: true,
       },
       {
@@ -173,6 +185,16 @@ export class ProductImageService {
     return {
       message:
         'Thumbnail updated successfully',
+
+      data: {
+        image: {
+          id: image.id,
+
+          isPrimary: true,
+        },
+      },
+
+      meta: {},
     };
   }
 
@@ -181,9 +203,11 @@ export class ProductImageService {
    */
   async remove(imageId: string) {
     const image =
-      await this.imageRepository.findOne({
-        id: imageId,
-      });
+      await this.imageRepository.findOne(
+        {
+          id: imageId,
+        },
+      );
 
     if (!image) {
       throw new NotFoundException(
@@ -191,6 +215,16 @@ export class ProductImageService {
       );
     }
 
+    /**
+     * delete cloudinary
+     */
+    await cloudinary.uploader.destroy(
+      image.publicId,
+    );
+
+    /**
+     * delete db
+     */
     await this.em.removeAndFlush(
       image,
     );
@@ -198,6 +232,10 @@ export class ProductImageService {
     return {
       message:
         'Image deleted successfully',
+
+      data: null,
+
+      meta: {},
     };
   }
 }

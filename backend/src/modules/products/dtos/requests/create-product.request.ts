@@ -10,18 +10,22 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUUID,
   ValidateNested,
 } from 'class-validator';
 
 class CreateProductPriceRequest {
+  @Type(() => Number)
   @IsNumber()
   price: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   originalPrice?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   discountPercent?: number;
 
@@ -40,10 +44,12 @@ class CreateProductVariantRequest {
   sku: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   stock?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   price?: number;
 
@@ -70,8 +76,7 @@ class CreateProductAttributeRequest {
 }
 
 export class CreateProductRequest {
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   categoryId: string;
 
   @IsString()
@@ -129,3 +134,4 @@ export class CreateProductRequest {
   )
   attributes?: CreateProductAttributeRequest[];
 }
+
