@@ -16,10 +16,10 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
         configService.get<string>('JWT_ACCESS_SECRET') || 'access_secret',
       ignoreExpiration: false,
     });
-    console.log(
-      'verify secret',
-      process.env.JWT_ACCESS_SECRET || 'access_secret'
-    );
+    // console.log(
+    //   'verify secret',
+    //   process.env.JWT_ACCESS_SECRET || 'access_secret'
+    // );
   }
 
   async validate(payload: any) {

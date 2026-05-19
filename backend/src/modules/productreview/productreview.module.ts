@@ -8,7 +8,7 @@ import { ProductEntity } from '@entities/product.entity';
 
 import { ProductReviewEntity } from '@entities/product-review.entity';
 
-import { Users } from '@entities/user.entity';
+import { User } from '@entities/user.entity';
 
 import { ProductReviewController } from './productreview.controller';
 
@@ -21,7 +21,7 @@ import { ProductReviewService } from './productreview.service';
 
       ProductReviewEntity,
 
-      Users,
+      User,
     ]),
   ],
 
