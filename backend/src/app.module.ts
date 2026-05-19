@@ -4,6 +4,12 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { mikroOrmConfig } from '@config/mikro-orm.config';
+import { UserRolesModule } from './modules/user-roles/user-roles.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -17,6 +23,12 @@ import { mikroOrmConfig } from '@config/mikro-orm.config';
         mikroOrmConfig(configService),
       inject: [ConfigService],
     }),
+    UsersModule,
+    RolesModule,
+    UserRolesModule,
+    AuthModule,
+    PermissionsModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
