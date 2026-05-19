@@ -81,10 +81,10 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-sky-100/50 dark:bg-neutral-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
 
       {/* Card chính */}
-      <div className="w-full max-w-[960px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-850 rounded-[2rem] shadow-[0_20px_50px_rgba(14,165,233,0.05)] overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10 min-h-[580px]">
+      <div className="w-full max-w-[960px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-855 rounded-[2rem] shadow-[0_20px_50px_rgba(14,165,233,0.05)] overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10 min-h-[580px]">
 
         {/* Họa tiết tia hoa hướng dương góc dưới bên phải dưới phần Form */}
-        <div className="absolute top-10 -right-23 pointer-events-none select-none z-0">
+        <div className="absolute top-6 -right-23 pointer-events-none select-none z-0">
           <svg
             width="160"
             height="160"
@@ -109,11 +109,23 @@ export default function RegisterPage() {
           </svg>
         </div>
 
-        {/* Cột trái: Hình minh họa đăng ký 3D kích thước lớn */}
-        <div className="bg-sky-50/30 dark:bg-sky-950/10 hidden md:flex rounded-l-[2rem] col-span-1 relative overflow-hidden min-h-[500px] w-full items-center justify-center p-2 md:p-4 border-r border-sky-100/50 dark:border-neutral-800">
+        {/* Cột trái: Hình minh họa đăng ký 3D & Logo thương hiệu ở trên */}
+        <div className="bg-sky-50/30 dark:bg-sky-950/10 hidden md:flex rounded-l-[2rem] col-span-1 relative overflow-hidden min-h-[500px] w-full flex-col items-center justify-center p-6 md:p-8 border-r border-sky-100/50 dark:border-neutral-800 gap-2">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#e0f2fe_1px,transparent_1px),linear-gradient(to_bottom,#e0f2fe_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35 pointer-events-none" />
 
-          <div className="relative w-[100%] h-[100%] z-10 flex items-center justify-center scale-110 transition-transform duration-700">
+          {/* Logo thương hiệu đặt ở giữa bên trên */}
+          <Link href={ROUTES.HOME} className="block hover:opacity-85 transition-opacity z-20 mb-2">
+            <Image
+              src="/images/logo.png"
+              alt="eCommerce AI Logo"
+              width={320}
+              height={96}
+              className="h-20 md:h-24 w-auto object-contain"
+              priority
+            />
+          </Link>
+
+          <div className="relative w-[100%] z-10 flex items-center justify-center scale-110 transition-transform duration-700">
             <Image
               src="/images/register.png"
               alt="Welcome Register Illustration"
@@ -126,28 +138,30 @@ export default function RegisterPage() {
         </div>
 
         {/* Cột phải: Form Đăng ký */}
-        <div className="p-8 lg:p-10 flex flex-col justify-center relative overflow-hidden min-w-0">
+        <div className="p-7 lg:p-9 flex flex-col justify-center relative overflow-hidden min-w-0">
           <div className="w-full max-w-[320px] mx-auto z-10">
-            {/* Logo thương hiệu tích hợp phía trên tiêu đề */}
-            <div className="mb-8 flex flex-col items-start gap-4">
+            {/* Logo thương hiệu hiển thị trên mobile (ẩn trên desktop vì đã có ở cột trái) */}
+            <div className="md:hidden mb-6 flex justify-center">
               <Link href={ROUTES.HOME} className="block hover:opacity-85 transition-opacity">
                 <Image
                   src="/images/logo.png"
                   alt="eCommerce AI Logo"
-                  width={320}
-                  height={96}
-                  className="h-8 md:h-10 w-auto object-contain"
+                  width={240}
+                  height={72}
+                  className="h-14 w-auto object-contain"
                   priority
                 />
               </Link>
-              <div>
-                <h1 className="text-[36px] font-black text-neutral-900 dark:text-white leading-none tracking-tight">
-                  Đăng ký
-                </h1>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 font-medium tracking-wide mt-2">
-                  Nền tảng mua sắm thông minh tối ưu bởi AI
-                </p>
-              </div>
+            </div>
+
+            {/* Tiêu đề Đăng ký */}
+            <div className="mb-8">
+              <h1 className="text-[36px] font-black text-neutral-900 dark:text-white leading-none tracking-tight">
+                Đăng ký
+              </h1>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500 font-medium tracking-wide mt-2">
+                Nền tảng mua sắm thông minh tối ưu bởi AI
+              </p>
             </div>
 
             {/* Form đăng ký tài khoản */}
