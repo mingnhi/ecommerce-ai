@@ -89,20 +89,20 @@ export default function Chatbot() {
       {!isOpen ? (
         <Button
           onClick={() => dispatch(toggleOpen())}
-          className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
+          className="h-14 w-14 rounded-full bg-sky-500 hover:bg-sky-600 shadow-lg text-white"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
       ) : (
         <div className="flex flex-col bg-white rounded-lg shadow-xl border w-80 h-96">
-          <div className="h-14 flex items-center justify-between px-4 bg-blue-600 text-white rounded-t-lg">
+          <div className="h-14 flex items-center justify-between px-4 bg-sky-500 text-white rounded-t-lg">
             <h3 className="font-semibold">Chatbot LearnKing</h3>
             <div className="flex gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => dispatch(toggleOpen())}
-                className="h-8 w-8 p-0 text-white hover:bg-blue-700"
+                className="h-8 w-8 p-0 text-white hover:bg-sky-600"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -126,7 +126,7 @@ export default function Chatbot() {
                     <div
                       className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                         message.role === "user"
-                          ? "bg-blue-600 text-white"
+                          ? "bg-sky-500 text-white"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
