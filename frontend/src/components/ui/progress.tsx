@@ -25,9 +25,9 @@ function Progress({
     <ProgressPrimitive.Root
       data-slot="progress"
       className={cn(
-        "bg-primary/20 relative w-full overflow-hidden rounded-full border h-3",
+        "bg-sky-500/20 relative w-full overflow-hidden rounded-full border h-3",
         isSlim && "bg-background border-[var(--border)]",
-        isOutline && "bg-primary/20 relative w-full overflow-hidden rounded-full border h-3 border-[var(--border)]",
+        isOutline && "bg-sky-500/20 relative w-full overflow-hidden rounded-full border h-3 border-[var(--border)]",
         className
       )}
       {...props}
@@ -35,7 +35,7 @@ function Progress({
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
         className={cn(
-          "bg-primary transition-all",
+          "bg-sky-500 transition-all",
           isSlim ? "absolute top-1/2 -translate-y-1/2 h-[60%] rounded-full" : "h-full",
           indicatorClassName
         )}

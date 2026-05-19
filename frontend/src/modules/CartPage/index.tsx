@@ -109,7 +109,7 @@ export default function CartPage() {
             <div className="overflow-hidden rounded-sm border border-border/60 bg-card shadow-sm">
               <div className="flex items-center gap-3 border-b border-border/50 bg-muted/20 px-4 py-3 lg:hidden">
                 <Checkbox
-                  className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground"
+                  className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
                   checked={headerIndeterminate ? "indeterminate" : headerChecked}
                   onCheckedChange={() => toggleAll()}
                 />
@@ -125,7 +125,7 @@ export default function CartPage() {
               <div className="hidden border-b border-border/50 bg-muted/30 px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:grid lg:grid-cols-[40px_minmax(0,1fr)_96px_120px_96px_40px] lg:items-center lg:gap-3">
                 <div className="flex justify-center">
                   <Checkbox
-                    className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground"
+                    className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
                     checked={headerIndeterminate ? "indeterminate" : headerChecked}
                     onCheckedChange={() => toggleAll()}
                   />
