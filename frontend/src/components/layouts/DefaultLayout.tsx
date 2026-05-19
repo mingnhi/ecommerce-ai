@@ -3,7 +3,6 @@
 import React from 'react';
 import { DefaultHeader } from './DefaultHeader';
 import { DefaultFooter } from './DefaultFooter';
-
 interface DefaultLayoutProps {
     children: React.ReactNode;
 }
@@ -13,7 +12,7 @@ export function DefaultLayout({ children }: DefaultLayoutProps) {
         <>
             <DefaultHeader />
             <div className="bg-white">
-                <main className="mt-[66px] bg-white">
+                <main className="mt-[60px] bg-white">
                     {children}
                 </main>
             </div>
@@ -21,4 +20,3 @@ export function DefaultLayout({ children }: DefaultLayoutProps) {
         </>
     );
 }
-

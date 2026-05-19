@@ -461,11 +461,11 @@ const Item: React.FC<ItemProps> = ({
               getPaddingClass(level),
               className,
               isSelected
-                ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border-r-2 border-blue-600"
+                ? "bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400 border-r-2 border-sky-600"
                 : "",
               !isSelected && "hover:bg-gray-100 dark:hover:bg-slate-700/50",
               keyboardMode && isFocused
-                ? "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                ? "focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-inset"
                 : "focus:outline-none"
             )}
             onClick={(e: React.MouseEvent) => {
@@ -499,7 +499,7 @@ const Item: React.FC<ItemProps> = ({
                 data-selected={isSelected ? "true" : "false"}
                 data-child={hasChildren ? "true" : "false"}
                 className={cn(
-                  "mr-1 flex-shrink-0 text-gray-500 data-[child=true]:text-blue-500 data-[selected=true]:text-blue-600 dark:data-[selected=true]:text-blue-400"
+                  "mr-1 flex-shrink-0 text-gray-500 data-[child=true]:text-sky-500 data-[selected=true]:text-sky-600 dark:data-[selected=true]:text-sky-400"
                 )}
                 aria-hidden="true"
               />

@@ -79,7 +79,7 @@ const TabsTrigger = ({ value, children, className }: TabsTriggerProps) => {
           "relative z-10 capitalize transition-colors duration-300 flex items-center justify-center",
           isActive
             ? "text-white dark:text-black"
-            : "text-gray-600 dark:text-gray-400 hover:text-blue-300 dark:hover:text-blue-300"
+            : "text-gray-600 dark:text-gray-400 hover:text-sky-500 dark:hover:text-sky-400"
         )}
       >
         {children}
@@ -87,7 +87,7 @@ const TabsTrigger = ({ value, children, className }: TabsTriggerProps) => {
       <span
         className={twMerge(
           "absolute bottom-0 left-0 h-full w-full origin-bottom scale-y-0 transition-transform duration-500 ease-out z-0 rounded-t-md",
-          isActive ? "scale-y-100 bg-blue-400 dark:bg-white" : "bg-transparent"
+          isActive ? "scale-y-100 bg-sky-500 dark:bg-white" : "bg-transparent"
         )}
       />
     </button>

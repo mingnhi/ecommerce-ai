@@ -5,64 +5,44 @@ export interface LoginRequest {
     password: string;
 }
 
-export interface RegisterRequest {
-    firstName: string;
-    lastName: string;
+export type RegisterRequest = {
+    fullName: string;
     email: string;
     password: string;
-    role?: UserRole;
-    confirmPassword?: string;
-    companyId?: string;
-    newCompanyName?: string;
-}
+};
 
-export interface AuthenticatedResponse {
-    token?: string;
-    refreshToken?: string;
-    user?: {
-        id?: string;
-        email?: string;
-        firstName?: string;
-        lastName?: string;
-        name?: string;
-        roles?: string[];
-    };
-}
+export type VerifyOtpRequest = {
+    email: string;
+    otp: string;
+};
 
+export type AuthUser = {
+    id: string;
+    email: string;
+    fullName: string;
+    status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
+    roles: string[];
+};
 export interface AuthError {
     messages: string[];
 }
 
-export interface AuthResponse {
-    succeeded?: boolean;
-    status?: boolean;
-    data?: AuthenticatedResponse;
-    messages?: string[];
-}
+export type AuthResponse = {
+    message: string;
+    user: AuthUser;
+    accessToken: string;
+    refreshToken: string;
+};
+// export interface UpdateProfileRequest {
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phoneNumber?: string;
+//     introduction?: string;
+// }
 
-export interface UserResponse {
-    id?: string;
-    email?: string;
-    role?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string;
-    introduction?: string;
-    avatar?: string;
-    userName?: string;
-    image?: string;
-}
-
-export interface UpdateProfileRequest {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber?: string;
-    introduction?: string;
-}
-
-export interface ChangePasswordRequest {
-    currentPassword: string;
-    newPassword: string;
-    logoutAllSessions?: boolean;
-}
+// export interface ChangePasswordRequest {
+//     currentPassword: string;
+//     newPassword: string;
+//     logoutAllSessions?: boolean;
+// }

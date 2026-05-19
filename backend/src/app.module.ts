@@ -1,72 +1,36 @@
 import { Module } from '@nestjs/common';
-
-import {
-  ConfigModule,
-  ConfigService,
-} from '@nestjs/config';
-
-import {
-  MikroOrmModule,
-} from '@mikro-orm/nestjs';
-
-import { mikroOrmConfig } from '@config/mikro-orm.config';
-
 import { AppController } from './app.controller';
-
 import { AppService } from './app.service';
-
-/**
- * modules
- */
-import { CategoryModule } from './modules/categories/categories.module';
-
-import { ProductsModule } from './modules/products/products.module';
-
-import { ProductImageModule } from './modules/productimage/productimage.module';
-
-import { ProductReviewModule } from './modules/productreview/productreview.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { mikroOrmConfig } from '@config/mikro-orm.config';
+import { UserRolesModule } from './modules/user-roles/user-roles.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
-    /**
-     * env
-     */
     ConfigModule.forRoot({
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
       isGlobal: true,
     }),
-
-    /**
-     * mikro orm
-     */
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
-
+      useFactory: (configService: ConfigService) =>
+        mikroOrmConfig(configService),
       inject: [ConfigService],
-
-      useFactory: (
-        configService: ConfigService,
-      ) =>
-        mikroOrmConfig(
-          configService,
-        ),
     }),
-
-    /**
-     * modules
-     */
-    CategoryModule,
-
-    ProductsModule,
-
-    ProductImageModule,
-
-    ProductReviewModule,
+    UsersModule,
+    RolesModule,
+    UserRolesModule,
+    AuthModule,
+    PermissionsModule,
+    MailModule,
   ],
-
-  controllers: [
-    AppController,
-  ],
-
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

@@ -15,9 +15,9 @@ function ErrorPageContent({
     title, 
     description, 
     icon, 
-    iconColor = 'text-blue-500',
-    iconBg = 'bg-blue-50',
-    primaryButtonColor = 'bg-blue-500 hover:bg-blue-600' 
+    iconColor = 'text-sky-600',
+    iconBg = 'bg-sky-50',
+    primaryButtonColor = 'bg-sky-600 hover:bg-sky-700 hover:cursor-pointer' 
 }: ErrorPageProps) {
     return (
         <section className="bg-white dark:bg-gray-900">
