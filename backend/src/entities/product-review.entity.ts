@@ -7,7 +7,7 @@ import {
 import { AuditableEntity } from './base/auditable_entity';
 
 import { ProductEntity } from './product.entity';
-import { Users } from './user.entity';
+import { User } from './user.entity';
 
 @Entity({
   tableName: 'product_reviews',
@@ -18,10 +18,10 @@ export class ProductReviewEntity extends AuditableEntity {
   })
   product: ProductEntity;
 
-  @ManyToOne(() => Users, {
+  @ManyToOne(() => User, {
     fieldName: 'user_id',
   })
-  user: Users;
+  user: User;
 
   @Property()
   rating: number;

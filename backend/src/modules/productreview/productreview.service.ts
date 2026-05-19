@@ -18,7 +18,7 @@ import { ProductEntity } from '@entities/product.entity';
 
 import { ProductReviewEntity } from '@entities/product-review.entity';
 
-import { Users } from '@entities/user.entity';
+import { User } from '@entities/user.entity';
 
 import { CreateProductReviewRequest } from './dtos/requests/create-product-review.request';
 
@@ -35,8 +35,8 @@ export class ProductReviewService {
     @InjectRepository(ProductReviewEntity)
     private readonly reviewRepository: EntityRepository<ProductReviewEntity>,
 
-    @InjectRepository(Users)
-    private readonly userRepository: EntityRepository<Users>,
+    @InjectRepository(User)
+    private readonly userRepository: EntityRepository<User>,
   ) {}
 
   /**
@@ -133,12 +133,11 @@ export class ProductReviewService {
                 review.user.email,
 
               displayName:
-                review.user
-                  .displayName,
+                review.user.fullName,
 
-              avatarUrl:
-                review.user
-                  .avatarUrl,
+              // avatarUrl:
+              //   review.user
+              //     .avatarUrl,
             },
           }),
         ),
@@ -265,10 +264,10 @@ export class ProductReviewService {
               user.email,
 
             displayName:
-              user.displayName,
+              user.fullName,
 
-            avatarUrl:
-              user.avatarUrl,
+            // avatarUrl:
+            //   user.avatarUrl,
           },
         },
       },
