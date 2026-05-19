@@ -7,7 +7,9 @@ import {
   Put,
   Req,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import { AuthService } from './services/auth.service';
@@ -18,9 +20,10 @@ import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
-import { UserProfileService } from 'src/user-profile/user-profile.service';
-import { UpdateUserProfileDto } from 'src/user-profile/dto/user-profile.dto';
+import { UserProfileService } from '@modules/user-profile/user-profile.service';
+import { UpdateUserProfileDto } from '@modules/user-profile/dto/user-profile.dto';
 import { UserProfile } from '@entities/userProfile.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
@@ -112,6 +115,22 @@ export class AuthController {
     return {
       status: 'success',
       message: 'Update profile successfully',
+      data,
+    };
+  }
+
+  @Post('me/avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(
+    @Req() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.userProfileService.updateAvatar(req.user.sub, file);
+
+    return {
+      status: 'success',
+      message: 'Upload avatar successfully',
       data,
     };
   }
