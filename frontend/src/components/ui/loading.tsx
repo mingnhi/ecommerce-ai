@@ -26,7 +26,7 @@ const Loading = ({ className, size = 'sm', fullScreen = false, color = 'default'
       <div
         className={cn('animate-spin rounded-full border-b-2', sizeClasses[size], {
           'border-white': color === 'white',
-          'border-primary': color === 'default',
+          'border-sky-500': color === 'default',
         })}
         aria-busy="true"
         aria-label="Loading..."
