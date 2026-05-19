@@ -17,9 +17,11 @@ export function DefaultFooter() {
             <div className="mx-auto p-8 flex flex-col md:flex-row justify-between gap-8">
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold tracking-tight text-gray-900">
-                            {siteConfig.name}
-                        </span>
+                        <img
+                            src="/images/logo.png"
+                            alt="Ecommerce AI Logo"
+                            className="h-12 md:h-10 w-auto object-contain transition-all duration-300"
+                        />
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 max-w-xs">
                         {siteConfig.description}
@@ -31,12 +33,12 @@ export function DefaultFooter() {
                         <h3 className="text-gray-900 dark:text-gray-100 font-semibold mb-3 text-lg">Về chúng tôi</h3>
                         <ul className="space-y-2">
                             <li>
-                                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary transition">
+                                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-sky-600 transition hover:cursor-pointer">
                                     Giới thiệu
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary transition">
+                                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-sky-600 transition hover:cursor-pointer">
                                     Liên hệ
                                 </Link>
                             </li>
@@ -47,16 +49,16 @@ export function DefaultFooter() {
                 <div className="flex flex-col gap-4">
                     <h3 className="text-gray-900 dark:text-gray-100 font-semibold mb-3 text-lg">Kết nối</h3>
                     <div className="flex items-center gap-4">
-                        <Link href={siteConfig.facebook} className="text-gray-600 dark:text-gray-400 hover:text-primary">
+                        <Link href={siteConfig.facebook} className="text-gray-600 dark:text-gray-400 hover:text-sky-600 hover:cursor-pointer">
                             <Facebook className="h-6 w-6" />
                         </Link>
-                        <Link href={siteConfig.twitter} className="text-gray-600 dark:text-gray-400 hover:text-primary">
+                        <Link href={siteConfig.twitter} className="text-gray-600 dark:text-gray-400 hover:text-sky-600 hover:cursor-pointer">
                             <Twitter className="h-6 w-6" />
                         </Link>
-                        <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-primary">
+                        <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-sky-600 hover:cursor-pointer">
                             <Instagram className="h-6 w-6" />
                         </Link>
-                        <Link href={siteConfig.linkedin} className="text-gray-600 dark:text-gray-400 hover:text-primary">
+                        <Link href={siteConfig.linkedin} className="text-gray-600 dark:text-gray-400 hover:text-sky-600 hover:cursor-pointer">
                             <Linkedin className="h-6 w-6" />
                         </Link>
                     </div>
