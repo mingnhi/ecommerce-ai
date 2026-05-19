@@ -19,7 +19,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<
   ): Observable<ApiResponse<T> | T> {
     return next.handle().pipe(
       map(data => {
-        // Nếu dữ liệu đã là ApiResponse, trả về nguyên vẹn
+        // Service tự return envelope: bổ sung `success` nếu thiếu (Nhi/Tiến chỉ set `status`)
         if (
           data &&
           typeof data === 'object' &&
@@ -27,10 +27,13 @@ export class ResponseInterceptor<T> implements NestInterceptor<
           'message' in data &&
           'data' in data
         ) {
+          if (!('success' in data)) {
+            (data as any).success = (data as any).status === 'success';
+          }
           return data;
         }
-        // Nếu không, áp dụng định dạng ApiResponse mặc định
         return {
+          success: true,
           status: 'success',
           message: 'Request successful',
           data,

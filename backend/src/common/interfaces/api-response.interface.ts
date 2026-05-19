@@ -1,4 +1,8 @@
 export interface ApiResponse<T> {
+  // Theo xlsx contract — FE check boolean (Tâm dùng `if (res.success)`).
+  // Optional vì controllers cũ chỉ set `status`; ResponseInterceptor sẽ auto-inject.
+  success?: boolean;
+  // Backward-compat cho code Nhi/Tiến đang check `status === 'success'`
   status: 'success' | 'error';
   message: string;
   data: T;
@@ -6,6 +10,7 @@ export interface ApiResponse<T> {
     count?: number;
     page?: number;
     limit?: number;
+    total?: number;
     totalPages?: number;
     period?: string;
     groupBy?: string;
