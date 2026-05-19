@@ -24,7 +24,7 @@ export function CartItem({ line, isSel, onToggle, onRemove, onQuantityChange }: 
     <div className="border-b border-border/40 px-4 py-4 transition-colors last:border-b-0 hover:bg-muted/15">
       <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[40px_minmax(0,1fr)_96px_120px_96px_40px] lg:items-center lg:gap-3">
         <Checkbox
-          className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground lg:justify-self-center hover:cursor-pointer"
+          className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white lg:justify-self-center hover:cursor-pointer"
           checked={isSel}
           onCheckedChange={() => onToggle(line.id)}
         />

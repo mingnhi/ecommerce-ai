@@ -163,7 +163,7 @@ export default function CheckoutPage() {
               <span className="text-foreground text-base">Voucher</span>
             </div>
             <CartVoucherPopover>
-              <button className="text-blue-600 font-medium hover:underline text-sm cursor-pointer">
+              <button className="text-sky-600 font-medium hover:underline text-sm cursor-pointer">
                 Chọn nhập mã
               </button>
             </CartVoucherPopover>
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
 
           <div className="p-6 border-t border-border/40 border-dashed flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground max-w-[600px] leading-relaxed">
-              Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo <Link href="#" className="text-blue-600 hover:underline font-bold cursor-pointer">Điều khoản {siteConfig.name}</Link>
+              Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo <Link href="#" className="text-sky-600 hover:underline font-bold cursor-pointer">Điều khoản {siteConfig.name}</Link>
             </div>
             <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
               <Button
