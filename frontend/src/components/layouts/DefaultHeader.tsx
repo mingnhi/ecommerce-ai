@@ -162,7 +162,7 @@ function HeaderCartDropdown() {
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 shrink-0 cursor-pointer text-gray-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400"
+                                className="h-8 w-8 shrink-0 cursor-pointer text-gray-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 hover:cursor-pointer"
                                 onClick={() => removeLine(line.id)}
                                 aria-label="Xóa"
                               >
@@ -223,8 +223,8 @@ export function DefaultHeader() {
   const userName =
     user
       ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-        user?.name ||
-        undefined
+      user?.name ||
+      undefined
       : undefined;
 
   return (
@@ -233,16 +233,18 @@ export function DefaultHeader() {
         <div className="flex items-center gap-6">
           <Link
             href={ROUTES.HOME}
-            className="items-center gap-2 cursor-pointer shrink-0 w-15 md:w-30 flex"
+            className="items-center gap-2 cursor-pointer shrink-0 flex hover:opacity-90 transition-opacity"
           >
-            <span className="text-lg font-bold tracking-tight text-gray-900">
-              {siteConfig.name}
-            </span>
+            <img
+              src="/images/logo.png"
+              alt="Ecommerce AI Logo"
+              className="h-14 md:h-8 w-auto object-contain transition-all duration-300"
+            />
           </Link>
           <nav className="hidden sm:flex items-center gap-6">
             <Link
               href={ROUTES.HOME}
-              className="text-gray-700 font-semibold hover:text-primary transition"
+              className="text-gray-700 font-semibold hover:text-sky-600 transition hover:cursor-pointer"
             >
               Trang chủ
             </Link>
@@ -255,7 +257,7 @@ export function DefaultHeader() {
             <div className="flex items-center gap-2 text-gray-700">
               <Avatar className="h-8 w-8 border border-gray-300">
                 <AvatarImage src={getImageUrl(user?.image)} alt={userName} />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                <AvatarFallback className="bg-sky-500/10 text-sky-600 text-sm font-semibold">
                   {userName ? userName.charAt(0).toUpperCase() : "…"}
                 </AvatarFallback>
               </Avatar>

@@ -2,6 +2,9 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import DashboardPage from "@/features/dashboard/pages/Dashboard";
 import ProductPage from "@/features/product/pages/ProductPage";
 import { CartPage } from "@/features/cart/pages/CartPage";
+import OrdersPage from "@/features/order/pages/OrdersPage";
+import InventoryPage from "@/features/inventory/pages/InventoryPage";
+import InventoryHistoryPage from "@/features/inventory/pages/InventoryHistoryPage";
 import NotFoundPage from "@/features/system/pages/NotFoundPage";
 import MainLayout from "@/shared/layouts/MainLayout";
 import { LoginPage, PrivateRoute, PublicLoginRoute } from "./route-components";
@@ -40,6 +43,18 @@ export const privateRoutes = [
       {
         path: "/cart",
         element: <CartPage />,
+      },
+      {
+        path: "/orders",
+        element: <OrdersPage />,
+      },
+      {
+        path: "/inventory",
+        element: <InventoryPage />,
+      },
+      {
+        path: "/inventory/history",
+        element: <InventoryHistoryPage />,
       },
       {
         path: "*",

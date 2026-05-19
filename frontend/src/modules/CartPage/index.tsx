@@ -18,9 +18,9 @@ function EmptyCart() {
       <div className="flex flex-1 items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8 text-center animate-in fade-in zoom-in duration-500">
           <div className="relative inline-flex">
-            <div className="absolute inset-0 scale-150 animate-pulse rounded-full bg-primary/10 blur-2xl" />
-            <div className="relative flex size-32 items-center justify-center rounded-full border-4 border-primary/20 bg-background shadow-xl">
-              <ShoppingCart className="size-14 stroke-[1.5] text-primary/40" />
+            <div className="absolute inset-0 scale-150 animate-pulse rounded-full bg-sky-500/10 blur-2xl" />
+            <div className="relative flex size-32 items-center justify-center rounded-full border-4 border-sky-500/20 bg-background shadow-xl">
+              <ShoppingCart className="size-14 stroke-[1.5] text-sky-500/40" />
             </div>
           </div>
           <div className="space-y-3">
@@ -31,7 +31,7 @@ function EmptyCart() {
           </div>
           <Button
             asChild
-            className="h-12 cursor-pointer rounded-full bg-primary px-10 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:bg-primary/90 active:scale-95"
+            className="h-12 cursor-pointer rounded-full bg-sky-600 px-10 font-bold text-white shadow-lg shadow-sky-600/20 transition-all hover:scale-105 hover:bg-sky-700 active:scale-95 hover:cursor-pointer"
           >
             <Link href={ROUTES.HOME}>Khám phá ngay</Link>
           </Button>
@@ -109,13 +109,13 @@ export default function CartPage() {
             <div className="overflow-hidden rounded-sm border border-border/60 bg-card shadow-sm">
               <div className="flex items-center gap-3 border-b border-border/50 bg-muted/20 px-4 py-3 lg:hidden">
                 <Checkbox
-                  className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                  className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground"
                   checked={headerIndeterminate ? "indeterminate" : headerChecked}
                   onCheckedChange={() => toggleAll()}
                 />
                 <button
                   type="button"
-                  className="text-sm font-medium text-foreground"
+                  className="text-sm font-medium text-foreground hover:cursor-pointer"
                   onClick={() => toggleAll()}
                 >
                   Chọn tất cả ({items.length})
@@ -125,7 +125,7 @@ export default function CartPage() {
               <div className="hidden border-b border-border/50 bg-muted/30 px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:grid lg:grid-cols-[40px_minmax(0,1fr)_96px_120px_96px_40px] lg:items-center lg:gap-3">
                 <div className="flex justify-center">
                   <Checkbox
-                    className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                    className="size-[18px] shrink-0 cursor-pointer rounded-[3px] border border-border data-[state=checked]:border-sky-500 data-[state=checked]:bg-sky-500 data-[state=checked]:text-primary-foreground"
                     checked={headerIndeterminate ? "indeterminate" : headerChecked}
                     onCheckedChange={() => toggleAll()}
                   />
@@ -150,11 +150,11 @@ export default function CartPage() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 border-t border-border/50 bg-primary/5 px-4 py-3 text-sm">
-                <Ticket className="size-4 shrink-0 text-primary" />
+              <div className="flex flex-wrap items-center gap-2 border-t border-border/50 bg-sky-500/5 px-4 py-3 text-sm">
+                <Ticket className="size-4 shrink-0 text-sky-500" />
                 <span className="text-foreground/90">Voucher giảm đến 30k</span>
                 <CartVoucherPopover>
-                  <button type="button" className="ml-auto cursor-pointer text-xs font-medium text-primary hover:underline">
+                  <button type="button" className="ml-auto cursor-pointer text-xs font-medium text-sky-600 hover:underline hover:cursor-pointer">
                     Xem thêm voucher
                   </button>
                 </CartVoucherPopover>

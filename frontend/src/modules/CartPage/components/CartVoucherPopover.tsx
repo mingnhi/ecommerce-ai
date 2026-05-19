@@ -65,8 +65,8 @@ export function CartVoucherPopover({ children }: { children: ReactNode }) {
                 onClick={() => setSelectedId(v.id)}
               >
                 <div className="flex w-[52px] shrink-0 flex-col items-center justify-center border-r border-dashed border-border pr-3">
-                  <div className="flex size-11 items-center justify-center rounded-full border-2 border-primary/25 bg-primary/5">
-                    <ShoppingBag className="size-5 text-primary" strokeWidth={1.75} />
+                  <div className="flex size-11 items-center justify-center rounded-full border-2 border-sky-500/25 bg-sky-500/5">
+                    <ShoppingBag className="size-5 text-sky-600" strokeWidth={1.75} />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1 pl-3">
@@ -74,14 +74,14 @@ export function CartVoucherPopover({ children }: { children: ReactNode }) {
                     {formatVoucherDiscount(v.discountAmount)}
                   </p>
                   <p className="text-xs text-foreground/80">{formatVoucherMinOrder(v.minOrderAmount)}</p>
-                  <span className="inline-flex w-fit rounded border border-primary/35 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                  <span className="inline-flex w-fit rounded border border-sky-500/35 px-1.5 py-0.5 text-[10px] font-medium text-sky-600">
                     {v.tag}
                   </span>
                   <p className="text-xs text-muted-foreground">
                     HSD: {v.expiryLabel}{" "}
                     <button
                       type="button"
-                      className="cursor-pointer font-medium text-primary hover:underline"
+                      className="cursor-pointer font-medium text-sky-600 hover:underline hover:cursor-pointer"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Điều kiện
@@ -89,7 +89,7 @@ export function CartVoucherPopover({ children }: { children: ReactNode }) {
                   </p>
                 </div>
                 <div className="flex w-14 shrink-0 flex-col items-end justify-between gap-2 pl-1">
-                  <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-primary">
+                  <span className="rounded-full bg-sky-500/12 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-sky-600">
                     × {v.stock}
                   </span>
                   <RadioGroupItem value={v.id} className="cursor-pointer" />
