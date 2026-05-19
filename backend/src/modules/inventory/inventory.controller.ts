@@ -16,12 +16,14 @@ import { InventoryQueryDto } from './dto/inventory-query.dto';
 import { CreateMovementDto } from './dto/create-movement.dto';
 import { MovementQueryDto } from './dto/movement-query.dto';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
-import { AdminGuard } from '@common/guards/admin.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
 import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
 
 @ApiTags('Inventory')
 @ApiBearerAuth('JWT')
-@UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('inventories')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}

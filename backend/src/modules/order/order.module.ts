@@ -9,7 +9,6 @@ import { OrderStatusHistoryEntity } from '@entities/order-status-history.entity'
 import { CartModule } from '@modules/cart/cart.module';
 import { InventoryModule } from '@modules/inventory/inventory.module';
 import { UserRolesModule } from '@modules/user-roles/user-roles.module';
-import { AdminGuard } from '@common/guards/admin.guard';
 
 @Module({
   imports: [
@@ -23,7 +22,7 @@ import { AdminGuard } from '@common/guards/admin.guard';
     UserRolesModule,
   ],
   controllers: [OrderController],
-  providers: [OrderService, AdminGuard],
+  providers: [OrderService],
   exports: [OrderService],
 })
 export class OrderModule {}
