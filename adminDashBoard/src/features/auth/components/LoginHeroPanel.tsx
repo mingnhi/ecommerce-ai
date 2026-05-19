@@ -13,7 +13,7 @@ export function LoginHeroPanel() {
   return (
     <aside
       className={cn(
-        "relative z-[1] hidden h-screen min-w-0 flex-col justify-between overflow-hidden bg-sky-700 p-10 text-primary-foreground lg:flex xl:px-10 xl:py-8",
+        "relative z-[1] hidden h-screen min-w-0 flex-col justify-between overflow-hidden bg-sky-600 p-10 text-primary-foreground lg:flex xl:px-10 xl:py-8",
       )}
       style={heroClip}
     >
