@@ -16,10 +16,18 @@ async function bootstrap() {
   const orm = app.get(MikroORM);
   app.use(new MikroOrmMiddleware(orm).use.bind(new MikroOrmMiddleware(orm)));
 
+  const corsOrigins =
+    configService.get<string>('CORS_ORIGINS')?.split(',').map((o) => o.trim()) ?? [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3000',
+      'http://localhost:3001',
+    ];
+
   app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: '*',
+    origin: corsOrigins,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
   });
 
