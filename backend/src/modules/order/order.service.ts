@@ -20,10 +20,6 @@ import { OrderStatusHistoryEntity } from '@entities/order-status-history.entity'
 
 import { OrderStatus } from './enums/order-status.enum';
 import { OrderActor } from './enums/order-actor.enum';
-import {
-  InvalidOrderTransitionError,
-  transitionOrderStatus,
-} from './domain/order-status-transition';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -40,6 +36,25 @@ interface ApplyTransitionInput {
   actorUserId?: string;
   note?: string;
 }
+
+const ALLOWED_TRANSITIONS: Record<
+  OrderStatus,
+  Partial<Record<OrderStatus, OrderActor[]>>
+> = {
+  [OrderStatus.PENDING]: {
+    [OrderStatus.PAID]: [OrderActor.SYSTEM],
+    [OrderStatus.CANCELLED]: [OrderActor.USER, OrderActor.ADMIN],
+  },
+  [OrderStatus.PAID]: {
+    [OrderStatus.SHIPPED]: [OrderActor.ADMIN],
+    [OrderStatus.CANCELLED]: [OrderActor.ADMIN],
+  },
+  [OrderStatus.SHIPPED]: {
+    [OrderStatus.COMPLETED]: [OrderActor.ADMIN, OrderActor.SYSTEM],
+  },
+  [OrderStatus.COMPLETED]: {},
+  [OrderStatus.CANCELLED]: {},
+};
 
 @Injectable()
 export class OrderService {
@@ -273,14 +288,15 @@ export class OrderService {
       }
 
       const from = order.status;
-      let to: OrderStatus;
-      try {
-        to = transitionOrderStatus(from, input.targetStatus, input.actor);
-      } catch (err) {
-        if (err instanceof InvalidOrderTransitionError) {
-          throw new ConflictException(err.message);
-        }
-        throw err;
+      const to = input.targetStatus;
+      const allowedActors = ALLOWED_TRANSITIONS[from]?.[to];
+      if (!allowedActors) {
+        throw new ConflictException(`Không thể chuyển ${from} → ${to}`);
+      }
+      if (!allowedActors.includes(input.actor)) {
+        throw new ConflictException(
+          `Actor ${input.actor} không được phép chuyển ${from} → ${to}`,
+        );
       }
 
       await this.applyInventorySideEffects(

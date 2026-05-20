@@ -19,10 +19,15 @@ import { CartStatus } from './enums/cart-status.enum';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { MergeCartDto } from './dto/merge-cart.dto';
-import { CartLine, mergeCarts } from './domain/merge-carts';
 import { InventoryService } from '@modules/inventory/inventory.service';
 
 const MAX_QTY = 999;
+
+interface CartLine {
+  variantId: string;
+  quantity: number;
+  priceAtTime?: number;
+}
 
 @Injectable()
 export class CartService {
@@ -135,19 +140,30 @@ export class CartService {
       const cart = await this.getOrCreateActiveCart(em, userId);
       await em.populate(cart, ['items']);
 
-      const serverLines: CartLine[] = cart.items.getItems().map((i) => ({
-        variantId: i.variantId,
-        quantity: i.quantity,
-        priceAtTime: i.priceAtTime,
-      }));
-      const guestLines: CartLine[] = dto.items.map((g) => ({
-        variantId: g.variantId,
-        quantity: g.quantity,
-      }));
-
-      const merged = mergeCarts(serverLines, guestLines, {
-        maxQuantity: MAX_QTY,
-      });
+      const mergedMap = new Map<string, CartLine>();
+      for (const i of cart.items.getItems()) {
+        mergedMap.set(i.variantId, {
+          variantId: i.variantId,
+          quantity: i.quantity,
+          priceAtTime: i.priceAtTime,
+        });
+      }
+      for (const g of dto.items) {
+        if (g.quantity <= 0) continue;
+        const existing = mergedMap.get(g.variantId);
+        if (existing) {
+          mergedMap.set(g.variantId, {
+            ...existing,
+            quantity: Math.min(existing.quantity + g.quantity, MAX_QTY),
+          });
+        } else {
+          mergedMap.set(g.variantId, {
+            variantId: g.variantId,
+            quantity: Math.min(g.quantity, MAX_QTY),
+          });
+        }
+      }
+      const merged = Array.from(mergedMap.values());
 
       // Validate stock per merged line — cap to available, drop if 0.
       const validated: CartLine[] = [];
