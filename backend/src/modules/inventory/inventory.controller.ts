@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { InventoryService } from './inventory.service';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/guards/roles.decorator';
 import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
+import { ApiResponse } from '@common/interfaces/api-response.interface';
 
 @ApiTags('Inventory')
 @ApiBearerAuth('JWT')
@@ -29,42 +30,66 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Get('movements')
-  @ApiOperation({ summary: '[S3-02] Lịch sử nhập/xuất kho' })
-  listMovements(@Query() query: MovementQueryDto) {
-    return this.inventoryService.listMovements(query);
+  async listMovements(@Query() query: MovementQueryDto): Promise<ApiResponse<any>> {
+    const result = await this.inventoryService.listMovements(query);
+
+    return {
+      status: 'success',
+      message: 'Get inventory movements successfully',
+      data: result.items,
+      meta: result.meta,
+    };
   }
 
   @Post('movements')
-  @ApiOperation({
-    summary:
-      '[S3-02] Tạo movement (IMPORT/RESERVE/RELEASE/SELL/ADJUST/RETURN)',
-  })
-  createMovement(
+  async createMovement(
     @Body() dto: CreateMovementDto,
     @CurrentUser() user: JwtUser,
-  ) {
-    return this.inventoryService.createMovement(dto, user.sub);
+  ): Promise<ApiResponse<any>> {
+    const data = await this.inventoryService.createMovement(dto, user.sub);
+
+    return {
+      status: 'success',
+      message: 'Create movement successfully',
+      data,
+    };
   }
 
   @Get()
-  @ApiOperation({ summary: '[S3-01] Danh sách tồn kho (filter low_stock)' })
-  list(@Query() query: InventoryQueryDto) {
-    return this.inventoryService.list(query);
+  async list(@Query() query: InventoryQueryDto): Promise<ApiResponse<any>> {
+    const result = await this.inventoryService.list(query);
+
+    return {
+      status: 'success',
+      message: 'Get inventories successfully',
+      data: result.items,
+      meta: result.meta,
+    };
   }
 
   @Get(':variantId')
-  @ApiOperation({ summary: '[S3-01] Tồn kho theo variant' })
-  getByVariantId(@Param('variantId') variantId: string) {
-    return this.inventoryService.getByVariantId(variantId);
+  async getByVariantId(@Param('variantId') variantId: string): Promise<ApiResponse<any>> {
+    const data = await this.inventoryService.getByVariantId(variantId);
+
+    return {
+      status: 'success',
+      message: 'Get inventory successfully',
+      data,
+    };
   }
 
   @Patch(':variantId')
-  @ApiOperation({ summary: '[S3-01] Cập nhật tồn kho (set absolute = ADJUST)' })
-  update(
+  async update(
     @Param('variantId') variantId: string,
     @Body() dto: UpdateInventoryDto,
     @CurrentUser() user: JwtUser,
-  ) {
-    return this.inventoryService.setAbsolute(variantId, dto, user.sub);
+  ): Promise<ApiResponse<any>> {
+    const data = await this.inventoryService.setAbsolute(variantId, dto, user.sub);
+
+    return {
+      status: 'success',
+      message: 'Update inventory successfully',
+      data,
+    };
   }
 }

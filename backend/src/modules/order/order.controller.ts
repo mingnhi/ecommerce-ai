@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -23,6 +23,7 @@ import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/guards/roles.decorator';
 import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
 import { UserRolesService } from '@modules/user-roles/user-roles.service';
+import { ApiResponse } from '@common/interfaces/api-response.interface';
 
 @ApiTags('Order')
 @ApiBearerAuth('JWT')
@@ -35,73 +36,103 @@ export class OrderController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: '[S5-01] Tạo đơn hàng (atomic transaction)' })
-  create(@Body() dto: CreateOrderDto, @CurrentUser() user: JwtUser) {
-    return this.orderService.create(user.sub, dto);
+  async create(
+    @Body() dto: CreateOrderDto,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.orderService.create(user.sub, dto);
+
+    return {
+      status: 'success',
+      message: 'Create order successfully',
+      data,
+    };
   }
 
   @Post('bulk-status')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
-  @ApiOperation({
-    summary:
-      '[S5-03] Bulk update status (Admin only) — skip đơn invalid, trả {succeeded, failed}',
-  })
-  bulkUpdateStatus(
+  async bulkUpdateStatus(
     @Body() dto: BulkUpdateStatusDto,
     @CurrentUser() user: JwtUser,
-  ) {
-    return this.orderService.bulkUpdateStatus(
+  ): Promise<ApiResponse<any>> {
+    const data = await this.orderService.bulkUpdateStatus(
       user.sub,
       dto.orderIds,
       dto.status,
       dto.note,
     );
+
+    return {
+      status: 'success',
+      message: 'Bulk update order status successfully',
+      data,
+    };
   }
 
   @Get()
-  @ApiOperation({ summary: '[S5-02/03] Danh sách đơn (auto-scope theo role)' })
   async list(
     @Query() query: OrderQueryDto,
     @CurrentUser() user: JwtUser,
-  ) {
+  ): Promise<ApiResponse<any>> {
     const isAdmin = await this.isAdmin(user.sub);
-    return this.orderService.list(user.sub, isAdmin, query);
+    const result = await this.orderService.list(user.sub, isAdmin, query);
+
+    return {
+      status: 'success',
+      message: 'Get orders successfully',
+      data: result.items,
+      meta: result.meta,
+    };
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '[S5-02] Chi tiết đơn hàng' })
-  async getById(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+  async getById(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<any>> {
     const isAdmin = await this.isAdmin(user.sub);
-    return this.orderService.getById(user.sub, isAdmin, id);
+    const data = await this.orderService.getById(user.sub, isAdmin, id);
+
+    return {
+      status: 'success',
+      message: 'Get order successfully',
+      data,
+    };
   }
 
   @Patch(':id/status')
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
-  @ApiOperation({
-    summary: '[S5-03] Cập nhật trạng thái đơn (Admin only, state machine)',
-  })
-  updateStatus(
+  async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateOrderStatusDto,
     @CurrentUser() user: JwtUser,
-  ) {
-    return this.orderService.updateStatus(user.sub, id, dto);
+  ): Promise<ApiResponse<any>> {
+    const data = await this.orderService.updateStatus(user.sub, id, dto);
+
+    return {
+      status: 'success',
+      message: 'Update order status successfully',
+      data,
+    };
   }
 
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Customer tự huỷ đơn — chỉ khi status = PENDING',
-  })
-  cancel(
+  async cancel(
     @Param('id') id: string,
     @Body() dto: CancelOrderDto,
     @CurrentUser() user: JwtUser,
-  ) {
-    return this.orderService.cancelByUser(user.sub, id, dto?.note);
+  ): Promise<ApiResponse<any>> {
+    const data = await this.orderService.cancelByUser(user.sub, id, dto?.note);
+
+    return {
+      status: 'success',
+      message: 'Cancel order successfully',
+      data,
+    };
   }
 
   private async isAdmin(userId: string): Promise<boolean> {
