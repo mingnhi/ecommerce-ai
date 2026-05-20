@@ -22,12 +22,12 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { InventoryQueryDto } from './dto/inventory-query.dto';
 import { CreateMovementDto } from './dto/create-movement.dto';
 import { MovementQueryDto } from './dto/movement-query.dto';
-import {
-  InsufficientStockError,
-  InvalidMovementError,
-  StockSnapshot,
-  applyMovement,
-} from './domain/apply-movement';
+
+interface StockSnapshot {
+  available: number;
+  reserved: number;
+  sold: number;
+}
 
 interface ApplyMovementContext {
   referenceId?: string;
@@ -211,22 +211,7 @@ export class InventoryService {
       sold: inv.sold,
     };
 
-    let next: StockSnapshot;
-    try {
-      next = applyMovement(current, {
-        type: input.type,
-        quantity: input.quantity,
-        variantId: input.variantId,
-      });
-    } catch (err) {
-      if (err instanceof InsufficientStockError) {
-        throw new ConflictException(err.message);
-      }
-      if (err instanceof InvalidMovementError) {
-        throw new BadRequestException(err.message);
-      }
-      throw err;
-    }
+    const next = this.calcNextStock(current, input.type, input.quantity, input.variantId);
 
     inv.available = next.available;
     inv.reserved = next.reserved;
@@ -265,6 +250,78 @@ export class InventoryService {
         createdAt: movement.createdAt,
       },
     };
+  }
+
+  private calcNextStock(
+    current: StockSnapshot,
+    type: MovementType,
+    quantity: number,
+    variantId: string,
+  ): StockSnapshot {
+    if (!Number.isFinite(quantity)) {
+      throw new BadRequestException(
+        `quantity phải là số hợp lệ (variant ${variantId})`,
+      );
+    }
+
+    switch (type) {
+      case MovementType.IMPORT:
+        if (quantity <= 0) {
+          throw new BadRequestException('IMPORT quantity phải > 0');
+        }
+        return { ...current, available: current.available + quantity };
+      case MovementType.RESERVE:
+        if (quantity <= 0) {
+          throw new BadRequestException('RESERVE quantity phải > 0');
+        }
+        if (current.available < quantity) {
+          throw new ConflictException(
+            `Tồn kho không đủ cho variant ${variantId}: cần ${quantity}, còn ${current.available}`,
+          );
+        }
+        return {
+          ...current,
+          available: current.available - quantity,
+          reserved: current.reserved + quantity,
+        };
+      case MovementType.RELEASE:
+        if (quantity <= 0) {
+          throw new BadRequestException('RELEASE quantity phải > 0');
+        }
+        if (current.reserved < quantity) {
+          throw new BadRequestException(
+            `Không thể RELEASE ${quantity}: reserved chỉ có ${current.reserved}`,
+          );
+        }
+        return {
+          ...current,
+          reserved: current.reserved - quantity,
+          available: current.available + quantity,
+        };
+      case MovementType.SELL:
+        if (quantity <= 0) {
+          throw new BadRequestException('SELL quantity phải > 0');
+        }
+        if (current.reserved < quantity) {
+          throw new BadRequestException(
+            `Không thể SELL ${quantity}: reserved chỉ có ${current.reserved}`,
+          );
+        }
+        return {
+          ...current,
+          reserved: current.reserved - quantity,
+          sold: current.sold + quantity,
+        };
+      case MovementType.ADJUST:
+        if (quantity < 0) {
+          throw new BadRequestException('ADJUST quantity không được âm');
+        }
+        return { ...current, available: quantity };
+      default:
+        throw new BadRequestException(
+          `Movement type không hợp lệ: ${String(type)}`,
+        );
+    }
   }
 
   private async lockOrCreate(
