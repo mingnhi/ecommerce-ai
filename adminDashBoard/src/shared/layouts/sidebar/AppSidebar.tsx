@@ -18,15 +18,11 @@ import {
 } from "@/shared/components/ui/sidebar"
 import { NavMain } from "@/shared/layouts/sidebar/NavMain"
 import { NavUser } from "@/shared/layouts/sidebar/NavUser"
+import { useMe } from "@/features/auth/hooks"
 import logo from "@/assets/logo.png"
 import logoSmall from "@/assets/logo-small.png"
 
 const nav = {
-  user: {
-    name: "Nguyễn Minh Anh",
-    email: "minhanh@ecommerce-ai.vn",
-    avatar: "",
-  },
   navMain: [
     {
       title: "Tổng quan",
@@ -59,6 +55,14 @@ const nav = {
 }
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+  const { data: user } = useMe()
+
+  const activeUser = {
+    name: user?.fullName || "Quản trị viên",
+    email: user?.email || "",
+    avatar: "",
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="flex h-14 shrink-0 items-center justify-center border-b border-sidebar-border/60 px-2 md:h-16">
@@ -91,7 +95,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         <NavMain items={nav.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={nav.user} />
+        <NavUser user={activeUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
