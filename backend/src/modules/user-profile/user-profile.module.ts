@@ -3,7 +3,7 @@ import { UserProfileService } from './user-profile.service';
 import { User } from '@entities/user.entity';
 import { UserProfile } from '@entities/userProfile.entity';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CloudinaryModule } from '@modules/cloudinary/cloudinary.module';
+import { CloudinaryModule } from '@modules/upload/upload.module';
 
 @Module({
   imports: [MikroOrmModule.forFeature([
@@ -15,4 +15,4 @@ import { CloudinaryModule } from '@modules/cloudinary/cloudinary.module';
   providers: [UserProfileService],
   exports: [UserProfileService],
 })
-export class UserProfileModule {}
+export class UserProfileModule { }

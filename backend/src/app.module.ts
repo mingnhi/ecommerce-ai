@@ -11,7 +11,7 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MailModule } from './modules/mail/mail.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
-import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { CloudinaryModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [

@@ -4,7 +4,7 @@ import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { UserProfile } from '@entities/userProfile.entity';
 import { User } from '@entities/user.entity';
-import { CloudinaryService } from '@modules/cloudinary/cloudinary.service';
+import { UploadService } from '@modules/upload/upload.service';
 
 
 @Injectable()
@@ -17,7 +17,7 @@ export class UserProfileService {
 
     @InjectRepository(User)
     private readonly userRepo: EntityRepository<User>,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly uploadService: UploadService,
   ) { }
   async findOne(id: string) {
     const profile = await this.profileRepo.findOne(
@@ -121,7 +121,7 @@ export class UserProfileService {
       });
     }
 
-    const uploaded = await this.cloudinaryService.uploadAvatar(file);
+    const uploaded = await this.uploadService.uploadAvatar(file);
 
     profile.avatarUrl = uploaded.secure_url;
 
