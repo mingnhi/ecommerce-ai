@@ -17,6 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
+import { Can } from "@/shared/components/common/Can"
+import { useCan } from "@/shared/hooks/use-can"
+import { PERMISSIONS } from "@/shared/lib/casl/permissions"
 
 function statusTone(status: OrderStatus) {
   const map: Record<OrderStatus, string> = {
@@ -126,13 +129,14 @@ export function buildOrderColumns({
         }
         const title = r.products.map((p) => p.name).join(" · ")
         return (
-          <div className="min-w-[220px] space-y-1 py-1">
+          <div className="min-w-[220px] space-y-1 py-1 flex items-center gap-2">
+            <span className="text-slate-300 dark:text-slate-700 select-none font-mono">├─</span>
+
             <p className="text-sm font-medium leading-snug text-foreground">
               {r.orderNumber}
             </p>
-            <p className="line-clamp-2 text-xs leading-normal text-muted-foreground">
-              {title}
-            </p>
+
+
           </div>
         )
       },
@@ -151,31 +155,7 @@ export function buildOrderColumns({
             <span className="text-muted-foreground tabular-nums">—</span>
           )
         }
-        return (
-          <Select
-            value={r.status}
-            onValueChange={(v) =>
-              onUpdateStatus(r.id, v as OrderStatus)
-            }
-          >
-            <SelectTrigger
-              size="sm"
-              className={cn(
-                "h-8 w-45 border shadow-none transition-colors",
-                statusTone(r.status),
-              )}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start">
-              {ORDER_STATUSES.map((s) => (
-                <SelectItem key={s} value={s} className="text-sm">
-                  {ORDER_STATUS_LABEL[s]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )
+        return <OrderStatusCell order={r} onUpdateStatus={onUpdateStatus} />
       },
     },
     {
@@ -234,34 +214,84 @@ export function buildOrderColumns({
         }
         return (
           <div className="flex justify-end gap-0.5 pr-3">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
-              aria-label="Xem chi tiết"
-              onClick={() => onPreview(r as IAdminOrder)}
-            >
-              <Eye className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:cursor-pointer"
-              aria-label="Xóa đơn"
-              onClick={() => {
-                const meta = table.options.meta as { onDeleteTarget?: (row: OrdersTableRow) => void }
-                if (meta?.onDeleteTarget) {
-                  meta.onDeleteTarget(r)
-                }
-              }}
-            >
-              <Trash2 className="size-4" />
-            </Button>
+            <Can permission={PERMISSIONS.ORDER.READ}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
+                aria-label="Xem chi tiết"
+                onClick={() => onPreview(r as IAdminOrder)}
+              >
+                <Eye className="size-4" />
+              </Button>
+            </Can>
+            <Can permission={PERMISSIONS.ORDER.CANCEL}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:cursor-pointer"
+                aria-label="Xóa đơn"
+                onClick={() => {
+                  const meta = table.options.meta as { onDeleteTarget?: (row: OrdersTableRow) => void }
+                  if (meta?.onDeleteTarget) {
+                    meta.onDeleteTarget(r)
+                  }
+                }}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </Can>
           </div>
         )
       },
     },
   ]
+}
+
+type OrderStatusCellProps = {
+  order: IAdminOrder
+  onUpdateStatus: (orderId: string, status: OrderStatus) => void
+}
+
+function OrderStatusCell({ order, onUpdateStatus }: OrderStatusCellProps) {
+  const canUpdate = useCan(PERMISSIONS.ORDER.UPDATE_STATUS)
+
+  if (!canUpdate) {
+    return (
+      <span
+        className={cn(
+          "inline-flex h-8 w-45 items-center rounded-md border px-3 text-sm shadow-none",
+          statusTone(order.status),
+        )}
+      >
+        {ORDER_STATUS_LABEL[order.status]}
+      </span>
+    )
+  }
+
+  return (
+    <Select
+      value={order.status}
+      onValueChange={(v) => onUpdateStatus(order.id, v as OrderStatus)}
+    >
+      <SelectTrigger
+        size="sm"
+        className={cn(
+          "h-8 w-45 border shadow-none transition-colors",
+          statusTone(order.status),
+        )}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="start">
+        {ORDER_STATUSES.map((s) => (
+          <SelectItem key={s} value={s} className="text-sm">
+            {ORDER_STATUS_LABEL[s]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
 }
