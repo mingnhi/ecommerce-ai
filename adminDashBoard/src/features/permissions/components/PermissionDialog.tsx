@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ShieldPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +13,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { permissionSchema } from "@/shared/lib/validations/role-schema";
-import { useCreatePermission, useUpdatePermission, usePermissions } from "../hooks";
-import type { Permission, PermissionFormData } from "../../roles/types";
-import { cn } from "@/shared/lib/utils";
-import { Check, Eye, Plus, Pencil, Trash2, Shield } from "lucide-react";
+import { Badge } from "@/shared/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -24,31 +21,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-
-export const RESOURCE_NAMES_VI: Record<string, string> = {
-  Product: "sản phẩm",
-  Order: "đơn hàng",
-  User: "người dùng",
-  Role: "vai trò",
-  Permission: "quyền hạn",
-  all: "tất cả",
-};
-
-export const ACTION_NAMES_VI: Record<string, string> = {
-  read: "Xem",
-  create: "Tạo",
-  update: "Cập nhật",
-  delete: "Xóa",
-  manage: "Toàn quyền",
-};
-
-const ACTIONS_LIST = [
-  { value: "read", label: "Xem", desc: "Xem chi tiết", icon: Eye, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/20" },
-  { value: "create", label: "Tạo mới", desc: "Tạo dữ liệu", icon: Plus, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20" },
-  { value: "update", label: "Cập nhật", desc: "Sửa đổi dữ liệu", icon: Pencil, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/20" },
-  { value: "delete", label: "Xóa", desc: "Xóa bỏ dữ liệu", icon: Trash2, color: "text-rose-500 bg-rose-50 dark:bg-rose-950/20" },
-  { value: "manage", label: "Toàn quyền", desc: "Tất cả thao tác", icon: Shield, color: "text-violet-500 bg-violet-50 dark:bg-violet-950/20" },
-];
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { permissionSchema } from "@/shared/lib/validations/role-schema";
+import {
+  createPermissionDraft,
+  getActionMeta,
+  getActionsForResource,
+  getPermissionResources,
+  PERMISSION_RESOURCE_LABELS,
+  type PermissionResource,
+} from "@/shared/lib/casl/permission-actions";
+import { cn } from "@/shared/lib/utils";
+import { useCreatePermission, useUpdatePermission, usePermissions } from "../hooks";
+import type { Permission, PermissionFormData } from "../../roles/types";
+import { getPermissionActionBadgeClass } from "../columns/permission-columns";
+import { PermissionActionGrid } from "./PermissionActionGrid";
 
 type Props = {
   open: boolean;
@@ -62,89 +49,78 @@ export function PermissionDialog({ open, onOpenChange, permission }: Props) {
   const updateMutation = useUpdatePermission();
   const { data: permissions = [] } = usePermissions();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    control,
-    watch,
-    setValue,
-  } = useForm<PermissionFormData>({
+  const form = useForm<PermissionFormData>({
     resolver: zodResolver(permissionSchema),
-    defaultValues: permission
-      ? {
+    defaultValues: { name: "", resource: "", action: "", description: "" },
+  });
+
+  const selectedResource = form.watch("resource") as PermissionResource | "";
+  const selectedAction = form.watch("action");
+  const actionMeta = selectedAction ? getActionMeta(selectedAction) : undefined;
+
+  const moduleOptions = useMemo(() => {
+    return getPermissionResources().map((resource) => {
+      const allActions = getActionsForResource(resource);
+      const taken = new Set(
+        permissions.filter((p) => p.resource === resource).map((p) => p.action)
+      );
+      const availableCount = allActions.filter((action) => !taken.has(action)).length;
+
+      return {
+        resource,
+        isFull: availableCount === 0,
+        availableCount,
+        totalCount: allActions.length,
+      };
+    });
+  }, [permissions]);
+
+  const selectedModule = moduleOptions.find((item) => item.resource === selectedResource);
+  const isSelectedModuleFull = Boolean(selectedModule?.isFull);
+
+  const takenActions = useMemo(() => {
+    if (!selectedResource) return new Set<string>();
+    return new Set(
+      permissions
+        .filter((p) => p.resource === selectedResource && p.id !== permission?.id)
+        .map((p) => p.action)
+    );
+  }, [permissions, selectedResource, permission?.id]);
+
+  const availableActions = useMemo(() => {
+    if (!selectedResource || (!isEdit && isSelectedModuleFull)) return [];
+    return getActionsForResource(selectedResource).filter((a) => !takenActions.has(a));
+  }, [selectedResource, takenActions, isSelectedModuleFull, isEdit]);
+
+  useEffect(() => {
+    if (!open || isEdit || !selectedResource || !isSelectedModuleFull) return;
+    form.setValue("resource", "");
+    form.setValue("action", "");
+    form.setValue("name", "");
+    form.setValue("description", "");
+  }, [open, isEdit, selectedResource, isSelectedModuleFull, form]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (permission) {
+      form.reset({
         name: permission.name,
         resource: permission.resource,
         action: permission.action,
         description: permission.description,
-      }
-      : { name: "", resource: "", action: "", description: "" },
-  });
-
-  const selectedResource = watch("resource");
-  const selectedAction = watch("action");
-
-  // Determine if another action has already been created for this resource
-  const hasExistingActions = useMemo(() => {
-    if (!selectedResource) return false;
-    return permissions.some(
-      (p) => p.resource === selectedResource && p.id !== permission?.id
-    );
-  }, [permissions, selectedResource, permission]);
-
-  // Get all existing action values for the selected resource to hide them from choices
-  const existingActionsForResource = useMemo(() => {
-    if (!selectedResource) return [];
-    return permissions
-      .filter((p) => p.resource === selectedResource && p.id !== permission?.id)
-      .map((p) => p.action);
-  }, [permissions, selectedResource, permission]);
-
-  // Determine resources that already have all actions or a "manage" action
-  const fullyConfiguredResources = useMemo(() => {
-    const resources = ["Product", "Order", "User", "Role", "Permission", "all"];
-    return resources.filter((res) => {
-      const existing = permissions
-        .filter((p) => p.resource === res && p.id !== permission?.id)
-        .map((p) => p.action);
-
-      if (existing.includes("manage")) return true;
-
-      const required = ["read", "create", "update", "delete"];
-      const hasAll = required.every((act) => existing.includes(act));
-      return hasAll;
-    });
-  }, [permissions, permission]);
-
-  // Synchronize reset when dialog opens or permission changes
-  useEffect(() => {
-    if (open) {
-      if (permission) {
-        reset({
-          name: permission.name,
-          resource: permission.resource,
-          action: permission.action,
-          description: permission.description,
-        });
-      } else {
-        reset({ name: "", resource: "", action: "", description: "" });
-      }
+      });
+      return;
     }
-  }, [open, permission, reset]);
+    form.reset({ name: "", resource: "", action: "", description: "" });
+  }, [open, permission, form]);
 
-  // Automatically calculate permission name
   useEffect(() => {
-    if (selectedResource && selectedAction) {
-      const resName = RESOURCE_NAMES_VI[selectedResource] || selectedResource.toLowerCase();
-      const actName = ACTION_NAMES_VI[selectedAction] || selectedAction;
-      setValue("name", `${actName} ${resName}`, { shouldValidate: true });
-
-      if (selectedAction === "manage") {
-        setValue("description", `Quản lý toàn bộ chức năng thuộc module ${resName}`, { shouldValidate: true });
-      }
-    }
-  }, [selectedResource, selectedAction, setValue]);
+    if (!selectedResource || !selectedAction) return;
+    const draft = createPermissionDraft(selectedResource, selectedAction);
+    if (!draft) return;
+    form.setValue("name", draft.name, { shouldValidate: true });
+    form.setValue("description", draft.description, { shouldValidate: true });
+  }, [selectedResource, selectedAction, form]);
 
   const onSubmit = async (data: PermissionFormData) => {
     try {
@@ -153,7 +129,7 @@ export function PermissionDialog({ open, onOpenChange, permission }: Props) {
       } else {
         await createMutation.mutateAsync(data);
       }
-      reset();
+      form.reset();
       onOpenChange(false);
     } catch (error) {
       console.error(error);
@@ -162,180 +138,204 @@ export function PermissionDialog({ open, onOpenChange, permission }: Props) {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const resourcesList = [
-    { value: "Product", label: "Sản phẩm (Product)" },
-    { value: "Order", label: "Đơn hàng (Order)" },
-    { value: "User", label: "Người dùng (User)" },
-    { value: "Role", label: "Vai trò (Role)" },
-    { value: "Permission", label: "Quyền hạn (Permission)" },
-    { value: "all", label: "Tất cả (all)" },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-5 overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl">
-        <DialogHeader className="pb-1.5">
-          <DialogTitle className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
-            {isEdit ? "Chỉnh sửa quyền hạn" : "Tạo quyền hạn mới"}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {isEdit
-              ? "Cập nhật thông tin quyền hạn trong hệ thống"
-              : "Thêm quyền hạn mới để gán cho các vai trò"}
-          </DialogDescription>
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border border-slate-200/80 p-0 shadow-2xl sm:max-w-xl dark:border-slate-800">
+        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-5 dark:border-slate-800">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+              <ShieldPlus className="size-5" />
+            </div>
+            <div className="space-y-1">
+              <DialogTitle className="text-lg font-semibold tracking-tight">
+                {isEdit ? "Chỉnh sửa quyền" : "Tạo quyền mới"}
+              </DialogTitle>
+              <DialogDescription className="text-xs leading-relaxed">
+                Chọn module và hành động — hệ thống tự điền tên và mô tả
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 pt-2">
-          <div className="space-y-3.5">
-            <div className="space-y-1">
-              <Label htmlFor="resource" className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tài nguyên (Resource)</Label>
+        <ScrollArea className="max-h-[min(60vh,520px)]">
+          <form
+            id="permission-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-5 px-6 py-5"
+          >
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Bước 1 · Module
+              </Label>
               <Controller
-                control={control}
+                control={form.control}
                 name="resource"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full h-9 border border-slate-200 dark:border-slate-800 rounded-lg bg-background/50 flex items-center justify-between text-xs focus:ring-3 focus:ring-sky-500/10 focus:border-sky-500 transition-all">
-                      <SelectValue placeholder="Chọn tài nguyên..." />
+                  <Select
+                    value={field.value || undefined}
+                    onValueChange={(v) => {
+                      const option = moduleOptions.find((item) => item.resource === v);
+                      if (!isEdit && option?.isFull) return;
+
+                      field.onChange(v);
+                      form.setValue("action", "");
+                      form.setValue("name", "");
+                      form.setValue("description", "");
+                    }}
+                    disabled={isEdit}
+                  >
+                    <SelectTrigger
+                      type="button"
+                      className="h-10 w-full rounded-lg border-slate-200 dark:border-slate-700"
+                    >
+                      <SelectValue placeholder="Chọn module..." />
                     </SelectTrigger>
-                    <SelectContent className="rounded-lg border border-slate-200 dark:border-slate-800">
-                      {resourcesList.map((res) => {
-                        const isFull = fullyConfiguredResources.includes(res.value);
-                        return (
-                          <SelectItem
-                            key={res.value}
-                            value={res.value}
-                            disabled={isFull}
-                            className={cn(
-                              "text-xs hover:cursor-pointer transition-colors w-full",
-                              isFull && "opacity-60 hover:bg-transparent dark:hover:bg-transparent"
-                            )}
-                          >
-                            <div className="flex items-center justify-between w-full gap-8">
-                              <span>{res.label}</span>
-                              {isFull && (
-                                <span className="text-[9px] font-bold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-100 dark:border-emerald-900/30 shrink-0 select-none">
-                                  Đã đủ hành động
-                                </span>
+                    <SelectContent
+                      position="popper"
+                      sideOffset={4}
+                      className="z-[100] max-h-72 w-[var(--radix-select-trigger-width)] rounded-lg"
+                    >
+                      {moduleOptions.map((option) => (
+                        <SelectItem
+                          key={option.resource}
+                          value={option.resource}
+                          disabled={!isEdit && option.isFull}
+                          className={cn(
+                            !isEdit &&
+                              option.isFull &&
+                              "cursor-not-allowed data-disabled:opacity-100"
+                          )}
+                        >
+                          <span className="flex w-full items-center justify-between gap-2">
+                            <span
+                              className={cn(
+                                "truncate",
+                                !isEdit && option.isFull && "text-muted-foreground"
                               )}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
+                            >
+                              {PERMISSION_RESOURCE_LABELS[option.resource]} · {option.resource}
+                            </span>
+                            {!isEdit && option.isFull && (
+                              <Badge
+                                variant="outline"
+                                className="shrink-0 border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-400"
+                              >
+                                Đã đủ quyền
+                              </Badge>
+                            )}
+                          </span>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
               />
-              {errors.resource && (
-                <p className="text-[11px] text-destructive mt-0.5 font-medium">{errors.resource.message}</p>
+              {form.formState.errors.resource && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.resource.message}
+                </p>
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Hành động (Action)</Label>
-              <Controller
-                control={control}
-                name="action"
-                render={({ field }) => (
-                  <div className="grid grid-cols-2 gap-2">
-                    {ACTIONS_LIST.map((act) => {
-                      if (act.value === "manage" && hasExistingActions) {
-                        return null;
-                      }
-                      if (existingActionsForResource.includes(act.value)) {
-                        return null;
-                      }
-                      const isSelected = field.value === act.value;
-                      const isManage = act.value === "manage";
-                      const Icon = act.icon;
-                      return (
-                        <button
-                          key={act.value}
-                          type="button"
-                          onClick={() => field.onChange(act.value)}
-                          className={cn(
-                            "flex flex-col items-start py-1.5 px-2.5 text-left border rounded-lg transition-all duration-200 cursor-pointer w-full select-none gap-1",
-                            isManage && "col-span-2",
-                            isSelected
-                              ? "border-sky-500 bg-sky-500/[0.04] dark:bg-sky-500/[0.02] text-sky-950 dark:text-sky-50 ring-2 ring-sky-500/10 shadow-[0_2px_8px_rgba(14,165,233,0.06)]"
-                              : "border-slate-200 dark:border-slate-800 bg-card hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700"
-                          )}
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={cn(
-                                  "size-6 rounded-md flex items-center justify-center transition-colors shrink-0",
-                                  isSelected
-                                    ? act.color
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500"
-                                )}
-                              >
-                                <Icon className="size-3.5" />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-none">{act.label}</span>
-                                <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
-                                  {act.value}
-                                </span>
-                              </div>
-                            </div>
-                            <div
-                              className={cn(
-                                "size-4 rounded-full border flex items-center justify-center transition-all shrink-0",
-                                isSelected
-                                  ? "border-sky-500 bg-sky-500 text-white scale-105"
-                                  : "border-slate-300 dark:border-slate-700 bg-transparent"
-                              )}
-                            >
-                              {isSelected && <Check className="size-2.5 stroke-[3]" />}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+            {selectedResource && isSelectedModuleFull && !isEdit && (
+              <div className="rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-4 py-5 text-center dark:border-amber-900/40 dark:bg-amber-950/20">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                  Module {PERMISSION_RESOURCE_LABELS[selectedResource]} đã đủ quyền
+                </p>
+                <p className="mt-1 text-xs text-amber-800/90 dark:text-amber-300/90">
+                  Đã tạo {selectedModule?.totalCount}/{selectedModule?.totalCount} quyền cho module này.
+                </p>
+              </div>
+            )}
+
+            {selectedResource && !isSelectedModuleFull && (
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Bước 2 · Hành động
+                  <span className="ml-2 font-normal normal-case text-sky-600">
+                    {availableActions.length} khả dụng
+                  </span>
+                </Label>
+                <Controller
+                  control={form.control}
+                  name="action"
+                  render={({ field }) => (
+                    <PermissionActionGrid
+                      actions={availableActions}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+                {form.formState.errors.action && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.action.message}
+                  </p>
                 )}
-              />
-              {errors.action && (
-                <p className="text-[11px] text-destructive mt-0.5 font-medium">{errors.action.message}</p>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
 
-          {selectedAction !== "manage" && (
-            <div className="space-y-1">
-              <Label htmlFor="description" className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Mô tả</Label>
-              <Textarea
-                id="description"
-                placeholder="Mô tả chi tiết về phạm vi của quyền hạn..."
-                rows={2}
-                {...register("description")}
-                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-background/50 text-xs focus-visible:ring-3 focus-visible:ring-sky-500/10 focus-visible:border-sky-500 transition-all placeholder:text-muted-foreground/60 resize-none py-1.5"
-              />
-              {errors.description && (
-                <p className="text-[11px] text-destructive mt-0.5 font-medium">{errors.description.message}</p>
-              )}
-            </div>
-          )}
+            {actionMeta && (
+              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Xem trước
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={cn("text-[10px] font-bold", getPermissionActionBadgeClass(selectedAction))}
+                  >
+                    {actionMeta.label}
+                  </Badge>
+                  <Badge variant="outline" className="font-mono text-[10px]">
+                    {actionMeta.method}
+                  </Badge>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  {form.watch("description") || actionMeta.description}
+                </p>
+              </div>
+            )}
 
-          <DialogFooter className="gap-2 sm:gap-0 pt-3 mt-4 border-t border-slate-100 dark:border-slate-900">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="rounded-lg px-4 h-9 text-xs font-semibold border-slate-200 dark:border-slate-800"
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="rounded-lg px-5 h-9 text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all active:scale-95"
-            >
-              {isPending ? "Đang xử lý..." : isEdit ? "Cập nhật" : "Tạo mới"}
-            </Button>
-          </DialogFooter>
-        </form>
+            {selectedAction && selectedAction !== "manage" && (
+              <div className="space-y-2">
+                <Label htmlFor="permission-description" className="text-xs font-medium">
+                  Mô tả bổ sung
+                </Label>
+                <Textarea
+                  id="permission-description"
+                  rows={3}
+                  {...form.register("description")}
+                  className="resize-none rounded-lg border-slate-200 text-sm dark:border-slate-700"
+                />
+              </div>
+            )}
+          </form>
+        </ScrollArea>
+
+        <DialogFooter className="shrink-0 gap-2 border-t border-slate-100 bg-slate-50/50 px-6 pb-6 pt-4 dark:border-slate-800 dark:bg-slate-900/30 sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="rounded-lg"
+          >
+            Hủy
+          </Button>
+          <Button
+            type="submit"
+            form="permission-form"
+            disabled={
+              isPending ||
+              !selectedResource ||
+              !selectedAction ||
+              (!isEdit && isSelectedModuleFull)
+            }
+            className="rounded-lg bg-sky-600 px-6 hover:bg-sky-700"
+          >
+            {isPending ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo quyền"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

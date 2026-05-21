@@ -3,7 +3,8 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Pencil, Trash2, Shield } from "lucide-react";
 import type { Role } from "../types";
-import { Can } from "@/shared/lib/casl";
+import { Can } from "@/shared/components/common/Can";
+import { PERMISSIONS } from "@/shared/lib/casl/permissions";
 
 type ColumnMeta = {
   onEdit?: (role: Role) => void;
@@ -56,7 +57,7 @@ export function buildRoleColumns(meta: ColumnMeta): ColumnDef<Role>[] {
       header: "Thao tác",
       cell: ({ row, table }) => (
         <div className="flex items-center gap-1.5">
-          <Can I="update" a="Role">
+          <Can permission={PERMISSIONS.ROLE.ASSIGN_PERMISSIONS}>
             <Button
               variant="ghost"
               size="sm"
@@ -66,7 +67,7 @@ export function buildRoleColumns(meta: ColumnMeta): ColumnDef<Role>[] {
               <Shield className="size-4 text-sky-600" />
             </Button>
           </Can>
-          <Can I="update" a="Role">
+          <Can permission={PERMISSIONS.ROLE.UPDATE}>
             <Button
               variant="ghost"
               size="sm"
@@ -76,7 +77,7 @@ export function buildRoleColumns(meta: ColumnMeta): ColumnDef<Role>[] {
               <Pencil className="size-4" />
             </Button>
           </Can>
-          <Can I="delete" a="Role">
+          <Can permission={PERMISSIONS.ROLE.DELETE}>
             <Button
               variant="ghost"
               size="sm"

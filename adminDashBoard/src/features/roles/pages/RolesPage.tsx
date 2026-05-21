@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import { DataTableBase } from "@/shared/components/common/DataTableBase";
 import { buildRoleColumns } from "../columns/role-columns";
 import { RoleDialog } from "../components/RoleDialog";
 import { AssignPermissionsDialog } from "../components/AssignPermissionsDialog";
 import { useRoles, useDeleteRole } from "../hooks";
 import type { Role } from "../types";
-import { Can } from "@/shared/lib/casl";
+import { PermissionButton } from "@/shared/components/common/PermissionButton";
+import { PERMISSIONS } from "@/shared/lib/casl/permissions";
+import { PageSkeleton } from "@/shared/components/common/PageSkeleton";
 
 export default function RolesPage() {
   const { data: roles = [], isLoading } = useRoles();
@@ -67,20 +68,7 @@ export default function RolesPage() {
     [deleteMutation]
   );
 
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Quản lý vai trò</h1>
-            <p className="text-sm text-muted-foreground">
-              Đang tải dữ liệu...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <PageSkeleton filterCount={1} columnCount={5} />;
 
   return (
     <div className="p-6 space-y-6">
@@ -91,16 +79,16 @@ export default function RolesPage() {
             Quản lý các vai trò và phân quyền trong hệ thống
           </p>
         </div>
-        <Can I="create" a="Role">
-          <Button
-            onClick={() => setCreateOpen(true)}
-            size="sm"
-            className="rounded-sm bg-sky-600 hover:bg-sky-700"
-          >
-            <Plus className="size-4 mr-1.5" />
-            Tạo vai trò
-          </Button>
-        </Can>
+        <PermissionButton
+          permission={PERMISSIONS.ROLE.CREATE}
+          fallbackBehavior="alert"
+          onClick={() => setCreateOpen(true)}
+          size="sm"
+          className="rounded-sm bg-sky-600 hover:bg-sky-700 hover:cursor-pointer"
+        >
+          <Plus className="size-4 mr-1.5" />
+          Tạo vai trò
+        </PermissionButton>
       </div>
 
       <DataTableBase

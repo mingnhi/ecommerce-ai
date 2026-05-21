@@ -12,7 +12,7 @@ export type RoleFormData = {
   description: string;
 };
 
-export type RoleWithPermissions = Role & {
+export type RoleDetail = Role & {
   permissions: Permission[];
 };
 

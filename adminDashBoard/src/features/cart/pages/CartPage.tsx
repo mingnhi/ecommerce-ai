@@ -9,6 +9,7 @@ import {
   useClearCart
 } from '../hooks';
 import { useNavigate } from 'react-router-dom';
+import { LoadingScreen } from '@/shared/components/common/LoadingScreen';
 
 export function CartPage() {
   const navigate = useNavigate();
@@ -88,14 +89,7 @@ export function CartPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4">Loading cart...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Đang tải giỏ hàng" description="Vui lòng chờ..." />;
   }
 
   if (error) {

@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import { DataTableBase } from "@/shared/components/common/DataTableBase";
 import { buildPermissionColumns } from "../columns/permission-columns";
-import { PermissionDialog, RESOURCE_NAMES_VI } from "../components/PermissionDialog";
+import { PermissionDialog } from "../components/PermissionDialog";
 import { usePermissions, useDeletePermission } from "../hooks";
 import type { Permission } from "../../roles/types";
-import { Can } from "@/shared/lib/casl";
+import { PERMISSIONS } from "@/shared/lib/casl/permissions";
+import { getResourceLabel } from "@/shared/lib/casl/permission-actions";
 import { cn } from "@/shared/lib/utils";
+import { PermissionButton } from "@/shared/components/common/PermissionButton";
+import { PageSkeleton } from "@/shared/components/common/PageSkeleton";
 
 export default function PermissionsPage() {
   const { data: permissions = [], isLoading } = usePermissions();
@@ -44,10 +46,10 @@ export default function PermissionsPage() {
         // Add parent module header row with children as subRows
         finalRows.push({
           id: `parent-${res}`,
-          name: RESOURCE_NAMES_VI[res] || res,
+          name: getResourceLabel(res),
           resource: res,
-          action: "", // empty action
-          description: `Quản lý các chức năng thuộc module ${RESOURCE_NAMES_VI[res]?.toLowerCase() || res.toLowerCase()}`,
+          action: "",
+          description: `Quản lý các chức năng thuộc module ${getResourceLabel(res).toLowerCase()}`,
           createdAt: children[0]?.createdAt || new Date().toISOString(),
           isParent: true,
           subRows: children.map((child) => ({
@@ -65,13 +67,13 @@ export default function PermissionsPage() {
     const unique = Array.from(new Set(permissions.map((p) => p.resource)));
     return [
       { value: "all", label: "Tất cả" },
-      ...unique.map((r) => ({ value: r, label: RESOURCE_NAMES_VI[r] || r })),
+      ...unique.map((r) => ({ value: r, label: getResourceLabel(r) })),
     ];
   }, [permissions]);
 
   const columns = useMemo(
     () =>
-      buildPermissionColumns({}),
+      buildPermissionColumns(),
     []
   );
 
@@ -115,20 +117,7 @@ export default function PermissionsPage() {
     [deleteMutation]
   );
 
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Quản lý quyền hạn</h1>
-            <p className="text-sm text-muted-foreground">
-              Đang tải dữ liệu...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <PageSkeleton filterCount={2} columnCount={4} />;
 
   return (
     <div className="p-6 space-y-6">
@@ -139,16 +128,16 @@ export default function PermissionsPage() {
             Quản lý các quyền hạn trong hệ thống
           </p>
         </div>
-        <Can I="create" a="Permission">
-          <Button
-            onClick={() => setCreateOpen(true)}
-            size="sm"
-            className="rounded-sm bg-sky-600 hover:bg-sky-700 hover:cursor-pointer"
-          >
-            <Plus className="size-4 mr-1.5" />
-            Tạo quyền hạn
-          </Button>
-        </Can>
+        <PermissionButton
+          permission={PERMISSIONS.PERMISSION.CREATE}
+          fallbackBehavior="alert"
+          onClick={() => setCreateOpen(true)}
+          size="sm"
+          className="rounded-sm bg-sky-600 hover:bg-sky-700 hover:cursor-pointer"
+        >
+          <Plus className="size-4 mr-1.5" />
+          Tạo quyền hạn
+        </PermissionButton>
       </div>
 
       <DataTableBase
@@ -160,14 +149,15 @@ export default function PermissionsPage() {
         getSubRows={(row: any) => (row.isParent ? row.subRows : undefined)}
         mainColumnId="name"
         defaultExpandedAll={true}
-        rowClassName={(row) =>
-          cn(
+        rowClassName={(row) => {
+          const original = row.original as Permission & { isParent?: boolean };
+          return cn(
             "border-slate-100 dark:border-slate-900 transition-colors",
-            row.original.isParent
+            original.isParent
               ? "bg-slate-50/70 dark:bg-slate-900/40 font-bold hover:bg-slate-50/70 dark:hover:bg-slate-900/40 border-l-2"
               : "hover:bg-slate-50/20 dark:hover:bg-slate-900/10"
-          )
-        }
+          );
+        }}
       />
 
       <PermissionDialog open={createOpen} onOpenChange={setCreateOpen} />
