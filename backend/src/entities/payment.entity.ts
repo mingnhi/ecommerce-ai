@@ -1,9 +1,9 @@
 import { Entity, Enum, ManyToOne, Property } from "@mikro-orm/core";
 import { AuditableEntity } from "./base/auditable_entity";
-import { PaymentMethod, PaymentStatus } from "src/payment/dto/payment.enum";
+import { PaymentMethod, PaymentStatus } from "@modules/payment/dto/payment.enum";
 
 @Entity({ tableName: 'payments' })
-export class Payment extends AuditableEntity{
+export class Payment extends AuditableEntity {
     // @ManyToOne(() => Order)
     // order!: Order
 
