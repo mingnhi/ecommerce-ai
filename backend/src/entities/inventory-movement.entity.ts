@@ -1,21 +1,19 @@
-import { Entity, Enum, Index, Property } from '@mikro-orm/core';
+import { Entity, Enum, Index, ManyToOne, Property } from '@mikro-orm/core';
 
 import { AuditableEntity } from './base/auditable_entity';
+import { ProductVariantEntity } from './product-variant.entity';
 import { MovementType } from '@modules/inventory/enums/movement-type.enum';
 
 @Entity({ tableName: 'inventory_movements' })
 @Index({ properties: ['variantId', 'createdAt'] })
 export class InventoryMovementEntity extends AuditableEntity {
-  @Property({ fieldName: 'variant_id', type: 'varchar', length: 36 })
-  variantId: string;
-
-  @Property({
-    fieldName: 'warehouse_id',
-    type: 'varchar',
-    length: 36,
-    nullable: true,
+  @ManyToOne(() => ProductVariantEntity, {
+    fieldName: 'variant_id',
+    cascade: [],
+    updateRule: 'cascade',
+    mapToPk: true,
   })
-  warehouseId?: string;
+  variantId: string;
 
   @Enum({ items: () => MovementType })
   type: MovementType;
@@ -30,22 +28,6 @@ export class InventoryMovementEntity extends AuditableEntity {
     nullable: true,
   })
   referenceId?: string;
-
-  @Property({
-    fieldName: 'reference_type',
-    type: 'varchar',
-    length: 50,
-    nullable: true,
-  })
-  referenceType?: string;
-
-  @Property({
-    fieldName: 'created_by',
-    type: 'varchar',
-    length: 36,
-    nullable: true,
-  })
-  createdBy?: string;
 
   @Property({ type: 'text', nullable: true })
   note?: string;

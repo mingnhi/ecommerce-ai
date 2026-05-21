@@ -1,5 +1,5 @@
-import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export class InventoryQueryDto {
   @IsOptional()
@@ -14,13 +14,4 @@ export class InventoryQueryDto {
   @Min(1)
   @Max(100)
   limit?: number;
-
-  @IsOptional()
-  @Transform(({ value }) => value === true || value === 'true')
-  @IsBoolean()
-  low_stock?: boolean;
-
-  @IsOptional()
-  @IsUUID()
-  warehouseId?: string;
 }

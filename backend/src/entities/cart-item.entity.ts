@@ -2,13 +2,19 @@ import { Entity, ManyToOne, Property } from '@mikro-orm/core';
 
 import { AuditableEntity } from './base/auditable_entity';
 import { CartEntity } from './cart.entity';
+import { ProductVariantEntity } from './product-variant.entity';
 
 @Entity({ tableName: 'cart_items' })
 export class CartItemEntity extends AuditableEntity {
   @ManyToOne(() => CartEntity, { fieldName: 'cart_id' })
   cart: CartEntity;
 
-  @Property({ fieldName: 'variant_id', type: 'varchar', length: 36 })
+  @ManyToOne(() => ProductVariantEntity, {
+    fieldName: 'variant_id',
+    cascade: [],
+    updateRule: 'cascade',
+    mapToPk: true,
+  })
   variantId: string;
 
   @Property()
