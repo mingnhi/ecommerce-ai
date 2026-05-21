@@ -6,8 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository, QueryOrder } from '@mikro-orm/core';
+import { QueryOrder } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/mysql';
 
 import { CartEntity } from '@entities/cart.entity';
@@ -33,14 +32,8 @@ interface CartLine {
 export class CartService {
   constructor(
     private readonly em: EntityManager,
-    @InjectRepository(CartEntity)
-    private readonly cartRepo: EntityRepository<CartEntity>,
-    @InjectRepository(CartItemEntity)
-    private readonly itemRepo: EntityRepository<CartItemEntity>,
     private readonly inventoryService: InventoryService,
   ) {}
-
-  // ---------- S4-01 ----------
 
   async getCart(userId: string) {
     const cart = await this.getOrCreateActiveCart(this.em, userId);
@@ -92,12 +85,12 @@ export class CartService {
         { id: itemId },
         { populate: ['cart'] },
       );
-      if (!item) throw new NotFoundException('Không tìm thấy cart item');
+      if (!item) throw new NotFoundException('Cart item not found');
       if (item.cart.userId !== userId) {
-        throw new ForbiddenException('Cart item không thuộc user này');
+        throw new ForbiddenException('Cart item does not belong to this user');
       }
       if (item.cart.status !== CartStatus.ACTIVE) {
-        throw new ConflictException('Cart đã checkout, không thể chỉnh sửa');
+        throw new ConflictException('Cart already checked out');
       }
 
       await this.assertStockAvailable(em, item.variantId, dto.quantity);
@@ -117,12 +110,12 @@ export class CartService {
         { id: itemId },
         { populate: ['cart'] },
       );
-      if (!item) throw new NotFoundException('Không tìm thấy cart item');
+      if (!item) throw new NotFoundException('Cart item not found');
       if (item.cart.userId !== userId) {
-        throw new ForbiddenException('Cart item không thuộc user này');
+        throw new ForbiddenException('Cart item does not belong to this user');
       }
       if (item.cart.status !== CartStatus.ACTIVE) {
-        throw new ConflictException('Cart đã checkout, không thể chỉnh sửa');
+        throw new ConflictException('Cart already checked out');
       }
 
       const cart = item.cart;
@@ -132,8 +125,6 @@ export class CartService {
       return this.toDtoWithLivePrice(em, cart);
     });
   }
-
-  // ---------- S4-02 ----------
 
   async merge(userId: string, dto: MergeCartDto) {
     return this.em.transactional(async (em) => {
@@ -165,7 +156,6 @@ export class CartService {
       }
       const merged = Array.from(mergedMap.values());
 
-      // Validate stock per merged line — cap to available, drop if 0.
       const validated: CartLine[] = [];
       for (const line of merged) {
         const available = await this.inventoryService.getAvailable(
@@ -204,7 +194,6 @@ export class CartService {
         }
       }
 
-      // Remaining server items not in merged result → removed (e.g. capped to 0).
       for (const stale of byVariant.values()) {
         em.remove(stale);
       }
@@ -215,12 +204,6 @@ export class CartService {
     });
   }
 
-  // ---------- internal API for OrderService ----------
-
-  /**
-   * Get active cart for checkout. Throws if empty.
-   * Caller must be inside its own transaction.
-   */
   async getActiveCartForCheckout(em: EntityManager, userId: string) {
     const cart = await em.findOne(
       CartEntity,
@@ -228,23 +211,18 @@ export class CartService {
       { populate: ['items'] },
     );
     if (!cart || cart.items.length === 0) {
-      throw new ConflictException('Cart rỗng — không thể checkout');
+      throw new ConflictException('Cart is empty');
     }
     return cart;
   }
 
-  /** Mark cart as CHECKED_OUT. Caller persists. */
   markCheckedOut(cart: CartEntity) {
     cart.status = CartStatus.CHECKED_OUT;
-    cart.checkedOutAt = new Date();
   }
 
-  /** Public so Order service can refresh price at checkout time. */
   async resolveCurrentPriceFor(em: EntityManager, variantId: string) {
     return this.resolveCurrentPrice(em, variantId);
   }
-
-  // ---------- helpers ----------
 
   private async getOrCreateActiveCart(
     em: EntityManager,
@@ -274,7 +252,7 @@ export class CartService {
     const available = await this.inventoryService.getAvailable(em, variantId);
     if (available < requested) {
       throw new ConflictException(
-        `Tồn kho không đủ cho variant ${variantId}: cần ${requested}, còn ${available}`,
+        `Insufficient stock for variant ${variantId}: need ${requested}, available ${available}`,
       );
     }
   }
@@ -289,10 +267,10 @@ export class CartService {
       { populate: ['product'] },
     );
     if (!variant) {
-      throw new BadRequestException(`Variant ${variantId} không tồn tại`);
+      throw new BadRequestException(`Variant ${variantId} not found`);
     }
     if (!variant.product?.isActive) {
-      throw new BadRequestException('Product đã bị huỷ');
+      throw new BadRequestException('Product is inactive');
     }
 
     if (variant.price != null && variant.price > 0) {
@@ -306,7 +284,7 @@ export class CartService {
     );
     if (!price) {
       throw new BadRequestException(
-        `Product ${variant.product.id} chưa có giá active`,
+        `Product ${variant.product.id} has no active price`,
       );
     }
     return Number(price.price);

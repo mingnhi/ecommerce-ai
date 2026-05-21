@@ -16,10 +16,8 @@ import { EntityManager } from '@mikro-orm/mysql';
 
 import { OrderEntity } from '@entities/order.entity';
 import { OrderItemEntity } from '@entities/order-item.entity';
-import { OrderStatusHistoryEntity } from '@entities/order-status-history.entity';
 
 import { OrderStatus } from './enums/order-status.enum';
-import { OrderActor } from './enums/order-actor.enum';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -32,28 +30,19 @@ import { MovementType } from '@modules/inventory/enums/movement-type.enum';
 interface ApplyTransitionInput {
   orderId: string;
   targetStatus: OrderStatus;
-  actor: OrderActor;
+  isAdmin: boolean;
   actorUserId?: string;
   note?: string;
 }
 
-const ALLOWED_TRANSITIONS: Record<
-  OrderStatus,
-  Partial<Record<OrderStatus, OrderActor[]>>
-> = {
-  [OrderStatus.PENDING]: {
-    [OrderStatus.PAID]: [OrderActor.SYSTEM],
-    [OrderStatus.CANCELLED]: [OrderActor.USER, OrderActor.ADMIN],
-  },
-  [OrderStatus.PAID]: {
-    [OrderStatus.SHIPPED]: [OrderActor.ADMIN],
-    [OrderStatus.CANCELLED]: [OrderActor.ADMIN],
-  },
-  [OrderStatus.SHIPPED]: {
-    [OrderStatus.COMPLETED]: [OrderActor.ADMIN, OrderActor.SYSTEM],
-  },
-  [OrderStatus.COMPLETED]: {},
-  [OrderStatus.CANCELLED]: {},
+const USER_ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  [OrderStatus.PENDING]: [OrderStatus.CANCELLED],
+};
+
+const ADMIN_ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
+  [OrderStatus.PAID]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+  [OrderStatus.SHIPPED]: [OrderStatus.COMPLETED],
 };
 
 @Injectable()
@@ -66,8 +55,6 @@ export class OrderService {
     private readonly inventoryService: InventoryService,
   ) {}
 
-  // ---------- S5-01 ----------
-
   async create(userId: string, dto: CreateOrderDto) {
     return this.em.transactional(async (em) => {
       const cart = await this.cartService.getActiveCartForCheckout(em, userId);
@@ -76,18 +63,15 @@ export class OrderService {
       const order = em.create(OrderEntity, {
         userId,
         status: OrderStatus.PENDING,
-        subtotal: 0,
-        voucherCode: dto.voucherCode,
-        discountAmount: 0,
         totalPrice: 0,
         shippingAddress: dto.shippingAddress,
         phone: dto.phone,
         note: dto.note,
       });
       em.persist(order);
-      await em.flush(); // need order.id before referencing in movements
+      await em.flush();
 
-      let subtotalNum = 0;
+      let total = 0;
       for (const ci of items) {
         await this.inventoryService.applyMovementWithinTx(
           em,
@@ -98,8 +82,6 @@ export class OrderService {
           },
           {
             referenceId: order.id,
-            referenceType: 'ORDER',
-            createdBy: userId,
             note: `RESERVE for order ${order.id}`,
           },
         );
@@ -108,8 +90,7 @@ export class OrderService {
           em,
           ci.variantId,
         );
-        const itemSubtotal = Number((livePrice * ci.quantity).toFixed(2));
-        subtotalNum += itemSubtotal;
+        total += livePrice * ci.quantity;
 
         em.persist(
           em.create(OrderItemEntity, {
@@ -117,36 +98,20 @@ export class OrderService {
             variantId: ci.variantId,
             quantity: ci.quantity,
             price: livePrice,
-            subtotal: itemSubtotal,
           }),
         );
       }
 
-      const subtotal = Number(subtotalNum.toFixed(2));
-      order.subtotal = subtotal;
-      order.totalPrice = subtotal;
-
-      em.persist(
-        em.create(OrderStatusHistoryEntity, {
-          order,
-          fromStatus: undefined,
-          toStatus: OrderStatus.PENDING,
-          changedByActor: OrderActor.USER,
-          changedByUserId: userId,
-          note: 'Order created',
-        }),
-      );
+      order.totalPrice = Number(total.toFixed(2));
 
       this.cartService.markCheckedOut(cart);
       em.persist(cart);
 
       await em.flush();
-      await em.populate(order, ['items', 'statusHistory']);
+      await em.populate(order, ['items']);
       return this.toDto(order);
     });
   }
-
-  // ---------- S5-02 ----------
 
   async list(
     requesterUserId: string,
@@ -178,35 +143,51 @@ export class OrderService {
 
     return {
       items: items.map((o) => this.toDto(o)),
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      meta: {
+        pagination: {
+          page,
+          limit,
+          totalItems: total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
     };
   }
 
   async getById(requesterUserId: string, isAdmin: boolean, orderId: string) {
     const order = await this.orderRepo.findOne(
       { id: orderId },
-      { populate: ['items', 'statusHistory'] },
+      { populate: ['items'] },
     );
     if (!order) {
-      throw new NotFoundException(`Không tìm thấy order ${orderId}`);
+      throw new NotFoundException(`Order ${orderId} not found`);
     }
     if (!isAdmin && order.userId !== requesterUserId) {
-      throw new ForbiddenException('Order không thuộc về user này');
+      throw new ForbiddenException('Order does not belong to this user');
     }
     return this.toDto(order);
   }
 
-  // ---------- S5-03 ----------
-
   async updateStatus(
     actorUserId: string,
+    isAdmin: boolean,
     orderId: string,
     dto: UpdateOrderStatusDto,
   ) {
+    if (!isAdmin) {
+      const order = await this.em.findOne(OrderEntity, { id: orderId });
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+      if (order.userId !== actorUserId) {
+        throw new ForbiddenException('Order does not belong to this user');
+      }
+    }
+
     return this.applyTransition({
       orderId,
       targetStatus: dto.status,
-      actor: OrderActor.ADMIN,
+      isAdmin,
       actorUserId,
       note: dto.note,
     });
@@ -226,7 +207,7 @@ export class OrderService {
         await this.applyTransition({
           orderId: id,
           targetStatus,
-          actor: OrderActor.ADMIN,
+          isAdmin: true,
           actorUserId,
           note,
         });
@@ -246,36 +227,6 @@ export class OrderService {
     };
   }
 
-  async cancelByUser(userId: string, orderId: string, note?: string) {
-    const order = await this.em.findOne(OrderEntity, { id: orderId });
-    if (!order) {
-      throw new NotFoundException(`Không tìm thấy order ${orderId}`);
-    }
-    if (order.userId !== userId) {
-      throw new ForbiddenException('Không có quyền huỷ order này');
-    }
-    return this.applyTransition({
-      orderId,
-      targetStatus: OrderStatus.CANCELLED,
-      actor: OrderActor.USER,
-      actorUserId: userId,
-      note: note ?? 'Cancelled by customer',
-    });
-  }
-
-  /** Internal: SYSTEM actor — called by payment webhook to mark as paid. */
-  async markPaidBySystem(orderId: string, note?: string) {
-    return this.applyTransition({
-      orderId,
-      targetStatus: OrderStatus.PAID,
-      actor: OrderActor.SYSTEM,
-      actorUserId: undefined,
-      note: note ?? 'Payment confirmed',
-    });
-  }
-
-  // ---------- internals ----------
-
   private async applyTransition(input: ApplyTransitionInput) {
     return this.em.transactional(async (em) => {
       const order = await em.findOne(
@@ -284,18 +235,17 @@ export class OrderService {
         { lockMode: LockMode.PESSIMISTIC_WRITE, populate: ['items'] },
       );
       if (!order) {
-        throw new NotFoundException(`Không tìm thấy order ${input.orderId}`);
+        throw new NotFoundException(`Order ${input.orderId} not found`);
       }
 
       const from = order.status;
       const to = input.targetStatus;
-      const allowedActors = ALLOWED_TRANSITIONS[from]?.[to];
-      if (!allowedActors) {
-        throw new ConflictException(`Không thể chuyển ${from} → ${to}`);
-      }
-      if (!allowedActors.includes(input.actor)) {
+      const allowed = input.isAdmin
+        ? ADMIN_ALLOWED_TRANSITIONS[from]
+        : USER_ALLOWED_TRANSITIONS[from];
+      if (!allowed?.includes(to)) {
         throw new ConflictException(
-          `Actor ${input.actor} không được phép chuyển ${from} → ${to}`,
+          `Cannot transition order from ${from} to ${to}`,
         );
       }
 
@@ -308,21 +258,9 @@ export class OrderService {
       );
 
       order.status = to;
-      this.stampTimestamp(order, to);
-
-      em.persist(
-        em.create(OrderStatusHistoryEntity, {
-          order,
-          fromStatus: from,
-          toStatus: to,
-          changedByActor: input.actor,
-          changedByUserId: input.actorUserId,
-          note: input.note,
-        }),
-      );
 
       await em.flush();
-      await em.populate(order, ['items', 'statusHistory']);
+      await em.populate(order, ['items']);
       return this.toDto(order);
     });
   }
@@ -348,9 +286,7 @@ export class OrderService {
         },
         {
           referenceId: order.id,
-          referenceType: 'ORDER',
-          createdBy: actorUserId,
-          note: `${movementType} for ${from}→${to}`,
+          note: `${movementType} for ${from}->${to} by ${actorUserId}`,
         },
       );
     }
@@ -365,30 +301,15 @@ export class OrderService {
     return null;
   }
 
-  private stampTimestamp(order: OrderEntity, status: OrderStatus) {
-    const now = new Date();
-    if (status === OrderStatus.PAID) order.paidAt = now;
-    if (status === OrderStatus.SHIPPED) order.shippedAt = now;
-    if (status === OrderStatus.COMPLETED) order.completedAt = now;
-    if (status === OrderStatus.CANCELLED) order.cancelledAt = now;
-  }
-
   private toDto(order: OrderEntity) {
     return {
       id: order.id,
       userId: order.userId,
       status: order.status,
-      subtotal: Number(order.subtotal),
-      voucherCode: order.voucherCode,
-      discountAmount: Number(order.discountAmount),
       totalPrice: Number(order.totalPrice),
       shippingAddress: order.shippingAddress,
       phone: order.phone,
       note: order.note,
-      paidAt: order.paidAt,
-      shippedAt: order.shippedAt,
-      completedAt: order.completedAt,
-      cancelledAt: order.cancelledAt,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       items: order.items.isInitialized()
@@ -397,17 +318,6 @@ export class OrderService {
             variantId: i.variantId,
             quantity: i.quantity,
             price: Number(i.price),
-            subtotal: Number(i.subtotal),
-          }))
-        : undefined,
-      timeline: order.statusHistory?.isInitialized()
-        ? order.statusHistory.getItems().map((h) => ({
-            fromStatus: h.fromStatus ?? null,
-            toStatus: h.toStatus,
-            actor: h.changedByActor,
-            changedByUserId: h.changedByUserId,
-            note: h.note,
-            at: h.createdAt,
           }))
         : undefined,
     };

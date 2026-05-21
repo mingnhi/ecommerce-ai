@@ -17,7 +17,6 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { BulkUpdateStatusDto } from './dto/bulk-status.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
-import { CancelOrderDto } from './dto/cancel-order.dto';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/guards/roles.decorator';
@@ -39,7 +38,7 @@ export class OrderController {
   async create(
     @Body() dto: CreateOrderDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<OrderResponse>> {
     const data = await this.orderService.create(user.sub, dto);
 
     return {
@@ -56,7 +55,7 @@ export class OrderController {
   async bulkUpdateStatus(
     @Body() dto: BulkUpdateStatusDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<BulkUpdateStatusResponse>> {
     const data = await this.orderService.bulkUpdateStatus(
       user.sub,
       dto.orderIds,
@@ -75,7 +74,7 @@ export class OrderController {
   async list(
     @Query() query: OrderQueryDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<OrderResponse[]>> {
     const isAdmin = await this.isAdmin(user.sub);
     const result = await this.orderService.list(user.sub, isAdmin, query);
 
@@ -91,7 +90,7 @@ export class OrderController {
   async getById(
     @Param('id') id: string,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<OrderResponse>> {
     const isAdmin = await this.isAdmin(user.sub);
     const data = await this.orderService.getById(user.sub, isAdmin, id);
 
@@ -103,34 +102,17 @@ export class OrderController {
   }
 
   @Patch(':id/status')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
   async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateOrderStatusDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
-    const data = await this.orderService.updateStatus(user.sub, id, dto);
+  ): Promise<ApiResponse<OrderResponse>> {
+    const isAdmin = await this.isAdmin(user.sub);
+    const data = await this.orderService.updateStatus(user.sub, isAdmin, id, dto);
 
     return {
       status: 'success',
       message: 'Update order status successfully',
-      data,
-    };
-  }
-
-  @Post(':id/cancel')
-  @HttpCode(HttpStatus.OK)
-  async cancel(
-    @Param('id') id: string,
-    @Body() dto: CancelOrderDto,
-    @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
-    const data = await this.orderService.cancelByUser(user.sub, id, dto?.note);
-
-    return {
-      status: 'success',
-      message: 'Cancel order successfully',
       data,
     };
   }

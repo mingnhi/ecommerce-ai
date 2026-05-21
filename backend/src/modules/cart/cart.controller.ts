@@ -28,7 +28,9 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Get()
-  async getCart(@CurrentUser() user: JwtUser): Promise<ApiResponse<any>> {
+  async getCart(
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<CartResponse>> {
     const data = await this.cartService.getCart(user.sub);
 
     return {
@@ -42,7 +44,7 @@ export class CartController {
   async addItem(
     @Body() dto: AddCartItemDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<CartResponse>> {
     const data = await this.cartService.addItem(user.sub, dto);
 
     return {
@@ -57,7 +59,7 @@ export class CartController {
     @Param('id') id: string,
     @Body() dto: UpdateCartItemDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<CartResponse>> {
     const data = await this.cartService.updateItem(user.sub, id, dto);
 
     return {
@@ -71,7 +73,7 @@ export class CartController {
   async removeItem(
     @Param('id') id: string,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<CartResponse>> {
     const data = await this.cartService.removeItem(user.sub, id);
 
     return {
@@ -86,7 +88,7 @@ export class CartController {
   async merge(
     @Body() dto: MergeCartDto,
     @CurrentUser() user: JwtUser,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<CartResponse>> {
     const data = await this.cartService.merge(user.sub, dto);
 
     return {
