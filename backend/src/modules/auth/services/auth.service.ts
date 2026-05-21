@@ -33,6 +33,22 @@ export class AuthService {
     return userRoles.map(userRole => userRole.role.name);
   }
 
+  private async getUserPermissions(userId: string): Promise<string[]> {
+    const userRoles = await this.userRolesService.findByUser(userId);
+    const keys = new Set<string>();
+
+    for (const userRole of userRoles) {
+      const role = await this.rolesService.findOne(userRole.role.id);
+
+      role.rolePermissions.getItems().forEach(rolePermission => {
+        const permission = rolePermission.permission;
+        keys.add(`${permission.resource.toLowerCase()}:${permission.action}`);
+      });
+    }
+
+    return [...keys];
+  }
+
   private async signTokens(userId: string, email: string) {
     const roles = await this.getUserRoles(userId);
 
@@ -129,6 +145,7 @@ export class AuthService {
     }
 
     const roles = await this.getUserRoles(user.id);
+    const permissions = await this.getUserPermissions(user.id);
 
     const payload = {
       sub: user.id,
@@ -160,6 +177,7 @@ export class AuthService {
           fullName: user.fullName,
           status: user.status,
           roles,
+          permissions,
         },
         accessToken,
         refreshToken,
@@ -241,6 +259,7 @@ export class AuthService {
     }
 
     const roles = await this.getUserRoles(user.id);
+    const permissions = await this.getUserPermissions(user.id);
 
     return {
       status: 'success',
@@ -251,6 +270,7 @@ export class AuthService {
         fullName: user.fullName,
         status: user.status,
         roles,
+        permissions,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
