@@ -51,6 +51,22 @@ export class RolesService {
     });
   }
 
+  async getPermissionsByRoleIds(roleIds: string[]): Promise<string[]> {
+    if (!roleIds.length) return [];
+
+    const rolePermissions = await this.rolePermissionRepository.find(
+      { role: roleIds },
+      { populate: ['permission'] },
+    );
+
+    const keys = rolePermissions.map((item) => {
+      const { resource, action } = item.permission;
+      return `${resource.toLowerCase()}:${action}`;
+    });
+
+    return [...new Set(keys)];
+  }
+
   async create(dto: CreateRoleDto) {
     const existedRole = await this.findByName(dto.name);
 
