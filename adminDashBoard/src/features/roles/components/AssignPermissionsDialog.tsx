@@ -19,30 +19,18 @@ import {
 } from "../hooks";
 import type { Role, Permission } from "../types";
 import { cn } from "@/shared/lib/utils";
+import { getActionMeta } from "@/shared/lib/casl/permission-actions";
+import { getPermissionActionBadgeClass } from "@/shared/lib/casl/permission-badge";
 
 const RESOURCE_LABELS: Record<string, string> = {
+  Dashboard: "Tổng quan (Dashboard)",
   Product: "Sản phẩm (Product)",
   Order: "Đơn hàng (Order)",
+  Inventory: "Tồn kho (Inventory)",
   User: "Người dùng (User)",
   Role: "Vai trò (Role)",
   Permission: "Quyền hạn (Permission)",
   all: "Tất cả (all)",
-};
-
-const ACTION_COLORS: Record<string, string> = {
-  read: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/30",
-  create: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/30",
-  update: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/30",
-  delete: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/30",
-  manage: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-900/30",
-};
-
-const ACTION_LABELS: Record<string, string> = {
-  read: "Xem",
-  create: "Tạo",
-  update: "Cập nhật",
-  delete: "Xóa",
-  manage: "Toàn quyền",
 };
 
 type Props = {
@@ -253,8 +241,14 @@ export function AssignPermissionsDialog({ open, onOpenChange, role }: Props) {
                                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer truncate">
                                   {permission.name}
                                 </label>
-                                <Badge variant="outline" className={cn("text-[9px] font-bold px-1.5 py-0 rounded-[4px] border uppercase tracking-wider shrink-0", ACTION_COLORS[permission.action])}>
-                                  {ACTION_LABELS[permission.action] || permission.action}
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-[9px] font-bold px-1.5 py-0 rounded-[4px] border uppercase tracking-wider shrink-0",
+                                    getPermissionActionBadgeClass(permission.action)
+                                  )}
+                                >
+                                  {getActionMeta(permission.action)?.label ?? permission.action}
                                 </Badge>
                               </div>
                               <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-normal">
