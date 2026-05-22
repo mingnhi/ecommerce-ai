@@ -34,7 +34,7 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { useCreatePermission, useUpdatePermission, usePermissions } from "../hooks";
 import type { Permission, PermissionFormData } from "../../roles/types";
-import { getPermissionActionBadgeClass } from "../columns/permission-columns";
+import { getPermissionActionBadgeClass } from "@/shared/lib/casl/permission-badge";
 import { PermissionActionGrid } from "./PermissionActionGrid";
 
 type Props = {

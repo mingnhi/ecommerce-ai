@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { buildPermissionKey } from "./permissions";
 import {
   AlertTriangle,
   ClipboardCheck,
@@ -227,7 +228,7 @@ export function createPermissionDraft(
   const endpoint = meta.endpoint ? ` (${meta.endpoint})` : "";
 
   return {
-    name: `${meta.label} ${resourceLabel.toLowerCase()}`,
-    description: `${meta.description} · ${meta.method}${endpoint}`,
+    name: buildPermissionKey(resource, action),
+    description: `${meta.description} · ${resourceLabel} · ${meta.method}${endpoint}`,
   };
 }
