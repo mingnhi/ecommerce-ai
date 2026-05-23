@@ -7,6 +7,7 @@ import type {
   RegisterRequest,
   RegisterResponseData,
   ResendOtpRequest,
+  UpdateProfileRequest,
   UserResponse,
   VerifyOtpRequest,
   VerifyRegisterOtpData,

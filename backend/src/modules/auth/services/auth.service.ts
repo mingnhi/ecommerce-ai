@@ -15,6 +15,9 @@ import { MailService } from '../../mail/mail.service';
 import { ResetPasswordDto } from '../../otp/dto/reset-password.dto';
 import { OtpService } from '@modules/otp/otp.service';
 import { UserStatus } from '@modules/users/use.enum';
+import { User } from '@entities/user.entity';
+import { v4 as uuidv4 } from 'uuid';
+import { GoogleProfile } from '../types/google-profile.type';
 
 @Injectable()
 export class AuthService {
@@ -61,6 +64,68 @@ export class AuthService {
     };
   }
 
+  private async createAuthPayload(user: User) {
+    const roles = await this.getUserRoles(user.id);
+    const permissions = await this.getUserPermissions(user.id);
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roles,
+    };
+
+    const accessToken = await this.jwtService.generateAccessToken(payload);
+    const refreshToken = await this.jwtService.generateRefreshToken({
+      ...payload,
+      type: 'refresh',
+    });
+
+    await this.usersService.patch(user.id, {
+      refreshToken: await bcrypt.hash(refreshToken, 10),
+      lastLoginAt: new Date(),
+    });
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        status: user.status,
+        roles,
+        permissions,
+      },
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async ensureUserRole(userId: string) {
+    const roleUser = await this.rolesService.findByName('USER');
+    if (!roleUser) throw new NotFoundException('Role USER not found');
+
+    const userRoles = await this.userRolesService.findByUser(userId);
+    if (!userRoles.some((ur) => ur.role.name === 'USER')) {
+      await this.userRolesService.create({ userId, roleId: roleUser.id });
+    }
+  }
+
+  private async fetchGoogleProfile(accessToken: string): Promise<GoogleProfile> {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!res.ok) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
+
+    const profile = (await res.json()) as GoogleProfile;
+    if (!profile.email) {
+      throw new UnauthorizedException('Google account has no email');
+    }
+
+    return profile;
+  }
+
   async validateUser(userId: string) {
     const user = await this.usersService.findOne(userId);
 
@@ -100,18 +165,13 @@ export class AuthService {
     await this.otpService.sendRegisterOtp(user.email);
 
     return {
-      status: 'success',
-      message: 'User registered successfully',
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          fullName: user.fullName,
-          status: user.status,
-          role: 'USER',
-        },
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        status: user.status,
+        role: 'USER',
       },
-      meta: { timestamp: new Date().toISOString(), },
     };
   }
 
@@ -135,46 +195,35 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const roles = await this.getUserRoles(user.id);
-    const permissions = await this.getUserPermissions(user.id);
+    return this.createAuthPayload(user);
+  }
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      roles,
-    };
+  async googleLogin(accessToken: string) {
+    const profile = await this.fetchGoogleProfile(accessToken);
+    let user = await this.usersService.findByEmail(profile.email);
 
-    const accessToken = await this.jwtService.generateAccessToken(payload);
+    if (!user) {
+      user = await this.usersService.create({
+        email: profile.email,
+        passwordHash: await bcrypt.hash(uuidv4(), 10),
+        fullName: profile.name,
+        status: UserStatus.ACTIVE,
+      });
+      await this.ensureUserRole(user.id);
+    } else {
+      if (user.status === UserStatus.BANNED) {
+        throw new UnauthorizedException('Account is banned');
+      }
+      if (user.status === UserStatus.INACTIVE) {
+        user = await this.usersService.patch(user.id, { status: UserStatus.ACTIVE });
+      }
+      await this.ensureUserRole(user.id);
+      if (profile.name && !user.fullName) {
+        user = await this.usersService.patch(user.id, { fullName: profile.name });
+      }
+    }
 
-    const refreshToken = await this.jwtService.generateRefreshToken({
-      ...payload,
-      type: 'refresh',
-    });
-
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    await this.usersService.patch(user.id, {
-      refreshToken: hashedRefreshToken,
-      lastLoginAt: new Date(),
-    });
-
-    return {
-      status: 'success',
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          fullName: user.fullName,
-          status: user.status,
-          roles,
-          permissions,
-        },
-        accessToken,
-        refreshToken,
-      },
-      meta: { timestamp: new Date().toISOString(), },
-    };
+    return this.createAuthPayload(user);
   }
 
   async resetPassword(dto: ResetPasswordDto) {
@@ -253,19 +302,14 @@ export class AuthService {
     const permissions = await this.getUserPermissions(user.id);
 
     return {
-      status: 'success',
-      message: 'User profile retrieved successfully',
-      data: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        status: user.status,
-        roles,
-        permissions,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-      meta: { timestamp: new Date().toISOString(), },
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      status: user.status,
+      roles,
+      permissions,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 }

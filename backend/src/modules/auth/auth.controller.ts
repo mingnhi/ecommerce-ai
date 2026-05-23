@@ -13,6 +13,7 @@ import { AuthService } from './services/auth.service';
 
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
+import { GoogleLoginDto } from './dtos/google-login.dto';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
@@ -39,6 +40,16 @@ export class AuthController {
     return {
       status: 'success',
       message: 'Login successfully',
+      data,
+    };
+  }
+
+  @Post('google')
+  async googleLogin(@Body() dto: GoogleLoginDto): Promise<ApiResponse<any>> {
+    const data = await this.authService.googleLogin(dto.accessToken);
+    return {
+      status: 'success',
+      message: 'Google login successfully',
       data,
     };
   }

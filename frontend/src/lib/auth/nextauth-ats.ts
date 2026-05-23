@@ -34,18 +34,32 @@ export async function postToAts(path: string, body: object): Promise<Response> {
 }
 
 export function isAtsSuccess(raw: Record<string, unknown>): boolean {
-  return raw?.succeeded === true || raw?.Status === true || raw?.status === true;
+  return raw?.status === 'success' || raw?.succeeded === true || raw?.Status === true || raw?.status === true;
 }
 
 export function getAtsData(raw: Record<string, unknown>): Record<string, unknown> | undefined {
-  return (raw?.data ?? raw?.Data) as Record<string, unknown> | undefined;
+  let current = (raw?.data ?? raw?.Data) as Record<string, unknown> | undefined;
+
+  for (let depth = 0; depth < 3 && current; depth += 1) {
+    if (current.accessToken || current.token || current.Token || current.user || current.User) {
+      return current;
+    }
+    const nested = current.data ?? current.Data;
+    if (nested && typeof nested === 'object') {
+      current = nested as Record<string, unknown>;
+      continue;
+    }
+    return current;
+  }
+
+  return current;
 }
 
 export function getAtsTokenPair(
   d: Record<string, unknown> | undefined
 ): { token: string; refreshToken: string } {
   return {
-    token: (d?.token ?? d?.Token ?? '') as string,
+    token: (d?.accessToken ?? d?.token ?? d?.Token ?? '') as string,
     refreshToken: (d?.refreshToken ?? d?.RefreshToken ?? '') as string,
   };
 }
