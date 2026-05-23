@@ -1,13 +1,11 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID } from "class-validator";
+import { PaymentMethod } from "./payment.enum";
 
-export class CreateVnpayPaymentDto {
-    // @IsNumber()
-    // orderId: number;
-
-    @IsNumber()
-    amount: number;
-
+export class CreatePaymentDto {
     @IsString()
     @IsNotEmpty()
-    orderInfo: string;
+    orderId: string;
+
+    @IsEnum(PaymentMethod)
+    method: PaymentMethod;
 }
