@@ -31,6 +31,7 @@ import { PermissionsModule } from '@modules/permissions/permissions.module';
     OtpModule,
     MailModule,
     UserRolesModule,
+    UserProfileModule,
     MikroOrmModule.forFeature([User, Role, UserRole]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
