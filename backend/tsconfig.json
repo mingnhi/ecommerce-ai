@@ -14,10 +14,18 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@common/*": ["src/common/*"],
-      "@config/*": ["src/config/*"],
-      "@entities/*": ["src/entities/*"],
-      "@modules/*": ["src/modules/*"]
+      "@common/*": [
+        "src/common/*"
+      ],
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@entities/*": [
+        "src/entities/*"
+      ],
+      "@modules/*": [
+        "src/modules/*"
+      ]
     },
     "incremental": true,
     "skipLibCheck": true,
@@ -27,5 +35,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src", "test"]
+  "include": [
+    "src",
+    "test"
+  ]
 }
