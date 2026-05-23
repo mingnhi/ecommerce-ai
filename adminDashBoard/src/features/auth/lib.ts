@@ -1,6 +1,52 @@
+import { isAxiosError } from "axios";
 import { STORAGE_KEYS } from "@/shared/constants";
 import { storage } from "@/shared/lib/storage";
-import type { ApiEnvelope, AuthUser, LoginPayload } from "./types";
+import type { AuthUser, LoginPayload } from "./types";
+
+type ApiErrorBody = {
+  message?: string | string[];
+};
+
+const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  "Invalid email or password": "Email hoặc mật khẩu không đúng.",
+  "Account is not active": "Tài khoản chưa được kích hoạt hoặc đã bị khóa.",
+  "Unauthorized access": "Email hoặc mật khẩu không đúng.",
+  "Invalid request data": "Dữ liệu không hợp lệ.",
+};
+
+function normalizeApiMessage(message: string | string[] | undefined): string | null {
+  if (!message) return null;
+  const text = Array.isArray(message) ? message.join(", ") : message;
+  const trimmed = text.trim();
+  return trimmed || null;
+}
+
+function localizeLoginMessage(message: string): string {
+  return LOGIN_ERROR_MESSAGES[message] ?? message;
+}
+
+export function parseLoginErrorMessage(
+  err: unknown,
+  fallback = "Đăng nhập thất bại. Vui lòng thử lại."
+): string {
+  if (isAxiosError(err)) {
+    const body = err.response?.data as ApiErrorBody | undefined;
+    const fromBody = normalizeApiMessage(body?.message);
+    if (fromBody) return localizeLoginMessage(fromBody);
+
+    const status = err.response?.status;
+    if (status === 401) return "Email hoặc mật khẩu không đúng.";
+    if (status === 400) return "Thông tin đăng nhập không hợp lệ.";
+    if (status === 403) return "Bạn không có quyền truy cập.";
+    if (status && status >= 500) return "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.";
+  }
+
+  if (err instanceof Error && err.message.trim()) {
+    return localizeLoginMessage(err.message);
+  }
+
+  return fallback;
+}
 
 function isLoginPayload(record: Record<string, unknown>) {
   return Boolean(record.accessToken && record.refreshToken);

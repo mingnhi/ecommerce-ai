@@ -6,6 +6,7 @@ import {
   Package,
   Warehouse,
   Shield,
+  Users,
 } from "lucide-react"
 import {
   Sidebar,
@@ -69,6 +70,15 @@ const navMain: NavMainItem[] = [
     items: [
       { title: "Quản lý vai trò", url: "/roles", permission: PERMISSIONS.ROLE.READ },
       { title: "Quản lý quyền hạn", url: "/permissions", permission: PERMISSIONS.PERMISSION.READ },
+    ],
+  },
+  {
+    title: "Người dùng",
+    url: "/users",
+    icon: <Users className="size-4" />,
+    permission: PERMISSIONS.USER.READ,
+    items: [
+      { title: "Quản lý người dùng", url: "/users", permission: PERMISSIONS.USER.READ },
     ],
   },
 ]

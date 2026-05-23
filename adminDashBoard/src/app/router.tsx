@@ -7,6 +7,7 @@ import InventoryPage from "@/features/inventory/pages/InventoryPage";
 import InventoryHistoryPage from "@/features/inventory/pages/InventoryHistoryPage";
 import RolesPage from "@/features/roles/pages/RolesPage";
 import PermissionsPage from "@/features/permissions/pages/PermissionsPage";
+import UsersPage from "@/features/users/pages/UsersPage";
 import NotFoundPage from "@/features/system/pages/NotFoundPage";
 import ForbiddenPage from "@/features/system/pages/ForbiddenPage";
 import MainLayout from "@/shared/layouts/MainLayout";
@@ -92,6 +93,14 @@ export const privateRoutes = [
         element: (
           <PermissionRoute permission={PERMISSIONS.PERMISSION.READ}>
             <PermissionsPage />
+          </PermissionRoute>
+        ),
+      },
+      {
+        path: "/users",
+        element: (
+          <PermissionRoute permission={PERMISSIONS.USER.READ}>
+            <UsersPage />
           </PermissionRoute>
         ),
       },
