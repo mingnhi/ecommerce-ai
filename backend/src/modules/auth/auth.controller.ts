@@ -20,17 +20,10 @@ import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
-import { UserProfileService } from '@modules/user-profile/user-profile.service';
-import { UpdateUserProfileDto } from '@modules/user-profile/dto/user-profile.dto';
-import { UserProfile } from '@entities/userProfile.entity';
-import { FileInterceptor } from '@nestjs/platform-express';
-
-
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userProfileService: UserProfileService,
   ) { }
 
   @Post('register')
@@ -92,47 +85,4 @@ export class AuthController {
       data,
     };
   }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('me')
-  // async me(@Req() req: any): Promise<ApiResponse<any>> {
-  //   const data = await this.authService.me(req.user.sub);
-
-  //   return {
-  //     status: 'success',
-  //     message: 'Get current user successfully',
-  //     data,
-  //   };
-  // }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Put('me/profile')
-  // async updateMeProfile(
-  //   @Req() req: any,
-  //   @Body() dto: UpdateUserProfileDto,
-  // ): Promise<ApiResponse<UserProfile>> {
-  //   const data = await this.userProfileService.updateMe(req.user.sub, dto);
-
-  //   return {
-  //     status: 'success',
-  //     message: 'Update profile successfully',
-  //     data,
-  //   };
-  // }
-
-  // @Post('me/avatar')
-  // @UseGuards(JwtAuthGuard)
-  // @UseInterceptors(FileInterceptor('file'))
-  // async uploadAvatar(
-  //   @Req() req: any,
-  //   @UploadedFile() file: Express.Multer.File,
-  // ): Promise<ApiResponse<any>> {
-  //   const data = await this.userProfileService.updateAvatar(req.user.sub, file);
-
-  //   return {
-  //     status: 'success',
-  //     message: 'Upload avatar successfully',
-  //     data,
-  //   };
-  // }
 }
