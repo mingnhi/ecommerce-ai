@@ -1,17 +1,17 @@
 import { request } from '../axios';
 import { KEYS } from './keys';
-import { CreateVnpayPaymentRequest, CreateVnpayPaymentResponse, VnpayReturnResponse } from './types';
+import { CreatePaymentRequest, CreatePaymentResponse, VnpayReturnResponse } from './types';
 
 
 export const PaymentService = {
-    createVnpayPayment: async (
-        data: CreateVnpayPaymentRequest,
-    ): Promise<CreateVnpayPaymentResponse> => {
-        const response = await request.post<CreateVnpayPaymentResponse>(
+    createPayment: async (
+        data: CreatePaymentRequest,
+    ): Promise<CreatePaymentResponse> => {
+        const response = await request.post<CreatePaymentResponse>(
             KEYS.PAYMENT_CREATE,
             {
-                amount: data.amount,
-                orderInfo: data.orderInfo,
+                orderId: data.orderId,
+                method: data.method,
             },
         );
 

@@ -2,30 +2,31 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PaymentService } from './requests';
 import {
-    CreateVnpayPaymentRequest,
+    CreatePaymentRequest,
 } from './types';
 import { KEYS } from './keys';
 
-export const useCreateVnpayPayment = () => {
-    
+export const useCreatePayment = () => {
     return useMutation({
-        mutationFn: async (
-            data: CreateVnpayPaymentRequest,
-        ) => {
-            return await PaymentService.createVnpayPayment(data);
+        mutationFn: async (data: CreatePaymentRequest) => {
+            return await PaymentService.createPayment(data);
         },
-        onSuccess: (response) => {
-            const paymentUrl =
-                response?.data?.paymentUrl ;
 
-            if (paymentUrl) {
+        onSuccess: (response) => {
+            const data = response?.data;
+
+            if (data?.method === 'VNPAY' && data?.paymentUrl) {
                 toast.success('Đang chuyển đến VNPAY...');
-                window.location.href = paymentUrl;
+                window.location.href = data.paymentUrl;
                 return;
             }
 
-            console.log('Payment response:', response);
-            toast.error('Không tạo được link thanh toán');
+            if (data?.method === 'CASH') {
+                toast.success(data.message || 'Đặt hàng COD thành công');
+                return;
+            }
+
+            toast.error('Không tạo được thanh toán');
         },
 
         onError: (error: any) => {

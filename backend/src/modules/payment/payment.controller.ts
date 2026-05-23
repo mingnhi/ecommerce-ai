@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/payment.dto';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
 
 
 @Controller('payment')
+// @UseGuards(JwtAuthGuard)
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) { }
 
@@ -27,6 +31,8 @@ export class PaymentController {
     );
   }
 
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
   @Get('revenue')
   async getRevenueStats() {
     const data = await this.paymentService.getRevenueStats();
