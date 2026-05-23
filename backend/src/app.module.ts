@@ -10,6 +10,8 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MailModule } from './modules/mail/mail.module';
+import { UserProfileModule } from './modules/user-profile/user-profile.module';
+import { CloudinaryModule } from './modules/upload/upload.module';
 import { InventoryModule } from '@modules/inventory/inventory.module';
 import { CartModule } from '@modules/cart/cart.module';
 import { OrderModule } from '@modules/order/order.module';
@@ -32,6 +34,8 @@ import { OrderModule } from '@modules/order/order.module';
     AuthModule,
     PermissionsModule,
     MailModule,
+    UserProfileModule,
+    CloudinaryModule,
     InventoryModule,
     CartModule,
     OrderModule,
@@ -39,4 +43,4 @@ import { OrderModule } from '@modules/order/order.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
