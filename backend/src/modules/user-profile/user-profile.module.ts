@@ -4,6 +4,7 @@ import { User } from '@entities/user.entity';
 import { UserProfile } from '@entities/userProfile.entity';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { CloudinaryModule } from '@modules/upload/upload.module';
+import { UserProfileController } from './user-profile.controller';
 
 @Module({
   imports: [MikroOrmModule.forFeature([
@@ -12,6 +13,7 @@ import { CloudinaryModule } from '@modules/upload/upload.module';
   ]),
     CloudinaryModule,
   ],
+  controllers: [UserProfileController],
   providers: [UserProfileService],
   exports: [UserProfileService],
 })
