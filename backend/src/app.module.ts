@@ -10,6 +10,9 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MailModule } from './modules/mail/mail.module';
+import { InventoryModule } from '@modules/inventory/inventory.module';
+import { CartModule } from '@modules/cart/cart.module';
+import { OrderModule } from '@modules/order/order.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     PermissionsModule,
     MailModule,
+    InventoryModule,
+    CartModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

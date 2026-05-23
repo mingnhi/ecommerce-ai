@@ -1,65 +1,98 @@
-// import {
-//   Body,
-//   Controller,
-//   Get,
-//   Param,
-//   Post,
-//   Put,
-//   Query,
-// } from '@nestjs/common';
-// import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-// import { InventoryService } from './inventory.service';
-// import { UpdateInventoryDto } from './dto/update-inventory.dto';
-// import { InventoryQueryDto } from './dto/inventory-query.dto';
-// import { CreateMovementDto } from './dto/create-movement.dto';
-// import { MovementQueryDto } from './dto/movement-query.dto';
-// import { CurrentUser } from '@modules/auth/decorators/current-user.decorator';
-// import { Roles } from '@modules/auth/decorators/roles.decorator';
-// import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-// @ApiTags('Inventory')
-// @ApiBearerAuth('JWT')
-// @Roles('admin')
-// @Controller('inventory')
-// export class InventoryController {
-//   constructor(private readonly inventoryService: InventoryService) {}
+import { InventoryService } from './inventory.service';
+import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { InventoryQueryDto } from './dto/inventory-query.dto';
+import { CreateMovementDto } from './dto/create-movement.dto';
+import { MovementQueryDto } from './dto/movement-query.dto';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
+import { ApiResponse } from '@common/interfaces/api-response.interface';
 
-//   @Get('movements')
-//   @ApiOperation({ summary: '[S3-02] Lịch sử nhập/xuất kho' })
-//   listMovements(@Query() query: MovementQueryDto) {
-//     return this.inventoryService.listMovements(query);
-//   }
+@ApiTags('Inventory')
+@ApiBearerAuth('JWT')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
+@Controller('inventories')
+export class InventoryController {
+  constructor(private readonly inventoryService: InventoryService) {}
 
-//   @Post('movements')
-//   @ApiOperation({
-//     summary: '[S3-02] Tạo movement log (IMPORT/RESERVE/RELEASE/SELL/ADJUST)',
-//   })
-//   createMovement(
-//     @Body() dto: CreateMovementDto,
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.inventoryService.createMovement(dto, user.id);
-//   }
+  @Get('movements')
+  async listMovements(
+    @Query() query: MovementQueryDto,
+  ): Promise<ApiResponse<MovementResponse[]>> {
+    const result = await this.inventoryService.listMovements(query);
 
-//   @Get()
-//   @ApiOperation({ summary: '[S3-01] Danh sách tồn kho (filter low_stock)' })
-//   list(@Query() query: InventoryQueryDto) {
-//     return this.inventoryService.list(query);
-//   }
+    return {
+      status: 'success',
+      message: 'Get inventory movements successfully',
+      data: result.items as MovementResponse[],
+      meta: result.meta,
+    };
+  }
 
-//   @Get(':variant_id')
-//   @ApiOperation({ summary: '[S3-01] Tồn kho theo variant' })
-//   getByVariantId(@Param('variant_id') variantId: string) {
-//     return this.inventoryService.getByVariantId(variantId);
-//   }
+  @Post('movements')
+  async createMovement(
+    @Body() dto: CreateMovementDto,
+  ): Promise<ApiResponse<ApplyMovementResponse>> {
+    const data = await this.inventoryService.createMovement(dto);
 
-//   @Put(':variant_id')
-//   @ApiOperation({ summary: '[S3-01] Cập nhật tồn kho (set absolute)' })
-//   update(
-//     @Param('variant_id') variantId: string,
-//     @Body() dto: UpdateInventoryDto,
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.inventoryService.setAbsolute(variantId, dto, user.id);
-//   }
-// }
+    return {
+      status: 'success',
+      message: 'Create movement successfully',
+      data,
+    };
+  }
+
+  @Get()
+  async list(
+    @Query() query: InventoryQueryDto,
+  ): Promise<ApiResponse<InventoryResponse[]>> {
+    const result = await this.inventoryService.list(query);
+
+    return {
+      status: 'success',
+      message: 'Get inventories successfully',
+      data: result.items,
+      meta: result.meta,
+    };
+  }
+
+  @Get(':variantId')
+  async getByVariantId(
+    @Param('variantId') variantId: string,
+  ): Promise<ApiResponse<InventoryResponse>> {
+    const data = await this.inventoryService.getByVariantId(variantId);
+
+    return {
+      status: 'success',
+      message: 'Get inventory successfully',
+      data,
+    };
+  }
+
+  @Patch(':variantId')
+  async update(
+    @Param('variantId') variantId: string,
+    @Body() dto: UpdateInventoryDto,
+  ): Promise<ApiResponse<ApplyMovementResponse>> {
+    const data = await this.inventoryService.setAbsolute(variantId, dto);
+
+    return {
+      status: 'success',
+      message: 'Update inventory successfully',
+      data,
+    };
+  }
+}
