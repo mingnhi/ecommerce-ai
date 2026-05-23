@@ -164,6 +164,7 @@ export default function OrdersPage() {
           pageSizeLabel="nhóm khách / trang"
           toolbarConfig={toolbarConfig}
           deleteConfig={deleteConfig}
+          defaultExpandedAll={true}
         />
 
         <OrderDetailDialog
