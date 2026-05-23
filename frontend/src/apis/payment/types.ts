@@ -3,24 +3,30 @@ export type ApiResponse<T> = {
     message?: string;
     data: T;
 };
+export type PaymentMethod = 'VNPAY' | 'CASH';
 
-export type CreateVnpayPaymentRequest = {
-    amount: number;
-    orderInfo: string;
+export type CreatePaymentRequest = {
+    orderId: string;
+    method: PaymentMethod;
 };
 
-export type CreateVnpayPaymentData = {
+export type CreatePaymentData = {
     paymentId: string;
-    txnRef: string;
-    paymentUrl: string;
+    orderId: string;
+    method: PaymentMethod;
+    paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+    orderStatus: 'PENDING' | 'PAID' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED';
+    amount: number;
+    txnRef?: string;
+    paymentUrl?: string;
+    message?: string;
 };
-
-export type CreateVnpayPaymentResponse =
-    ApiResponse<CreateVnpayPaymentData>;
-
+export type CreatePaymentResponse = ApiResponse<CreatePaymentData>;
 export type VnpayReturnData = {
     paymentId: string;
+    orderId: string;
     status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+    orderStatus: 'PENDING' | 'PAID' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED';
     amount: number;
     txnRef: string;
     vnpTransactionNo?: string;
@@ -30,4 +36,5 @@ export type VnpayReturnData = {
     payDate?: string;
     message: string;
 };
+
 export type VnpayReturnResponse = ApiResponse<VnpayReturnData>;

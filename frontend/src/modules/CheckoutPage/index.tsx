@@ -15,12 +15,17 @@ import { cn } from "@/lib/utils";
 import { AddressDialog } from "./components/AddressDialog";
 import { CheckoutItem } from "./components/CheckoutItem";
 import { ROUTES } from "@/lib/routes";
-import { useCreateVnpayPayment } from "@/apis/payment/queries";
+import { useCreatePayment } from "@/apis/payment/queries";
+import { PaymentMethod } from "@/apis/payment";
 
 
-const PAYMENT_METHODS = [
-  { id: "cod", label: "Thanh toán khi nhận hàng", icon: Banknote },
-  { id: "bank", label: "Chuyển khoản ngân hàng", icon: Landmark },
+const PAYMENT_METHODS: {
+  id: PaymentMethod;
+  label: string;
+  icon: typeof Banknote;
+}[] = [
+  { id: "CASH", label: "Thanh toán khi nhận hàng", icon: Banknote },
+  { id: "VNPAY", label: "Thanh toán VNPAY", icon: Landmark },
 ];
 
 const ADDRESSES = [
@@ -70,8 +75,9 @@ function EmptyCheckout() {
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { items } = useCart();
-  const createVnpayPayment = useCreateVnpayPayment();
-  const [selectedPayment, setSelectedPayment] = useState("cod");
+  const createPayment = useCreatePayment();
+  const orderId = searchParams.get("orderId");
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>("CASH");
   const [isAddrDialogOpen, setIsAddrDialogOpen] = useState(false);
   const [currentAddress, setCurrentAddress] = useState(ADDRESSES[0]);
 
@@ -87,19 +93,15 @@ export default function CheckoutPage() {
   const shippingFee = 0;
   const totalAmount = subTotal + shippingFee;
   const handlePlaceOrder = async () => {
-    if (selectedPayment === "cod") {
-      alert("Đặt hàng COD thành công");
+    if (!orderId) {
+      alert("Không tìm thấy orderId");
       return;
     }
 
-    if (selectedPayment === "bank") {
-      createVnpayPayment.mutate({
-        amount: totalAmount,
-        orderInfo: `Thanh toán đơn hàng`,
-      });
-
-      return;
-    }
+    createPayment.mutate({
+      orderId,
+      method: selectedPayment,
+    });
   };
 
   const handleAddressUpdate = (newAddress: { name: string; phone: string; address: string }) => {
@@ -296,7 +298,7 @@ export default function CheckoutPage() {
               </Button>
               <Button
                 onClick={handlePlaceOrder}
-                disabled={createVnpayPayment.isPending}
+                disabled={createPayment.isPending}
                 className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xl shadow-sky-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer hover:cursor-pointer"
               >
                 Đặt hàng
