@@ -49,7 +49,10 @@ httpClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableAxiosRequestConfig;
 
-    if (error.response?.status === 401 && !originalRequest?._retry) {
+    const url = originalRequest?.url ?? "";
+    const isPublicAuth = /\/auth\/(login|register|refresh-token)/.test(url);
+
+    if (error.response?.status === 401 && !originalRequest?._retry && !isPublicAuth) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({
@@ -66,19 +69,28 @@ httpClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = storage.get(STORAGE_KEYS.refreshToken);
+        const refreshToken = storage.get<string>(STORAGE_KEYS.refreshToken);
 
-        const res = await axios.post(`${BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const res = await axios.post(
+          `${BASE_URL}/auth/refresh-token`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          }
+        );
 
-        const newAccessToken = (res.data as RefreshTokenResponse).accessToken;
+        const { accessToken, refreshToken: newRefreshToken } = res.data.data;
 
-        storage.set(STORAGE_KEYS.accessToken, newAccessToken);
+        storage.set(STORAGE_KEYS.accessToken, accessToken);
+        if (newRefreshToken) {
+          storage.set(STORAGE_KEYS.refreshToken, newRefreshToken);
+        }
 
-        processQueue(null, newAccessToken);
+        processQueue(null, accessToken);
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
         return httpClient(originalRequest);
       } catch (err) {

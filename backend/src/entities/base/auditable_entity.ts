@@ -1,23 +1,31 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Entity,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/core';
+
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity({ abstract: true })
 export abstract class AuditableEntity {
-  @PrimaryKey({ type: 'string' })
+  @PrimaryKey({
+    type: 'varchar',
+    length: 36,
+  })
   id: string = uuidv4();
 
   @Property({
-    type: 'datetime',
     fieldName: 'created_at',
+    type: 'datetime',
     onCreate: () => new Date(),
   })
   createdAt: Date = new Date();
 
   @Property({
-    type: 'datetime',
     fieldName: 'updated_at',
-    onUpdate: () => new Date(),
+    type: 'datetime',
     nullable: true,
+    onUpdate: () => new Date(),
   })
   updatedAt?: Date;
 }

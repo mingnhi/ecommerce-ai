@@ -1,12 +1,12 @@
 import { Entity, Index, ManyToOne, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
-import { Users } from './user.entity';
+import { User } from './user.entity';
 
 @Entity({ tableName: 'Addresses' })
 @Index({ properties: ['user', 'isDefault'] })
 export class Address extends AuditableEntity {
-  @ManyToOne(() => Users, { deleteRule: 'cascade' })
-  user!: Users;
+  @ManyToOne(() => User, { deleteRule: 'cascade' })
+  user!: User;
 
   @Property({ type: 'string', length: 100, fieldName: 'full_name' })
   fullName!: string;

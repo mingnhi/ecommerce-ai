@@ -1,3 +1,7 @@
+import type { ApiEnvelope } from '@/types/common';
+
+export type { ApiEnvelope };
+
 export type UserRole = 'admin' | 'user' | 'company';
 
 export type OtpType = 'REGISTER' | 'FORGOT_PASSWORD';
@@ -25,10 +29,6 @@ export interface ResendOtpRequest {
   type: OtpType;
 }
 
-import type { ApiEnvelope } from '@/types/common';
-
-export type { ApiEnvelope };
-
 export interface RegisterResponseData {
   user: {
     id: string;
@@ -45,6 +45,14 @@ export interface VerifyRegisterOtpData {
   status: string;
   verified: boolean;
 }
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
+  roles: string[];
+};
 
 export interface AuthenticatedResponse {
   token?: string;

@@ -17,19 +17,48 @@ import {
   useSidebar,
 } from "@/shared/components/ui/sidebar"
 import { ChevronRightIcon } from "lucide-react"
+import { useUserPermissions } from "@/shared/hooks/use-can"
+import { includesPermission } from "@/shared/lib/casl/permissions"
 
 export type NavMainItem = {
   title: string
   url: string
   icon?: ReactNode
   isActive?: boolean
-  items?: { title: string; url: string }[]
+  permission?: string
+  items?: { title: string; url: string; permission?: string }[]
 }
 
-export function NavMain({ items }: { items: NavMainItem[] }) {
+type NavMainProps = {
+  items: NavMainItem[]
+}
+
+export function NavMain({ items }: NavMainProps) {
   const { pathname } = useLocation()
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
+  const permissions = useUserPermissions()
+
+  const isAllowed = (permission?: string) => {
+    if (!permission) return true
+    return includesPermission(permissions, permission)
+  }
+
+  const visibleItems = items
+    .filter((item) => isAllowed(item.permission))
+    .map((item) => {
+      if (!item.items) return item
+      return {
+        ...item,
+        items: item.items.filter((sub) => isAllowed(sub.permission)),
+      }
+    })
+    .filter((item) => {
+      if (item.items && item.items.length === 0 && item.url === "#") {
+        return false
+      }
+      return true
+    })
 
   return (
     <SidebarGroup>
@@ -37,7 +66,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
         Điều hướng
       </SidebarGroupLabel>
       <SidebarMenu className={isCollapsed ? "gap-1" : "px-1.5 gap-1"}>
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const hasChildren = !!item.items?.length
           const isParentActive =
             pathname === item.url ||
@@ -51,7 +80,6 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               className="group/collapsible"
             >
               <SidebarMenuItem className="relative">
-                {/* European/Stripe-style vertical active bar - hidden in collapsed state */}
                 {isParentActive && !isCollapsed && (
                   <div className="absolute -left-1.5 top-1.5 w-[3px] h-5 bg-sky-500 rounded-r-full transition-all duration-300" />
                 )}
@@ -97,7 +125,6 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
             </Collapsible>
           ) : (
             <SidebarMenuItem key={item.title} className="relative">
-              {/* European/Stripe-style vertical active bar - hidden in collapsed state */}
               {isParentActive && !isCollapsed && (
                 <div className="absolute -left-1.5 top-1.5 w-[3px] h-5 bg-sky-500 rounded-r-full transition-all duration-300" />
               )}
