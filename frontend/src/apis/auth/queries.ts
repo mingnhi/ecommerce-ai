@@ -10,6 +10,7 @@ import { selectUser, selectAccessToken } from '@/stores/user/selectors';
 import { getRoleFromToken } from '@/utils/jwt';
 import { KEYS } from './keys';
 import { IUser } from '@/types/user';
+import { isApiSuccess } from '@/lib/api-response';
 
 export const useLogin = () => {
     const dispatch = useAppDispatch();
@@ -22,7 +23,7 @@ export const useLogin = () => {
             dispatch(loginAction(credentials));
         },
         onSuccess: (response: import('./types').AuthResponse) => {
-            if (response && (response.succeeded === true || response.status === true) && response.data) {
+            if (isApiSuccess(response) && response.data) {
                 dispatch(loginSuccessAction(response.data));
 
                 if (response.data.token) {
@@ -46,7 +47,7 @@ export const useLogin = () => {
                     dispatch(setUserAction(userData));
                     AuthService.me()
                         .then((meResponse) => {
-                            if (meResponse?.data && (meResponse.succeeded === true || meResponse.status === true)) {
+                            if (isApiSuccess(meResponse) && meResponse.data) {
                                 const d = meResponse.data;
                                 const currentToken = store.getState().user.accessToken;
                                 dispatch(setUserAction({
@@ -114,7 +115,7 @@ export const useMe = (options?: { refetchProfile?: boolean; enabled?: boolean })
     });
 
     useEffect(() => {
-        if (response && (response.succeeded === true || response.status === true) && response.data) {
+        if (isApiSuccess(response) && response.data) {
             const token = store.getState().user.accessToken;
             const userData: IUser = {
                 id: response.data.id || '',
@@ -141,10 +142,10 @@ export const useUpdateProfile = () => {
             return await AuthService.updateProfile(data);
         },
         onSuccess: async (response) => {
-            if (response && (response.succeeded === true || response.status === true)) {
+            if (isApiSuccess(response)) {
                 await queryClient.invalidateQueries({ queryKey: [KEYS.AUTH_ME] });
                 const meResponse = await AuthService.me();
-                if (meResponse && (meResponse.succeeded === true || meResponse.status === true) && meResponse.data) {
+                if (isApiSuccess(meResponse) && meResponse.data) {
                     const token = store.getState().user.accessToken;
                     const userData: IUser = {
                         id: meResponse.data.id || '',
@@ -173,11 +174,11 @@ export const useUpdateAvatar = () => {
             return await AuthService.updateAvatar(file);
         },
         onSuccess: async (response) => {
-            if (response && (response.succeeded === true || response.status === true)) {
+            if (isApiSuccess(response)) {
                 toast.success("Cập nhật avatar thành công!");
                 await queryClient.invalidateQueries({ queryKey: [KEYS.AUTH_ME] });
                 const meResponse = await AuthService.me();
-                if (meResponse && (meResponse.succeeded === true || meResponse.status === true) && meResponse.data) {
+                if (isApiSuccess(meResponse) && meResponse.data) {
                     const token = store.getState().user.accessToken;
                     const userData: IUser = {
                         id: meResponse.data.id || '',

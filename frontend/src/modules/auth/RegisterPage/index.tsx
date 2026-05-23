@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { ROUTES } from '@/lib/routes';
 import { registerSchema, type RegisterSchemaType } from '@/lib/validations/auth';
 import { useRegister } from '@/apis/auth/queries';
-import { isApiSuccess, getApiErrorMessage } from '@/lib/api-response';
+import { isApiSuccess, getApiErrorMessage, getApiMessage } from '@/lib/api-response';
 import { PasswordStrengthIndicator } from '@/components/common/PasswordStrengthIndicator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,12 +51,12 @@ export default function RegisterPage() {
       });
 
       if (isApiSuccess(response)) {
-        toast.success(response.message || 'Đăng ký thành công! Vui lòng xác thực OTP.');
+        toast.success(getApiMessage(response, 'Đăng ký thành công! Vui lòng xác thực OTP.'));
         router.push(`${ROUTES.REGISTER_VERIFY_OTP}?email=${encodeURIComponent(data.email)}`);
         return;
       }
 
-      toast.error(response?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+      toast.error(getApiMessage(response, 'Đăng ký thất bại. Vui lòng thử lại.'));
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, 'Đã có lỗi xảy ra khi đăng ký'));
     }

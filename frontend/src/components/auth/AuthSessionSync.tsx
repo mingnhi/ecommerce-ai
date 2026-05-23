@@ -7,6 +7,7 @@ import { store } from '@/stores';
 import { clearUserAction, setAccessTokenAction, setRefreshTokenAction, setUserAction } from '@/stores/user/actions';
 import { clearAuthAction, setTokensAction } from '@/stores/auth/actions';
 import { AuthService } from '@/apis/auth/requests';
+import { isApiSuccess } from '@/lib/api-response';
 import { getRoleFromToken, isTokenExpired } from '@/utils/jwt';
 import { refreshAtsTokens } from '@/lib/auth/nextauth-ats';
 import type { IUser } from '@/types/user';
@@ -14,7 +15,7 @@ import type { IUser } from '@/types/user';
 async function buildUserFromMe(accessToken: string): Promise<IUser | null> {
   try {
     const res = await AuthService.me();
-    if (!res?.data || !(res.succeeded === true || res.status === true)) return null;
+    if (!isApiSuccess(res) || !res.data) return null;
     const d = res.data as {
       id?: string; email?: string; firstName?: string; lastName?: string;
       phoneNumber?: string; introduction?: string; avatar?: string; image?: string;
