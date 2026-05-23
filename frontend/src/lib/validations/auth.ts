@@ -20,5 +20,13 @@ export const registerSchema = z
         path: ['confirmPassword'],
     });
 
+export const otpSchema = z.object({
+  otp: z
+    .string()
+    .length(6, 'Mã OTP gồm 6 chữ số')
+    .regex(/^\d+$/, 'Chỉ nhập số'),
+});
+
 export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
+export type OtpSchemaType = z.infer<typeof otpSchema>;

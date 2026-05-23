@@ -1,70 +1,67 @@
 import { request } from '../axios';
 import { KEYS } from './keys';
-import { LoginRequest, RegisterRequest, AuthResponse, UserResponse, UpdateProfileRequest, ChangePasswordRequest } from './types';
+import type {
+  ApiEnvelope,
+  ChangePasswordRequest,
+  LoginRequest,
+  RegisterRequest,
+  RegisterResponseData,
+  ResendOtpRequest,
+  UserResponse,
+  VerifyOtpRequest,
+  VerifyRegisterOtpData,
+} from './types';
 
 export const AuthService = {
-    login: async (data: LoginRequest): Promise<AuthResponse> => {
-        const response = await request.post<AuthResponse>(KEYS.AUTH_LOGIN, {
-            email: data.email,
-            password: data.password,
-        });
-        return response;
-    },
+  login: async (data: LoginRequest) => {
+    return request.post<ApiEnvelope>(KEYS.AUTH_LOGIN, {
+      email: data.email,
+      password: data.password,
+    });
+  },
 
-    register: async (data: RegisterRequest): Promise<AuthResponse> => {
-        const response = await request.post<AuthResponse>(KEYS.AUTH_REGISTER, {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
-            password: data.password,
-            role: data.role,
-            companyId: data.companyId || undefined,
-            newCompanyName: data.newCompanyName || undefined,
-        });
-        return response;
-    },
+  register: async (data: RegisterRequest) => {
+    return request.post<ApiEnvelope<RegisterResponseData>>(KEYS.AUTH_REGISTER, {
+      email: data.email,
+      password: data.password,
+      fullName: `${data.firstName} ${data.lastName}`.trim(),
+    });
+  },
 
-    me: async (): Promise<{ succeeded?: boolean; status?: boolean; data?: UserResponse; messages?: string[] }> => {
-        const response = await request.get<{ succeeded?: boolean; status?: boolean; data?: UserResponse; messages?: string[] }>(KEYS.AUTH_ME);
-        return response;
-    },
+  verifyRegisterOtp: async (data: VerifyOtpRequest) => {
+    return request.post<ApiEnvelope<VerifyRegisterOtpData>>(KEYS.OTP_VERIFY_REGISTER, data);
+  },
 
-    updateProfile: async (data: UpdateProfileRequest): Promise<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }> => {
-        const response = await request.put<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }>(KEYS.AUTH_UPDATE_PROFILE, data);
-        return response;
-    },
+  resendRegisterOtp: async (email: string) => {
+    const body: ResendOtpRequest = { email, type: 'REGISTER' };
+    return request.post<ApiEnvelope>(KEYS.OTP_RESEND, body);
+  },
 
-    updateAvatar: async (file: File): Promise<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }> => {
-        const formData = new FormData();
-        formData.append('AvatarFile', file);
-        const response = await request.post<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }>(
-            KEYS.AUTH_UPDATE_AVATAR,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            }
-        );
-        return response;
-    },
+  me: async () => {
+    return request.get<ApiEnvelope<UserResponse>>(KEYS.AUTH_ME);
+  },
 
-    changePassword: async (data: ChangePasswordRequest): Promise<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }> => {
-        const response = await request.post<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }>(
-            KEYS.AUTH_CHANGE_PASSWORD,
-            data
-        );
-        return response;
-    },
+  updateProfile: async (data: UpdateProfileRequest) => {
+    return request.put<ApiEnvelope>(KEYS.AUTH_UPDATE_PROFILE, data);
+  },
 
-    logout: async (): Promise<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }> => {
-        const response = await request.post<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }>(KEYS.AUTH_LOGOUT);
-        return response;
-    },
+  updateAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append('AvatarFile', file);
+    return request.post<ApiEnvelope>(KEYS.AUTH_UPDATE_AVATAR, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 
-    revokeToken: async (): Promise<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }> => {
-        const response = await request.post<{ succeeded?: boolean; status?: boolean; message?: string; messages?: string[] }>(KEYS.TOKEN_REVOKE);
-        return response;
-    },
+  changePassword: async (data: ChangePasswordRequest) => {
+    return request.post<ApiEnvelope>(KEYS.AUTH_CHANGE_PASSWORD, data);
+  },
+
+  logout: async () => {
+    return request.post<ApiEnvelope>(KEYS.AUTH_LOGOUT);
+  },
+
+  revokeToken: async () => {
+    return request.post<ApiEnvelope>(KEYS.TOKEN_REVOKE);
+  },
 };
-

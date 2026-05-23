@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { KEYS } from '@/apis/auth/keys';
 import {
   isAccessTokenExpired,
   postToAts,
@@ -21,7 +22,7 @@ const nextAuth = NextAuth({
       credentials: { email: { type: 'email' }, password: { type: 'password' } },
       async authorize(creds) {
         if (!creds?.email || !creds?.password) return null;
-        const res = await postToAts('/api/auth/login', { email: creds.email, password: creds.password });
+        const res = await postToAts(KEYS.AUTH_LOGIN, { email: creds.email, password: creds.password });
         if (!res.ok) return null;
         const raw = (await res.json()) as Record<string, unknown>;
         if (!isAtsSuccess(raw)) return null;
@@ -51,7 +52,7 @@ const nextAuth = NextAuth({
       }
       if (account?.provider === 'google' && account.access_token && !token.accessToken) {
         try {
-          const res = await postToAts('/api/auth/google', { accessToken: account.access_token });
+          const res = await postToAts(KEYS.AUTH_GOOGLE, { accessToken: account.access_token });
           const raw = (await res.json()) as Record<string, unknown>;
           if (isAtsSuccess(raw)) {
             const payload = getAtsData(raw);
