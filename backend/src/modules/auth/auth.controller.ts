@@ -25,6 +25,7 @@ import { UpdateUserProfileDto } from '@modules/user-profile/dto/user-profile.dto
 import { UserProfile } from '@entities/userProfile.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -104,20 +105,20 @@ export class AuthController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Put('me/profile')
-  async updateMeProfile(
-    @Req() req: any,
-    @Body() dto: UpdateUserProfileDto,
-  ): Promise<ApiResponse<UserProfile>> {
-    const data = await this.userProfileService.updateMe(req.user.sub, dto);
+  // @UseGuards(JwtAuthGuard)
+  // @Put('me/profile')
+  // async updateMeProfile(
+  //   @Req() req: any,
+  //   @Body() dto: UpdateUserProfileDto,
+  // ): Promise<ApiResponse<UserProfile>> {
+  //   const data = await this.userProfileService.updateMe(req.user.sub, dto);
 
-    return {
-      status: 'success',
-      message: 'Update profile successfully',
-      data,
-    };
-  }
+  //   return {
+  //     status: 'success',
+  //     message: 'Update profile successfully',
+  //     data,
+  //   };
+  // }
 
   @Post('me/avatar')
   @UseGuards(JwtAuthGuard)
