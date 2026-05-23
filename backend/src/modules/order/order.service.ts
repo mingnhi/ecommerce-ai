@@ -12,7 +12,7 @@ import {
   LockMode,
   QueryOrder,
 } from '@mikro-orm/core';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager } from '@mikro-orm/core';
 
 import { OrderEntity } from '@entities/order.entity';
 import { OrderItemEntity } from '@entities/order-item.entity';
@@ -53,7 +53,7 @@ export class OrderService {
     private readonly orderRepo: EntityRepository<OrderEntity>,
     private readonly cartService: CartService,
     private readonly inventoryService: InventoryService,
-  ) {}
+  ) { }
 
   async create(userId: string, dto: CreateOrderDto) {
     return this.em.transactional(async (em) => {
@@ -314,11 +314,11 @@ export class OrderService {
       updatedAt: order.updatedAt,
       items: order.items.isInitialized()
         ? order.items.getItems().map((i) => ({
-            id: i.id,
-            variantId: i.variantId,
-            quantity: i.quantity,
-            price: Number(i.price),
-          }))
+          id: i.id,
+          variantId: i.variantId,
+          quantity: i.quantity,
+          price: Number(i.price),
+        }))
         : undefined,
     };
   }

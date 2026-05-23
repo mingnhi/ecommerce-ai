@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { QueryOrder } from '@mikro-orm/core';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager } from '@mikro-orm/core';
 
 import { CartEntity } from '@entities/cart.entity';
 import { CartItemEntity } from '@entities/cart-item.entity';
