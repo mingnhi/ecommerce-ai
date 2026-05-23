@@ -1,282 +1,320 @@
-// import {
-//   BadRequestException,
-//   ConflictException,
-//   Injectable,
-//   NotFoundException,
-// } from '@nestjs/common';
-// import { InjectRepository } from '@mikro-orm/nestjs';
-// import {
-//   EntityRepository,
-//   FilterQuery,
-//   LockMode,
-//   QueryOrder,
-//   wrap,
-// } from '@mikro-orm/core';
-// import { EntityManager } from '@mikro-orm/mysql';
-// import { Inventory } from '@entities/inventory.entity';
-// import { InventoryMovement } from '@entities/inventory-movement.entity';
-// import { MovementType } from './enums/movement-type.enum';
-// import { UpdateInventoryDto } from './dto/update-inventory.dto';
-// import { InventoryQueryDto } from './dto/inventory-query.dto';
-// import { CreateMovementDto } from './dto/create-movement.dto';
-// import { MovementQueryDto } from './dto/movement-query.dto';
-// import { applyMovement } from './domain/apply-movement';
-// import {
-//   InsufficientStockError,
-//   InvalidMovementError,
-//   StockSnapshot,
-// } from './domain/stock-snapshot';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
-// interface ApplyMovementContext {
-//   referenceId?: string;
-//   referenceType?: string;
-//   createdBy?: string;
-//   note?: string;
-// }
+import { InjectRepository } from '@mikro-orm/nestjs';
+import {
+  EntityRepository,
+  FilterQuery,
+  LockMode,
+  QueryOrder,
+} from '@mikro-orm/core';
+import { EntityManager } from '@mikro-orm/mysql';
 
-// @Injectable()
-// export class InventoryService {
-//   constructor(
-//     private readonly em: EntityManager,
-//     @InjectRepository(Inventory)
-//     private readonly inventoryRepo: EntityRepository<Inventory>,
-//     @InjectRepository(InventoryMovement)
-//     private readonly movementRepo: EntityRepository<InventoryMovement>,
-//   ) {}
+import { InventoryEntity } from '@entities/inventory.entity';
+import { InventoryMovementEntity } from '@entities/inventory-movement.entity';
 
-//   async getByVariantId(variantId: string, warehouseId?: string) {
-//     const inv = await this.inventoryRepo.findOne({ variantId, warehouseId });
-//     if (!inv) {
-//       throw new NotFoundException(
-//         `Không có tồn kho cho variant ${variantId}`,
-//       );
-//     }
-//     return this.toDto(inv);
-//   }
+import { MovementType } from './enums/movement-type.enum';
+import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { InventoryQueryDto } from './dto/inventory-query.dto';
+import { CreateMovementDto } from './dto/create-movement.dto';
+import { MovementQueryDto } from './dto/movement-query.dto';
 
-//   async list(query: InventoryQueryDto) {
-//     const page = query.page ?? 1;
-//     const limit = query.limit ?? 20;
+interface StockSnapshot {
+  available: number;
+  reserved: number;
+  sold: number;
+}
 
-//     const qb = this.em
-//       .createQueryBuilder(Inventory, 'i')
-//       .orderBy({ available: QueryOrder.ASC })
-//       .limit(limit)
-//       .offset((page - 1) * limit);
+interface ApplyMovementContext {
+  referenceId?: string;
+  note?: string;
+}
 
-//     if (query.warehouseId) {
-//       qb.andWhere({ warehouseId: query.warehouseId });
-//     }
-//     if (query.low_stock) {
-//       qb.andWhere('i.available <= i.low_stock_threshold');
-//     }
+interface ApplyMovementInput {
+  variantId: string;
+  type: MovementType;
+  quantity: number;
+}
 
-//     const [items, total] = await qb.getResultAndCount();
+@Injectable()
+export class InventoryService {
+  constructor(
+    private readonly em: EntityManager,
+    @InjectRepository(InventoryEntity)
+    private readonly inventoryRepo: EntityRepository<InventoryEntity>,
+    @InjectRepository(InventoryMovementEntity)
+    private readonly movementRepo: EntityRepository<InventoryMovementEntity>,
+  ) {}
 
-//     return {
-//       items: items.map((i) => this.toDto(i)),
-//       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-//     };
-//   }
+  async getByVariantId(variantId: string) {
+    const inv = await this.inventoryRepo.findOne({ variantId });
+    if (!inv) {
+      throw new NotFoundException(`Inventory not found for variant ${variantId}`);
+    }
+    return this.toDto(inv);
+  }
 
-//   /**
-//    * S3-01 update: set absolute available = dto.quantity.
-//    * Tương đương 1 ADJUST movement → đi qua applyMovement để giữ invariant.
-//    */
-//   async setAbsolute(
-//     variantId: string,
-//     dto: UpdateInventoryDto,
-//     actorUserId?: string,
-//   ) {
-//     return this.applyMovementTx(
-//       {
-//         variantId,
-//         warehouseId: dto.warehouseId,
-//         type: MovementType.ADJUST,
-//         quantity: dto.quantity,
-//       },
-//       {
-//         createdBy: actorUserId,
-//         note: dto.note,
-//         referenceType: 'MANUAL',
-//       },
-//     );
-//   }
+  async list(query: InventoryQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
 
-//   // ---------- S3-02 ----------
+    const [items, total] = await this.inventoryRepo.findAndCount(
+      {},
+      {
+        orderBy: { available: QueryOrder.ASC },
+        limit,
+        offset: (page - 1) * limit,
+      },
+    );
 
-//   async createMovement(dto: CreateMovementDto, actorUserId?: string) {
-//     return this.applyMovementTx(
-//       {
-//         variantId: dto.variantId,
-//         warehouseId: dto.warehouseId,
-//         type: dto.type,
-//         quantity: dto.quantity,
-//       },
-//       {
-//         createdBy: actorUserId,
-//         note: dto.note,
-//         referenceId: dto.referenceId,
-//         referenceType: dto.referenceType ?? 'MANUAL',
-//       },
-//     );
-//   }
+    return {
+      items: items.map((i) => this.toDto(i)),
+      meta: {
+        pagination: {
+          page,
+          limit,
+          totalItems: total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    };
+  }
 
-//   async listMovements(query: MovementQueryDto) {
-//     const page = query.page ?? 1;
-//     const limit = query.limit ?? 20;
+  async setAbsolute(
+    variantId: string,
+    dto: UpdateInventoryDto,
+  ) {
+    return this.applyMovementTx(
+      {
+        variantId,
+        type: MovementType.ADJUST,
+        quantity: dto.quantity,
+      },
+      {
+        note: dto.note,
+      },
+    );
+  }
 
-//     const where: FilterQuery<InventoryMovement> = {};
-//     if (query.variantId) where.variantId = query.variantId;
-//     if (query.type) where.type = query.type;
-//     if (query.startDate || query.endDate) {
-//       where.createdAt = {};
-//       if (query.startDate) where.createdAt.$gte = query.startDate;
-//       if (query.endDate) where.createdAt.$lte = query.endDate;
-//     }
+  async createMovement(dto: CreateMovementDto) {
+    return this.applyMovementTx(
+      {
+        variantId: dto.variantId,
+        type: dto.type,
+        quantity: dto.quantity,
+      },
+      {
+        note: dto.note,
+        referenceId: dto.referenceId,
+      },
+    );
+  }
 
-//     const [items, total] = await this.movementRepo.findAndCount(where, {
-//       orderBy: { createdAt: QueryOrder.DESC },
-//       limit,
-//       offset: (page - 1) * limit,
-//     });
+  async listMovements(query: MovementQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
 
-//     return {
-//       items,
-//       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-//     };
-//   }
+    const where: FilterQuery<InventoryMovementEntity> = {};
+    if (query.variantId) (where as any).variantId = query.variantId;
+    if (query.type) (where as any).type = query.type;
+    if (query.startDate || query.endDate) {
+      (where as any).createdAt = {};
+      if (query.startDate) (where as any).createdAt.$gte = query.startDate;
+      if (query.endDate) (where as any).createdAt.$lte = query.endDate;
+    }
 
-//   // ---------- internal API dùng cho Order (S5-01) ----------
+    const [items, total] = await this.movementRepo.findAndCount(where, {
+      orderBy: { createdAt: QueryOrder.DESC },
+      limit,
+      offset: (page - 1) * limit,
+    });
 
-//   /**
-//    * Public method để OrderService gọi RESERVE/SELL/RELEASE trong cùng transaction.
-//    * Phải được gọi trong context `em.transactional(...)` của caller.
-//    */
-//   async applyMovementWithinTx(
-//     em: EntityManager,
-//     input: {
-//       variantId: string;
-//       warehouseId?: string;
-//       type: MovementType;
-//       quantity: number;
-//     },
-//     ctx: ApplyMovementContext,
-//   ) {
-//     return this.applyMovementImpl(em, input, ctx);
-//   }
+    return {
+      items,
+      meta: {
+        pagination: {
+          page,
+          limit,
+          totalItems: total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    };
+  }
 
-//   // ---------- internal helpers ----------
+  async applyMovementWithinTx(
+    em: EntityManager,
+    input: ApplyMovementInput,
+    ctx: ApplyMovementContext,
+  ) {
+    return this.applyMovementImpl(em, input, ctx);
+  }
 
-//   private async applyMovementTx(
-//     input: {
-//       variantId: string;
-//       warehouseId?: string;
-//       type: MovementType;
-//       quantity: number;
-//     },
-//     ctx: ApplyMovementContext,
-//   ) {
-//     return this.em.transactional(async (em) =>
-//       this.applyMovementImpl(em, input, ctx),
-//     );
-//   }
+  async getAvailable(em: EntityManager, variantId: string) {
+    const inv = await em.findOne(InventoryEntity, { variantId });
+    return inv?.available ?? 0;
+  }
 
-//   private async applyMovementImpl(
-//     em: EntityManager,
-//     input: {
-//       variantId: string;
-//       warehouseId?: string;
-//       type: MovementType;
-//       quantity: number;
-//     },
-//     ctx: ApplyMovementContext,
-//   ) {
-//     const inv = await this.lockOrCreate(em, input.variantId, input.warehouseId);
+  private async applyMovementTx(
+    input: ApplyMovementInput,
+    ctx: ApplyMovementContext,
+  ) {
+    return this.em.transactional(async (em) =>
+      this.applyMovementImpl(em, input, ctx),
+    );
+  }
 
-//     const current: StockSnapshot = {
-//       available: inv.available,
-//       reserved: inv.reserved,
-//       sold: inv.sold,
-//     };
+  private async applyMovementImpl(
+    em: EntityManager,
+    input: ApplyMovementInput,
+    ctx: ApplyMovementContext,
+  ) {
+    const inv = await this.lockOrCreate(em, input.variantId);
 
-//     let next: StockSnapshot;
-//     try {
-//       next = applyMovement(current, {
-//         type: input.type,
-//         quantity: input.quantity,
-//         variantId: input.variantId,
-//       });
-//     } catch (err) {
-//       if (err instanceof InsufficientStockError) {
-//         throw new ConflictException(err.message);
-//       }
-//       if (err instanceof InvalidMovementError) {
-//         throw new BadRequestException(err.message);
-//       }
-//       throw err;
-//     }
+    const current: StockSnapshot = {
+      available: inv.available,
+      reserved: inv.reserved,
+      sold: inv.sold,
+    };
 
-//     inv.available = next.available;
-//     inv.reserved = next.reserved;
-//     inv.sold = next.sold;
+    const next = this.calcNextStock(current, input.type, input.quantity, input.variantId);
 
-//     const movement = em.create(InventoryMovement, {
-//       variantId: input.variantId,
-//       warehouseId: input.warehouseId,
-//       type: input.type,
-//       quantity: input.quantity,
-//       referenceId: ctx.referenceId,
-//       referenceType: ctx.referenceType,
-//       createdBy: ctx.createdBy,
-//       note: ctx.note,
-//     });
+    inv.available = next.available;
+    inv.reserved = next.reserved;
+    inv.sold = next.sold;
 
-//     em.persist(inv);
-//     em.persist(movement);
-//     await em.flush();
+    const movement = em.create(InventoryMovementEntity, {
+      variantId: input.variantId,
+      type: input.type,
+      quantity: input.quantity,
+      referenceId: ctx.referenceId,
+      note: ctx.note,
+    });
 
-//     return {
-//       inventory: this.toDto(inv),
-//       movement: wrap(movement).toJSON(),
-//     };
-//   }
+    em.persist(inv);
+    em.persist(movement);
+    await em.flush();
 
-//   private async lockOrCreate(
-//     em: EntityManager,
-//     variantId: string,
-//     warehouseId?: string,
-//   ): Promise<Inventory> {
-//     const existing = await em.findOne(
-//       Inventory,
-//       { variantId, warehouseId },
-//       { lockMode: LockMode.PESSIMISTIC_WRITE },
-//     );
-//     if (existing) return existing;
+    return {
+      inventory: this.toDto(inv),
+      movement: {
+        id: movement.id,
+        variantId: movement.variantId,
+        type: movement.type,
+        quantity: movement.quantity,
+        referenceId: movement.referenceId,
+        note: movement.note,
+        createdAt: movement.createdAt,
+      },
+    };
+  }
 
-//     const created = em.create(Inventory, {
-//       variantId,
-//       warehouseId,
-//       available: 0,
-//       reserved: 0,
-//       sold: 0,
-//       lowStockThreshold: 10,
-//     });
-//     em.persist(created);
-//     await em.flush();
-//     return created;
-//   }
+  private calcNextStock(
+    current: StockSnapshot,
+    type: MovementType,
+    quantity: number,
+    variantId: string,
+  ): StockSnapshot {
+    if (!Number.isFinite(quantity)) {
+      throw new BadRequestException(
+        `Invalid quantity for variant ${variantId}`,
+      );
+    }
 
-//   private toDto(inv: Inventory) {
-//     return {
-//       id: inv.id,
-//       variantId: inv.variantId,
-//       warehouseId: inv.warehouseId,
-//       available: inv.available,
-//       reserved: inv.reserved,
-//       sold: inv.sold,
-//       lowStockThreshold: inv.lowStockThreshold,
-//       lowStock: inv.available <= inv.lowStockThreshold,
-//     };
-//   }
-// }
+    switch (type) {
+      case MovementType.IMPORT:
+        if (quantity <= 0) {
+          throw new BadRequestException('IMPORT quantity must be > 0');
+        }
+        return { ...current, available: current.available + quantity };
+      case MovementType.RESERVE:
+        if (quantity <= 0) {
+          throw new BadRequestException('RESERVE quantity must be > 0');
+        }
+        if (current.available < quantity) {
+          throw new ConflictException(
+            `Insufficient stock for variant ${variantId}: need ${quantity}, available ${current.available}`,
+          );
+        }
+        return {
+          ...current,
+          available: current.available - quantity,
+          reserved: current.reserved + quantity,
+        };
+      case MovementType.RELEASE:
+        if (quantity <= 0) {
+          throw new BadRequestException('RELEASE quantity must be > 0');
+        }
+        if (current.reserved < quantity) {
+          throw new BadRequestException(
+            `Cannot RELEASE ${quantity}: reserved is only ${current.reserved}`,
+          );
+        }
+        return {
+          ...current,
+          reserved: current.reserved - quantity,
+          available: current.available + quantity,
+        };
+      case MovementType.SELL:
+        if (quantity <= 0) {
+          throw new BadRequestException('SELL quantity must be > 0');
+        }
+        if (current.reserved < quantity) {
+          throw new BadRequestException(
+            `Cannot SELL ${quantity}: reserved is only ${current.reserved}`,
+          );
+        }
+        return {
+          ...current,
+          reserved: current.reserved - quantity,
+          sold: current.sold + quantity,
+        };
+      case MovementType.ADJUST:
+        if (quantity < 0) {
+          throw new BadRequestException('ADJUST quantity must be >= 0');
+        }
+        return { ...current, available: quantity };
+      default:
+        throw new BadRequestException(
+          `Invalid movement type: ${String(type)}`,
+        );
+    }
+  }
+
+  private async lockOrCreate(
+    em: EntityManager,
+    variantId: string,
+  ): Promise<InventoryEntity> {
+    const existing = await em.findOne(
+      InventoryEntity,
+      { variantId },
+      { lockMode: LockMode.PESSIMISTIC_WRITE },
+    );
+    if (existing) return existing;
+
+    const created = em.create(InventoryEntity, {
+      variantId,
+      available: 0,
+      reserved: 0,
+      sold: 0,
+    });
+    em.persist(created);
+    await em.flush();
+    return created;
+  }
+
+  private toDto(inv: InventoryEntity) {
+    return {
+      id: inv.id,
+      variantId: inv.variantId,
+      available: inv.available,
+      reserved: inv.reserved,
+      sold: inv.sold,
+      updatedAt: inv.updatedAt,
+    };
+  }
+}

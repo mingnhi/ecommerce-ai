@@ -75,13 +75,13 @@ export function InventorySelectPopover({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-sm border border-sky-500/20 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/10 transition-all text-left cursor-pointer",
+            "flex h-10 w-full items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-background px-3 text-sm focus:outline-none focus:ring-3 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-left cursor-pointer",
             className,
           )}
         >
           {selectedItem ? (
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="size-6 shrink-0 overflow-hidden rounded-sm border border-sky-500/15 bg-muted">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="size-6 shrink-0 overflow-hidden rounded-md border border-slate-200 dark:border-slate-800 bg-muted">
                 {selectedItem.anh ? (
                   <img
                     src={selectedItem.anh}
@@ -89,16 +89,16 @@ export function InventorySelectPopover({
                     className="size-full object-cover"
                   />
                 ) : (
-                  <div className="size-full bg-sky-500/5" />
+                  <div className="size-full bg-slate-100 dark:bg-slate-900" />
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-foreground leading-none">
+                <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200 leading-none">
                   {isProduct
                     ? (selectedItem as ITonKhoSanPham).tenSanPham
                     : (selectedItem as INhaCungCap).ten}
                 </p>
-                <p className="truncate text-[10px] text-muted-foreground mt-0.5 leading-none">
+                <p className="truncate text-[10px] text-muted-foreground mt-1 leading-none">
                   {isProduct ? (
                     <>
                       {(selectedItem as ITonKhoSanPham).bienThe} ·{" "}
@@ -111,21 +111,21 @@ export function InventorySelectPopover({
               </div>
             </div>
           ) : (
-            <span className="text-muted-foreground text-xs">{resolvedPlaceholder}</span>
+            <span className="text-muted-foreground/60 text-xs">{resolvedPlaceholder}</span>
           )}
-          <ChevronsUpDown className="size-4 shrink-0 opacity-55 ml-2 text-sky-500" />
+          <ChevronsUpDown className="size-4 shrink-0 opacity-55 ml-2 text-slate-400" />
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
-        className="w-[320px] sm:w-[var(--radix-popover-trigger-width)] overflow-hidden p-0 shadow-lg border border-sky-500/15"
+        className="w-[320px] sm:w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-xl p-0 shadow-2xl border border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl"
       >
-        <div className="relative flex items-center border-b border-sky-500/10 px-3">
-          <Search className="size-4 shrink-0 opacity-55 text-sky-500 absolute left-3 pointer-events-none" />
+        <div className="relative flex items-center border-b border-slate-100 dark:border-slate-900 px-3">
+          <Search className="size-4 shrink-0 opacity-55 text-slate-400 absolute left-3 pointer-events-none" />
           <input
-            className="flex h-9 w-full bg-transparent py-2 pl-7 pr-3 text-xs outline-none placeholder:text-muted-foreground/70"
+            className="flex h-9 w-full bg-transparent py-2 pl-7 pr-3 text-xs outline-none placeholder:text-muted-foreground/60"
             placeholder={
               isProduct ? "Tìm theo tên, SKU..." : "Tìm theo tên, SĐT, địa chỉ..."
             }
@@ -134,7 +134,7 @@ export function InventorySelectPopover({
           />
         </div>
         <ScrollArea className={isProduct ? "h-60" : "h-48"}>
-          <div className="space-y-0.5 p-1">
+          <div className="space-y-0.5 p-1.5">
             {filteredItems.length ? (
               filteredItems.map((item) => {
                 const prod = item as ITonKhoSanPham
@@ -149,12 +149,14 @@ export function InventorySelectPopover({
                       setOpen(false)
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between gap-2 rounded-sm p-2 text-left text-xs transition-colors cursor-pointer select-none hover:bg-sky-500/5",
-                      isSelected ? "bg-sky-500/10" : "bg-transparent",
+                      "flex w-full items-center justify-between gap-2.5 rounded-lg p-2 text-left text-xs transition-colors cursor-pointer select-none",
+                      isSelected
+                        ? "bg-sky-500/[0.04] dark:bg-sky-500/[0.02] text-sky-950 dark:text-sky-50"
+                        : "bg-transparent hover:bg-slate-50 dark:hover:bg-slate-900/50",
                     )}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="size-8 shrink-0 overflow-hidden rounded-sm border border-sky-500/15 bg-muted">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="size-8 shrink-0 overflow-hidden rounded-md border border-slate-200 dark:border-slate-800 bg-muted">
                         {item.anh ? (
                           <img
                             src={item.anh}
@@ -162,14 +164,14 @@ export function InventorySelectPopover({
                             className="size-full object-cover"
                           />
                         ) : (
-                          <div className="size-full bg-sky-500/5" />
+                          <div className="size-full bg-slate-100 dark:bg-slate-900" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-foreground text-xs leading-normal">
+                        <p className="truncate font-semibold text-slate-800 dark:text-slate-200 text-xs leading-normal">
                           {isProduct ? prod.tenSanPham : supp.ten}
                         </p>
-                        <p className="truncate text-[10px] text-muted-foreground leading-normal">
+                        <p className="truncate text-[10px] text-muted-foreground leading-normal mt-0.5">
                           {isProduct ? (
                             <>{prod.bienThe} · {prod.sku}</>
                           ) : (
@@ -179,7 +181,7 @@ export function InventorySelectPopover({
                       </div>
                     </div>
                     {isSelected && (
-                      <Check className="size-3.5 shrink-0 text-sky-500" />
+                      <Check className="size-4 shrink-0 text-sky-500 stroke-[3]" />
                     )}
                   </button>
                 )

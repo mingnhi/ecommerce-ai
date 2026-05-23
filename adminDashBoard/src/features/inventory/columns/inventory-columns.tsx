@@ -11,6 +11,9 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
+import { Can } from "@/shared/components/common/Can"
+import { useCan } from "@/shared/hooks/use-can"
+import { PERMISSIONS } from "@/shared/lib/casl/permissions"
 
 function ThresholdInput({
   initialValue,
@@ -93,6 +96,26 @@ function ThresholdInput({
       </div>
     </div>
   )
+}
+
+function ThresholdCell({
+  value,
+  onSave,
+}: {
+  value: number
+  onSave: (next: number) => void
+}) {
+  const canUpdate = useCan(PERMISSIONS.INVENTORY.UPDATE_THRESHOLD)
+
+  if (!canUpdate) {
+    return (
+      <span className="block text-center text-sm font-medium tabular-nums text-foreground">
+        {value}
+      </span>
+    )
+  }
+
+  return <ThresholdInput initialValue={value} onSave={onSave} />
 }
 
 function formatTime(iso: string) {
@@ -189,26 +212,30 @@ function ActionsCell({ row, table, handlers }: ActionsCellProps) {
 
   return (
     <div className="flex justify-end gap-0.5">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-xs"
-        className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
-        aria-label="Chỉnh tồn"
-        onClick={() => handlers.onAdjust(r)}
-      >
-        <SlidersHorizontal className="size-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-xs"
-        className="text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 hover:cursor-pointer"
-        aria-label="Xóa"
-        onClick={handleDelete}
-      >
-        <Trash2 className="size-4" />
-      </Button>
+      <Can permission={PERMISSIONS.INVENTORY.ADJUST}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
+          aria-label="Chỉnh tồn"
+          onClick={() => handlers.onAdjust(r)}
+        >
+          <SlidersHorizontal className="size-4" />
+        </Button>
+      </Can>
+      <Can permission={PERMISSIONS.INVENTORY.DELETE}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className="text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 hover:cursor-pointer"
+          aria-label="Xóa"
+          onClick={handleDelete}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </Can>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -337,8 +364,8 @@ export function buildInventoryColumns(
         </span>
       ),
       cell: ({ row }) => (
-        <ThresholdInput
-          initialValue={row.original.nguongCanhBao}
+        <ThresholdCell
+          value={row.original.nguongCanhBao}
           onSave={(val) => handlers.onThreshold(row.original.id, val)}
         />
       ),
