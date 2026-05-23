@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { AddressDialog } from "./components/AddressDialog";
 import { CheckoutItem } from "./components/CheckoutItem";
 import { ROUTES } from "@/lib/routes";
+import { useCreateVnpayPayment } from "@/apis/payment/queries";
+
 
 const PAYMENT_METHODS = [
   { id: "cod", label: "Thanh toán khi nhận hàng", icon: Banknote },
@@ -68,6 +70,7 @@ function EmptyCheckout() {
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { items } = useCart();
+  const createVnpayPayment = useCreateVnpayPayment();
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [isAddrDialogOpen, setIsAddrDialogOpen] = useState(false);
   const [currentAddress, setCurrentAddress] = useState(ADDRESSES[0]);
@@ -83,6 +86,21 @@ export default function CheckoutPage() {
   const subTotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shippingFee = 0;
   const totalAmount = subTotal + shippingFee;
+  const handlePlaceOrder = async () => {
+    if (selectedPayment === "cod") {
+      alert("Đặt hàng COD thành công");
+      return;
+    }
+
+    if (selectedPayment === "bank") {
+      createVnpayPayment.mutate({
+        amount: totalAmount,
+        orderInfo: `Thanh toán đơn hàng`,
+      });
+
+      return;
+    }
+  };
 
   const handleAddressUpdate = (newAddress: { name: string; phone: string; address: string }) => {
     setCurrentAddress({
@@ -110,13 +128,11 @@ export default function CheckoutPage() {
               <div className="font-bold text-foreground">
                 {currentAddress.name} {currentAddress.phone}
               </div>
-              <div className="text-foreground">
-                {currentAddress.address}
-              </div>
+              <div className="text-foreground">{currentAddress.address}</div>
 
               <div className="md:ml-auto">
-                <AddressDialog 
-                  open={isAddrDialogOpen} 
+                <AddressDialog
+                  open={isAddrDialogOpen}
                   onOpenChange={setIsAddrDialogOpen}
                   initialAddress={currentAddress}
                   onUpdate={handleAddressUpdate}
@@ -140,7 +156,9 @@ export default function CheckoutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x border-b border-border/40 text-sm">
             <div className="p-6 flex items-center gap-4 border-b border-border/40 md:border-b-0">
-              <span className="whitespace-nowrap text-foreground">Lời nhắn:</span>
+              <span className="whitespace-nowrap text-foreground">
+                Lời nhắn:
+              </span>
               <Input
                 placeholder="Lưu ý cho Người bán..."
                 className="flex-1 border-border/60 h-9 rounded-sm focus-visible:ring-1 focus-visible:ring-border/60 shadow-none text-sm placeholder:text-muted-foreground"
@@ -150,8 +168,12 @@ export default function CheckoutPage() {
 
           <div className="p-6 border-b border-border/40 bg-[#fafdff] dark:bg-muted/10">
             <div className="flex justify-end items-center gap-3">
-              <span className="text-muted-foreground text-sm">Tổng số tiền ({totalQty} sản phẩm):</span>
-              <span className="text-xl font-semibold text-sky-600">{formatVnd(subTotal)}</span>
+              <span className="text-muted-foreground text-sm">
+                Tổng số tiền ({totalQty} sản phẩm):
+              </span>
+              <span className="text-xl font-semibold text-sky-600">
+                {formatVnd(subTotal)}
+              </span>
             </div>
           </div>
         </div>
@@ -173,7 +195,9 @@ export default function CheckoutPage() {
         <div className="bg-card shadow-sm rounded-sm border border-border/40 overflow-hidden pb-6">
           <div className="p-6 border-b border-border/40">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="text-lg text-foreground font-bold">Phương thức thanh toán</div>
+              <div className="text-lg text-foreground font-bold">
+                Phương thức thanh toán
+              </div>
               <div className="flex flex-wrap gap-3">
                 {PAYMENT_METHODS.map((method) => {
                   const Icon = method.icon;
@@ -186,10 +210,17 @@ export default function CheckoutPage() {
                         "relative flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all cursor-pointer group hover:cursor-pointer",
                         isSelected
                           ? "border-sky-500 bg-sky-500/5 text-sky-600"
-                          : "border-border hover:border-sky-500/50 hover:bg-muted/30 text-muted-foreground"
+                          : "border-border hover:border-sky-500/50 hover:bg-muted/30 text-muted-foreground",
                       )}
                     >
-                      <Icon className={cn("size-5 transition-colors", isSelected ? "text-sky-600" : "group-hover:text-sky-600")} />
+                      <Icon
+                        className={cn(
+                          "size-5 transition-colors",
+                          isSelected
+                            ? "text-sky-600"
+                            : "group-hover:text-sky-600",
+                        )}
+                      />
                       <span className="text-sm font-bold">{method.label}</span>
                       {isSelected && (
                         <div className="absolute -top-2 -right-2 bg-sky-500 text-white size-5 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
@@ -209,7 +240,9 @@ export default function CheckoutPage() {
                 <div className="flex items-center gap-3 text-foreground/80">
                   <div className="bg-sky-500/10 p-2 rounded-lg">
                     {(() => {
-                      const method = PAYMENT_METHODS.find(m => m.id === selectedPayment);
+                      const method = PAYMENT_METHODS.find(
+                        (m) => m.id === selectedPayment,
+                      );
                       const Icon = method?.icon || Banknote;
                       return <Icon className="size-5 text-sky-600" />;
                     })()}
@@ -217,18 +250,24 @@ export default function CheckoutPage() {
                   <div>
                     <p className="text-sm font-bold">Phương thức đã chọn</p>
                     <p className="text-xs text-muted-foreground">
-                      {PAYMENT_METHODS.find(m => m.id === selectedPayment)?.label}
+                      {
+                        PAYMENT_METHODS.find((m) => m.id === selectedPayment)
+                          ?.label
+                      }
                     </p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  * Vui lòng kiểm tra lại thông tin đơn hàng trước khi xác nhận đặt hàng. <br />
-                  * Bạn có thể thay đổi phương thức thanh toán bất cứ lúc nào trước khi nhấn "Đặt hàng".
+                  * Vui lòng kiểm tra lại thông tin đơn hàng trước khi xác nhận
+                  đặt hàng. <br />* Bạn có thể thay đổi phương thức thanh toán
+                  bất cứ lúc nào trước khi nhấn "Đặt hàng".
                 </p>
               </div>
               <div className="w-full md:w-[350px] space-y-3">
                 <div className="pt-4  flex justify-between items-center">
-                  <span className="text-base font-bold text-foreground">Tổng thanh toán</span>
+                  <span className="text-base font-bold text-foreground">
+                    Tổng thanh toán
+                  </span>
                   <span className="text-2xl font-black text-sky-600 tracking-tight">
                     {formatVnd(totalAmount)}
                   </span>
@@ -239,7 +278,13 @@ export default function CheckoutPage() {
 
           <div className="p-6 border-t border-border/40 border-dashed flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground max-w-[600px] leading-relaxed">
-              Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo <Link href="#" className="text-sky-600 hover:underline font-bold cursor-pointer">Điều khoản {siteConfig.name}</Link>
+              Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo{" "}
+              <Link
+                href="#"
+                className="text-sky-600 hover:underline font-bold cursor-pointer"
+              >
+                Điều khoản {siteConfig.name}
+              </Link>
             </div>
             <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
               <Button
@@ -249,7 +294,11 @@ export default function CheckoutPage() {
               >
                 <Link href={ROUTES.CART}>Trở lại giỏ hàng</Link>
               </Button>
-              <Button className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xl shadow-sky-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer hover:cursor-pointer">
+              <Button
+                onClick={handlePlaceOrder}
+                disabled={createVnpayPayment.isPending}
+                className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xl shadow-sky-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer hover:cursor-pointer"
+              >
                 Đặt hàng
               </Button>
             </div>
