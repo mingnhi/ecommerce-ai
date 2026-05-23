@@ -12,6 +12,9 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MailModule } from './modules/mail/mail.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
 import { CloudinaryModule } from './modules/upload/upload.module';
+import { InventoryModule } from '@modules/inventory/inventory.module';
+import { CartModule } from '@modules/cart/cart.module';
+import { OrderModule } from '@modules/order/order.module';
 
 @Module({
   imports: [
@@ -33,6 +36,9 @@ import { CloudinaryModule } from './modules/upload/upload.module';
     MailModule,
     UserProfileModule,
     CloudinaryModule,
+    InventoryModule,
+    CartModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
