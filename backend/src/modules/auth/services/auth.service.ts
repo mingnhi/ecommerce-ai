@@ -35,9 +35,18 @@ export class AuthService {
 
   private async getUserPermissions(userId: string): Promise<string[]> {
     const userRoles = await this.userRolesService.findByUser(userId);
-    const roleIds = userRoles.map((userRole) => userRole.role.id);
+    const keys = new Set<string>();
 
-    return this.rolesService.getPermissionsByRoleIds(roleIds);
+    for (const userRole of userRoles) {
+      const role = await this.rolesService.findOne(userRole.role.id);
+
+      role.rolePermissions.getItems().forEach(rolePermission => {
+        const permission = rolePermission.permission;
+        keys.add(`${permission.resource.toLowerCase()}:${permission.action}`);
+      });
+    }
+
+    return [...keys];
   }
 
   private async signTokens(userId: string, email: string) {
