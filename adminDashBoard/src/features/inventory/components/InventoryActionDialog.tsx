@@ -31,6 +31,8 @@ type ImportProps = { mode: "import"; items: ITonKhoSanPham[]; onSubmit: (form: I
 type ViewProps = { mode: "view"; movement: ILichSuKho | null }
 export type InventoryActionDialogProps = BaseProps & (AdjustProps | CheckProps | ImportProps | ViewProps)
 
+import { cn } from "@/shared/lib/utils"
+
 function QuantityController({
   value,
   onDecrement,
@@ -45,19 +47,27 @@ function QuantityController({
   onBlur?: () => void
 }) {
   return (
-    <div className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-sky-500/20 bg-background/50 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/10">
-      <button type="button" onClick={onDecrement} className="flex h-full w-12 items-center justify-center text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors border-r border-sky-500/10 cursor-pointer">
-        <Minus className="size-3.5" />
+    <div className="flex h-10 w-full items-center overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-background/60 shadow-sm transition-all focus-within:border-sky-500 focus-within:ring-3 focus-within:ring-sky-500/15">
+      <button
+        type="button"
+        onClick={onDecrement}
+        className="flex h-full w-12 items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all border-r border-slate-200 dark:border-slate-800 cursor-pointer shrink-0"
+      >
+        <Minus className="size-4 stroke-[2.5]" />
       </button>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
-        className="h-full w-full bg-transparent border-0 outline-none text-center font-bold text-sm tabular-nums text-foreground p-0 focus-visible:ring-0 focus-visible:border-0"
+        className="h-full w-full bg-transparent border-0 outline-none text-center font-extrabold text-sm tabular-nums text-slate-800 dark:text-slate-200 p-0 focus-visible:ring-0 focus-visible:border-0"
       />
-      <button type="button" onClick={onIncrement} className="flex h-full w-12 items-center justify-center text-muted-foreground hover:bg-sky-500/5 hover:text-sky-500 transition-colors border-l border-sky-500/10 cursor-pointer">
-        <Plus className="size-3.5" />
+      <button
+        type="button"
+        onClick={onIncrement}
+        className="flex h-full w-12 items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900 active:scale-95 transition-all border-l border-slate-200 dark:border-slate-800 cursor-pointer shrink-0"
+      >
+        <Plus className="size-4 stroke-[2.5]" />
       </button>
     </div>
   )
@@ -238,37 +248,39 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
   }
 
   const renderFooter = (submitLabel: string, disabled = false) => (
-    <div className="flex justify-end gap-2 pt-2">
-      <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-10 px-4 text-xs font-semibold rounded-sm hover:cursor-pointer">
+    <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-900 mt-6">
+      <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-10 px-4 text-xs font-semibold rounded-lg hover:cursor-pointer border-slate-200 dark:border-slate-800">
         Hủy
       </Button>
-      <Button type="submit" disabled={disabled} className="h-10 px-4 text-xs font-semibold rounded-sm bg-sky-500 hover:bg-sky-600 text-white disabled:opacity-50 hover:cursor-pointer">
+      <Button type="submit" disabled={disabled} className="h-10 px-5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50 hover:cursor-pointer shadow-sm transition-all active:scale-95">
         {submitLabel}
       </Button>
     </div>
   )
 
-  const contentClassName =
+  const contentClassName = cn(
+    "overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl p-6 flex flex-col gap-0",
     mode === "import" || mode === "view"
       ? activePhieu
-        ? "max-h-[95vh] overflow-hidden sm:max-w-4xl rounded-sm p-6"
-        : "max-h-[90vh] overflow-y-auto sm:max-w-lg rounded-sm"
-      : "sm:max-w-md rounded-sm border-sky-500/20 bg-card shadow-[0_10px_30px_rgba(0,0,0,0.1)] ring-1 ring-sky-500/5"
+        ? "max-h-[95vh] sm:max-w-4xl"
+        : "max-h-[90vh] overflow-y-auto sm:max-w-lg"
+      : "sm:max-w-md"
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={contentClassName}>
         {mode === "adjust" && adjustItem && (
           <>
-            <DialogHeader className="space-y-1.5 pb-2 border-b border-sky-500/10">
-              <DialogTitle className="text-base font-bold text-foreground">Chỉnh sửa tồn kho</DialogTitle>
-              <p className="text-xs text-muted-foreground leading-normal">
-                {adjustItem.tenSanPham} <span className="mx-1 text-sky-500/30">·</span> {adjustItem.sku}
+            <DialogHeader className="space-y-1.5 pb-3 border-b border-slate-100 dark:border-slate-900">
+              <DialogTitle className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Chỉnh sửa tồn kho</DialogTitle>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                {adjustItem.tenSanPham} <span className="mx-1.5 text-slate-300 dark:text-slate-700">|</span> <code className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400">{adjustItem.sku}</code>
               </p>
             </DialogHeader>
-            <form className="space-y-4 pt-2" onSubmit={adjustForm.handleSubmit(handleAdjustSubmit)}>
+            <form className="space-y-5 pt-3" onSubmit={adjustForm.handleSubmit(handleAdjustSubmit)}>
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Số lượng thay đổi</Label>
+                <Label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Số lượng thay đổi</Label>
                 <QuantityController
                   value={inputValue}
                   onDecrement={handleAdjustDecrement}
@@ -276,25 +288,25 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                   onChange={handleAdjustInputChange}
                   onBlur={handleAdjustInputBlur}
                 />
-                <p className="text-xxs text-muted-foreground leading-normal">Dương (+) = Tăng tồn kho, Âm (-) = Giảm tồn kho</p>
+                <p className="text-[10px] text-muted-foreground leading-normal italic">Dương (+) = Tăng tồn kho, Âm (-) = Giảm tồn kho</p>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghi chú / lý do điều chỉnh</Label>
+                <Label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ghi chú / lý do điều chỉnh</Label>
                 <Textarea
                   rows={3}
                   {...adjustForm.register("ghiChu")}
-                  placeholder="Nhập lý do thay đổi tồn kho..."
-                  className="border-sky-500/20 bg-background/50 text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20"
+                  placeholder="Nhập lý do chi tiết thay đổi tồn kho..."
+                  className="rounded-lg border border-slate-200 dark:border-slate-800 bg-background/50 text-sm focus-visible:ring-3 focus-visible:ring-sky-500/10 focus-visible:border-sky-500 transition-all placeholder:text-muted-foreground/60 resize-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4 rounded-sm border border-sky-500/10 bg-sky-50/5 dark:bg-sky-950/5 p-4 text-center">
-                <div>
-                  <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn kho hiện tại</span>
-                  <p className="mt-1 text-lg text-muted-foreground/80 tabular-nums">{adjustItem.tonKhaDung}</p>
+              <div className="grid grid-cols-2 gap-3.5 p-1 rounded-xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-900">
+                <div className="p-3 text-center rounded-lg bg-white dark:bg-slate-950 border border-slate-100/80 dark:border-slate-900/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Tồn kho hiện tại</span>
+                  <p className="mt-1.5 text-xl font-extrabold text-slate-700 dark:text-slate-300 tabular-nums">{adjustItem.tonKhaDung}</p>
                 </div>
-                <div className="border-l border-sky-500/10">
-                  <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn kho dự kiến</span>
-                  <p className={`mt-1 text-lg tabular-nums transition-colors duration-200 ${adjustPreview < 0 ? "text-red-500 animate-pulse" : adjustPreview === adjustItem.tonKhaDung ? "text-muted-foreground" : "text-emerald-500 dark:text-emerald-400"}`}>
+                <div className="p-3 text-center rounded-lg bg-white dark:bg-slate-950 border border-slate-100/80 dark:border-slate-900/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Tồn kho dự kiến</span>
+                  <p className={`mt-1.5 text-xl font-extrabold tabular-nums transition-colors duration-200 ${adjustPreview < 0 ? "text-rose-500 animate-pulse font-black" : adjustPreview === adjustItem.tonKhaDung ? "text-slate-500" : "text-emerald-600 dark:text-emerald-400"}`}>
                     {adjustPreview}
                   </p>
                 </div>
@@ -306,13 +318,13 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
 
         {mode === "check" && (
           <>
-            <DialogHeader className="space-y-1.5 pb-2 border-b border-sky-500/10">
-              <DialogTitle className="text-base font-bold text-foreground">Kiểm kho định kỳ</DialogTitle>
-              <p className="text-xs text-muted-foreground leading-normal">Kiểm kê thực tế và khớp số lượng tồn kho hệ thống</p>
+            <DialogHeader className="space-y-1.5 pb-3 border-b border-slate-100 dark:border-slate-900">
+              <DialogTitle className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Kiểm kho định kỳ</DialogTitle>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal">Kiểm kê thực tế và khớp số lượng tồn kho hệ thống</p>
             </DialogHeader>
-            <form className="space-y-4 pt-2" onSubmit={checkForm.handleSubmit(handleCheckSubmit)}>
+            <form className="space-y-5 pt-3" onSubmit={checkForm.handleSubmit(handleCheckSubmit)}>
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sản phẩm kiểm kê</Label>
+                <Label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sản phẩm kiểm kê</Label>
                 <InventorySelectPopover
                   type="product"
                   items={checkItems}
@@ -326,11 +338,11 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kỳ kiểm kho (Tháng)</Label>
-                  <Input type="month" {...checkForm.register("thang")} className="h-10 border-sky-500/20 bg-background/50 text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20" />
+                  <Label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kỳ kiểm kho (Tháng)</Label>
+                  <Input type="month" {...checkForm.register("thang")} className="h-10 border border-slate-200 dark:border-slate-800 bg-background/50 text-sm focus-visible:ring-3 focus-visible:ring-sky-500/10 focus-visible:border-sky-500 transition-all" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Số lượng thực tế</Label>
+                  <Label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Số lượng thực tế</Label>
                   <QuantityController
                     value={checkThucTe}
                     onDecrement={() => checkForm.setValue("thucTe", Math.max(0, checkThucTe - 1))}
@@ -340,33 +352,39 @@ export function InventoryActionDialog(props: InventoryActionDialogProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ghi chú kiểm kho</Label>
+                <Label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ghi chú kiểm kho</Label>
                 <Textarea
                   rows={2}
                   {...checkForm.register("ghiChu")}
                   placeholder="Nhập ghi chú kiểm kho nếu có..."
-                  className="border-sky-500/20 bg-background/50 text-sm focus-visible:border-sky-500/40 focus-visible:ring-sky-500/20"
+                  className="rounded-lg border border-slate-200 dark:border-slate-800 bg-background/50 text-sm focus-visible:ring-3 focus-visible:ring-sky-500/10 focus-visible:border-sky-500 transition-all placeholder:text-muted-foreground/60 resize-none"
                 />
               </div>
               {checkItem && (
-                <div className="rounded-sm border border-sky-500/10 bg-sky-50/5 dark:bg-sky-950/5 p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn hệ thống</span>
-                      <p className="mt-1 text-base text-muted-foreground/80 tabular-nums">{checkItem.tonKhaDung}</p>
+                <div className="rounded-xl border border-slate-100 dark:border-slate-900 bg-slate-50/30 p-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-3.5">
+                    <div className="p-3 text-center rounded-lg bg-white dark:bg-slate-950 border border-slate-100/80 dark:border-slate-900/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                      <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Tồn hệ thống</span>
+                      <p className="mt-1.5 text-base font-bold text-slate-500 tabular-nums">{checkItem.tonKhaDung}</p>
                     </div>
-                    <div className="border-l border-sky-500/10">
-                      <span className="text-xxs uppercase tracking-wider text-muted-foreground font-bold">Tồn thực tế</span>
-                      <p className="mt-1 text-base text-foreground tabular-nums">{checkThucTe}</p>
+                    <div className="p-3 text-center rounded-lg bg-white dark:bg-slate-950 border border-slate-100/80 dark:border-slate-900/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                      <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Tồn thực tế</span>
+                      <p className="mt-1.5 text-base font-bold text-slate-800 dark:text-slate-200 tabular-nums">{checkThucTe}</p>
                     </div>
                   </div>
-                  <div className="pt-2.5 border-t border-sky-500/10 text-center">
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-900 text-center">
                     {checkChenhLech !== 0 ? (
-                      <p className="text-xs font-medium text-muted-foreground leading-normal">
-                        Lệch điều chỉnh: <span className={`font-bold tabular-nums ${checkChenhLech > 0 ? "text-emerald-500" : "text-red-500 animate-pulse"}`}>{checkChenhLech > 0 ? `+${checkChenhLech}` : checkChenhLech}</span>
-                      </p>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 border border-amber-100/60 dark:border-amber-900/40">
+                        <span>Lệch điều chỉnh:</span>
+                        <span className={cn("font-extrabold tabular-nums", checkChenhLech > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
+                          {checkChenhLech > 0 ? `+${checkChenhLech}` : checkChenhLech}
+                        </span>
+                      </div>
                     ) : (
-                      <p className="text-xs font-semibold text-emerald-500 leading-normal flex items-center justify-center gap-1">✓ Khớp tồn kho hệ thống (100%)</p>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100/60 dark:border-emerald-900/40">
+                        <Check className="size-3.5 stroke-[3]" />
+                        <span>Khớp tồn kho hệ thống (100%)</span>
+                      </div>
                     )}
                   </div>
                 </div>

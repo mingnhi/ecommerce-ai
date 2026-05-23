@@ -15,9 +15,11 @@ import type { AuthUser } from "./types";
 
 type LoginBody = { email: string; password: string };
 
+const ME_KEY = ["me"] as const;
+
 export const useMe = () => {
   return useQuery({
-    queryKey: ["me"],
+    queryKey: ME_KEY,
     queryFn: async () => {
       const response = await getMe();
       const user = parseMeUser(response);
@@ -26,6 +28,9 @@ export const useMe = () => {
     },
     enabled: hasAuthToken(),
     initialData: () => getCachedAuthUser() ?? undefined,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
     retry: false,
   });
 };
@@ -48,7 +53,7 @@ export function useLogin() {
     },
     onSuccess: (payload) => {
       saveAuthSession(payload);
-      queryClient.setQueryData<AuthUser>(["me"], payload.user);
+      queryClient.setQueryData<AuthUser>(ME_KEY, payload.user);
       void navigate("/dashboard", { replace: true });
     },
   });
