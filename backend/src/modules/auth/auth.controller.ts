@@ -93,17 +93,17 @@ export class AuthController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async me(@Req() req: any): Promise<ApiResponse<any>> {
-    const data = await this.authService.me(req.user.sub);
+  // @UseGuards(JwtAuthGuard)
+  // @Get('me')
+  // async me(@Req() req: any): Promise<ApiResponse<any>> {
+  //   const data = await this.authService.me(req.user.sub);
 
-    return {
-      status: 'success',
-      message: 'Get current user successfully',
-      data,
-    };
-  }
+  //   return {
+  //     status: 'success',
+  //     message: 'Get current user successfully',
+  //     data,
+  //   };
+  // }
 
   // @UseGuards(JwtAuthGuard)
   // @Put('me/profile')
@@ -120,19 +120,19 @@ export class AuthController {
   //   };
   // }
 
-  @Post('me/avatar')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadAvatar(
-    @Req() req: any,
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<ApiResponse<any>> {
-    const data = await this.userProfileService.updateAvatar(req.user.sub, file);
+  // @Post('me/avatar')
+  // @UseGuards(JwtAuthGuard)
+  // @UseInterceptors(FileInterceptor('file'))
+  // async uploadAvatar(
+  //   @Req() req: any,
+  //   @UploadedFile() file: Express.Multer.File,
+  // ): Promise<ApiResponse<any>> {
+  //   const data = await this.userProfileService.updateAvatar(req.user.sub, file);
 
-    return {
-      status: 'success',
-      message: 'Upload avatar successfully',
-      data,
-    };
-  }
+  //   return {
+  //     status: 'success',
+  //     message: 'Upload avatar successfully',
+  //     data,
+  //   };
+  // }
 }
