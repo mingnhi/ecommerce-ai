@@ -33,6 +33,8 @@ import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { cn } from "@/shared/lib/utils"
+import { Can } from "@/shared/components/common/Can"
+import { PERMISSIONS } from "@/shared/lib/casl/permissions"
 
 const defaultFilters: InventoryListFilters = {
   search: "",
@@ -392,25 +394,29 @@ export default function InventoryPage() {
           </CardContent>
         </Card>
         <div className="flex flex-col gap-1.5 p-1 lg:col-span-1 justify-center">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setImportOpen(true)}
-            className="w-full gap-1 text-[10px] px-2 h-7.5 bg-sky-500 text-white hover:bg-sky-600 cursor-pointer rounded-sm"
-          >
-            <PackagePlus className="size-3.5" />
-            Nhập kho
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setCheckOpen(true)}
-            className="w-full gap-1 text-[10px] px-2 h-7.5 border-sky-500/25 hover:bg-sky-500/10 hover:text-sky-500 cursor-pointer rounded-sm"
-          >
-            <ClipboardCheck className="size-3.5" />
-            Kiểm kho
-          </Button>
+          <Can permission={PERMISSIONS.INVENTORY.IMPORT}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setImportOpen(true)}
+              className="w-full gap-1 text-[10px] px-2 h-7.5 bg-sky-500 text-white hover:bg-sky-600 cursor-pointer rounded-sm"
+            >
+              <PackagePlus className="size-3.5" />
+              Nhập kho
+            </Button>
+          </Can>
+          <Can permission={PERMISSIONS.INVENTORY.CHECK}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCheckOpen(true)}
+              className="w-full gap-1 text-[10px] px-2 h-7.5 border-sky-500/25 hover:bg-sky-500/10 hover:text-sky-500 cursor-pointer rounded-sm"
+            >
+              <ClipboardCheck className="size-3.5" />
+              Kiểm kho
+            </Button>
+          </Can>
         </div>
       </div>
 
