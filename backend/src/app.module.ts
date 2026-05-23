@@ -10,6 +10,11 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { MailModule } from './modules/mail/mail.module';
+import {ProductsModule} from "@modules/products/products.module";
+import {CategoryModule} from "@modules/categories/categories.module";
+import {ProductImageModule} from "@modules/productimage/productimage.module";
+import {ProductReviewModule} from "@modules/productreview/productreview.module";
+
 
 @Module({
   imports: [
@@ -29,6 +34,10 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     PermissionsModule,
     MailModule,
+    ProductsModule,
+    CategoryModule,
+    ProductImageModule,
+    ProductReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
