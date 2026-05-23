@@ -79,7 +79,7 @@ export default function PermissionsPage() {
 
   const toolbarConfig = useMemo(
     () => ({
-      title: "Quản lý quyền hạn",
+      title: "Bộ lọc quyền hạn",
       description: "Danh sách các quyền hạn trong hệ thống",
       fields: [
         {
@@ -120,14 +120,9 @@ export default function PermissionsPage() {
   if (isLoading) return <PageSkeleton filterCount={2} columnCount={4} />;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Quản lý quyền hạn</h1>
-          <p className="text-sm text-muted-foreground">
-            Quản lý các quyền hạn trong hệ thống
-          </p>
-        </div>
+    <div className="mx-auto flex w-full flex-col gap-6 md:gap-3">
+      <div className="flex items-center justify-end">
+
         <PermissionButton
           permission={PERMISSIONS.PERMISSION.CREATE}
           fallbackBehavior="alert"
