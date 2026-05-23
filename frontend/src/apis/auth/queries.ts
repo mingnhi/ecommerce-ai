@@ -62,7 +62,7 @@ export const useLogin = () => {
                                 }));
                             }
                         })
-                        .catch(() => {});
+                        .catch(() => { });
                 }
             } else {
                 const error = { messages: response.messages || ['Đăng nhập thất bại'] };
