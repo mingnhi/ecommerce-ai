@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { AuthService } from './requests';
 import { LoginRequest, RegisterRequest, UserResponse, UpdateProfileRequest, ChangePasswordRequest } from './types';
 import { useAppDispatch, useAppSelector, store } from '@/stores';
-import { loginAction, loginSuccessAction, loginFailureAction, registerAction, registerSuccessAction, registerFailureAction } from '@/stores/auth/actions';
+import { loginAction, loginSuccessAction, loginFailureAction } from '@/stores/auth/actions';
 import { setUserAction, setAccessTokenAction, setRefreshTokenAction, clearUserAction } from '@/stores/user/actions';
 import { selectUser, selectAccessToken } from '@/stores/user/selectors';
 import { getRoleFromToken } from '@/utils/jwt';
@@ -77,68 +77,21 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-    const dispatch = useAppDispatch();
-
     return useMutation({
-        mutationFn: async (credentials: RegisterRequest) => {
-            return await AuthService.register(credentials);
-        },
-        onMutate: (credentials: RegisterRequest) => {
-            dispatch(registerAction(credentials));
-        },
-        onSuccess: (response: import('./types').AuthResponse) => {
-            if (response.succeeded && response.data) {
-                dispatch(registerSuccessAction(response.data));
+        mutationFn: (credentials: RegisterRequest) => AuthService.register(credentials),
+    });
+};
 
-                // Also update user store
-                if (response.data.token) {
-                    dispatch(setAccessTokenAction(response.data.token));
-                }
-                if (response.data.refreshToken) {
-                    dispatch(setRefreshTokenAction(response.data.refreshToken));
-                }
-                if (response.data.user) {
-                    const serverUser = response.data.user as UserResponse;
-                    const token = response.data.token;
-                    const userData: IUser = {
-                        id: serverUser.id || '',
-                        email: serverUser.email || '',
-                        firstName: serverUser.firstName,
-                        lastName: serverUser.lastName,
-                        name: `${serverUser.firstName || ''} ${serverUser.lastName || ''}`.trim() || undefined,
-                        image: serverUser.image || serverUser.avatar,
-                        roles: getRoleFromToken(token) ?? undefined,
-                    };
-                    dispatch(setUserAction(userData));
-                    AuthService.me()
-                        .then((meResponse) => {
-                            if (meResponse?.data && (meResponse.succeeded === true || meResponse.status === true)) {
-                                const d = meResponse.data;
-                                const currentToken = store.getState().user.accessToken;
-                                dispatch(setUserAction({
-                                    id: d.id || '',
-                                    email: d.email || '',
-                                    firstName: d.firstName || '',
-                                    lastName: d.lastName || '',
-                                    phoneNumber: d.phoneNumber || '',
-                                    introduction: d.introduction || '',
-                                    name: `${d.firstName || ''} ${d.lastName || ''}`.trim() || undefined,
-                                    image: d.avatar || d.image,
-                                    roles: getRoleFromToken(currentToken) ?? undefined,
-                                }));
-                            }
-                        })
-                        .catch(() => {});
-                }
-            } else {
-                const error = { messages: response.messages || ['Đăng ký thất bại'] };
-                dispatch(registerFailureAction(error));
-            }
-        },
-        onError: (error: any) => {
-            const errorMessages = error.response?.data?.messages || ['Đăng ký thất bại'];
-            dispatch(registerFailureAction({ messages: errorMessages }));
-        },
+export const useVerifyRegisterOtp = () => {
+    return useMutation({
+        mutationFn: (payload: import('./types').VerifyOtpRequest) =>
+            AuthService.verifyRegisterOtp(payload),
+    });
+};
+
+export const useResendRegisterOtp = () => {
+    return useMutation({
+        mutationFn: (email: string) => AuthService.resendRegisterOtp(email),
     });
 };
 

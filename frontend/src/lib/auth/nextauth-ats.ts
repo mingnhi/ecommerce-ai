@@ -1,3 +1,5 @@
+import { KEYS } from '@/apis/auth/keys';
+
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:44389';
 
 export function isAccessTokenExpired(accessToken: string): boolean {
@@ -52,7 +54,7 @@ export async function refreshAtsTokens(
   accessToken: string,
   refreshToken: string
 ): Promise<{ accessToken: string; refreshToken: string } | null> {
-  const res = await postToAts('/api/token/refresh', { accessToken, refreshToken });
+  const res = await postToAts(KEYS.TOKEN_REFRESH, { accessToken, refreshToken });
   if (!res.ok) return null;
   const raw = (await res.json()) as Record<string, unknown>;
   if (!isAtsSuccess(raw)) return null;
