@@ -1,15 +1,24 @@
+export type ApiResponse<T> = {
+    status?: string;
+    message?: string;
+    data: T;
+};
+
 export type CreateVnpayPaymentRequest = {
     amount: number;
     orderInfo: string;
 };
 
-export type CreateVnpayPaymentResponse = {
+export type CreateVnpayPaymentData = {
     paymentId: string;
     txnRef: string;
     paymentUrl: string;
 };
 
-export type VnpayReturnResponse = {
+export type CreateVnpayPaymentResponse =
+    ApiResponse<CreateVnpayPaymentData>;
+
+export type VnpayReturnData = {
     paymentId: string;
     status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
     amount: number;
@@ -21,3 +30,4 @@ export type VnpayReturnResponse = {
     payDate?: string;
     message: string;
 };
+export type VnpayReturnResponse = ApiResponse<VnpayReturnData>;
