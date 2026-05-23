@@ -153,7 +153,7 @@ export class AuthService {
 
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
-    await this.usersService.update(user.id, {
+    await this.usersService.patch(user.id, {
       refreshToken: hashedRefreshToken,
       lastLoginAt: new Date(),
     });
@@ -187,7 +187,7 @@ export class AuthService {
     await this.otpService.resetPasswordOtp(dto.email, dto.otp);
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
-    await this.usersService.update(user.id, {
+    await this.usersService.patch(user.id, {
       passwordHash: hashedPassword,
       refreshToken: null,
     });
@@ -220,7 +220,7 @@ export class AuthService {
 
     const hashedRefreshToken = await bcrypt.hash(tokens.refreshToken, 10);
 
-    await this.usersService.update(user.id, {
+    await this.usersService.patch(user.id, {
       refreshToken: hashedRefreshToken,
     });
 
@@ -233,7 +233,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    await this.usersService.update(userId, {
+    await this.usersService.patch(userId, {
       refreshToken: null,
     });
 
