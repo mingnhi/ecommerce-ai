@@ -12,7 +12,7 @@ import {
   LockMode,
   QueryOrder,
 } from '@mikro-orm/core';
-import { EntityManager } from '@mikro-orm/mysql';
+import { EntityManager } from '@mikro-orm/core';
 
 import { InventoryEntity } from '@entities/inventory.entity';
 import { InventoryMovementEntity } from '@entities/inventory-movement.entity';
