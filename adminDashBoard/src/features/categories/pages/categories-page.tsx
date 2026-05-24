@@ -247,7 +247,7 @@ const CategoriesPage = () => {
             </Button>
           </DialogTrigger>
 
-          <DialogContent>
+          <DialogContent className="sm:max-w-lg rounded-2xl p-6">
             <DialogHeader>
               <DialogTitle>
                 {selected

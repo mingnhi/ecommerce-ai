@@ -17,6 +17,11 @@ import {
 } from "@/shared/components/ui/label";
 
 import {
+  Card,
+  CardContent,
+} from "@/shared/components/ui/card";
+
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -93,85 +98,97 @@ export const CategoryForm = ({
       onSubmit={handleSubmit(
         onSubmit
       )}
-      className="space-y-5"
+      className="space-y-6"
     >
-      <div className="space-y-2">
-        <Label>
-          Tên danh mục
-        </Label>
+      <Card className="border-0 shadow-none">
+        <CardContent className="space-y-6 p-0">
+          {/* NAME */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Tên danh mục
+            </Label>
 
-        <Input
-          placeholder="Nhập tên danh mục..."
-          {...register(
-            "name"
-          )}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>
-          Danh mục cha
-        </Label>
-
-        <Select
-          value={
-            watch(
-              "parentId"
-            ) || "0"
-          }
-          onValueChange={v =>
-            setValue(
-              "parentId",
-              v
-            )
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn danh mục cha" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="0">
-              Không có
-            </SelectItem>
-
-            {categories
-              .filter(
-                c =>
-                  c.id !==
-                  initialData?.id
-              )
-              .map(
-                category => (
-                  <SelectItem
-                    key={
-                      category.id
-                    }
-                    value={
-                      category.id
-                    }
-                  >
-                    {
-                      category.name
-                    }
-                  </SelectItem>
-                )
+            <Input
+              placeholder="Ví dụ: Điện thoại, Laptop..."
+              className="h-11"
+              {...register(
+                "name"
               )}
-          </SelectContent>
-        </Select>
-      </div>
+            />
+          </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading}
-      >
-        {loading
-          ? "Đang xử lý..."
-          : initialData
-            ? "Cập nhật"
-            : "Tạo danh mục"}
-      </Button>
+          {/* PARENT */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Danh mục cha
+            </Label>
+
+            <Select
+              value={
+                watch(
+                  "parentId"
+                ) || "0"
+              }
+              onValueChange={v =>
+                setValue(
+                  "parentId",
+                  v
+                )
+              }
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Chọn danh mục cha" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="0">
+                  Không có
+                </SelectItem>
+
+                {categories
+                  .filter(
+                    c =>
+                      c.id !==
+                      initialData?.id
+                  )
+                  .map(
+                    (
+                      category: Category
+                    ) => (
+                      <SelectItem
+                        key={
+                          category.id
+                        }
+                        value={
+                          category.id
+                        }
+                      >
+                        {
+                          category.name
+                        }
+                      </SelectItem>
+                    )
+                  )}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ACTION */}
+      <div className="flex justify-end gap-3 pt-2">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-11 px-6"
+        >
+          {loading
+            ? "Đang xử lý..."
+            : initialData
+              ? "Cập nhật danh mục"
+              : "Tạo danh mục"}
+        </Button>
+      </div>
     </form>
   );
 };
