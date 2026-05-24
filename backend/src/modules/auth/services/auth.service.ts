@@ -1,12 +1,17 @@
+import { EntityManager, EntityRepository } from '@mikro-orm/core';
+import { InjectRepository } from '@mikro-orm/nestjs';
 import { RolesService } from '@modules/roles/roles.service';
 import { UserRolesService } from '@modules/user-roles/user-roles.service';
 import { UsersService } from '@modules/users/users.service';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import cloudinary from '@config/cloudinary.config';
+import type { UploadApiResponse } from 'cloudinary';
 import { JwtService } from './jwt.service';
 import { RegisterDto } from '../dtos/register.dto';
 import bcrypt from 'bcryptjs';
@@ -16,8 +21,11 @@ import { ResetPasswordDto } from '../../otp/dto/reset-password.dto';
 import { OtpService } from '@modules/otp/otp.service';
 import { UserStatus } from '@modules/users/use.enum';
 import { User } from '@entities/user.entity';
+import { UserProfile, Gender } from '@entities/userProfile.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleProfile } from '../types/google-profile.type';
+import { UpdateProfileDto } from '../dtos/update-profile.dto';
+import { UpdatePasswordDto } from '../dtos/update-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +36,9 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    @InjectRepository(UserProfile)
+    private readonly profileRepository: EntityRepository<UserProfile>,
+    private readonly em: EntityManager,
   ) { }
 
   private async getUserRoles(userId: string): Promise<string[]> {
@@ -226,6 +237,27 @@ export class AuthService {
     return this.createAuthPayload(user);
   }
 
+  async updatePassword(userId: string, dto: UpdatePasswordDto) {
+    const user = await this.validateUser(userId);
+
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException('New password must be different from current password');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.usersService.patch(user.id, {
+      passwordHash,
+      ...(dto.logoutAllSessions ? { refreshToken: null } : {}),
+    });
+
+    return { changed: true };
+  }
+
   async resetPassword(dto: ResetPasswordDto) {
     const user = await this.usersService.findByEmail(dto.email);
 
@@ -311,5 +343,58 @@ export class AuthService {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
+  }
+  async updateFullName(userId: string, fullName: string): Promise<void> {
+    await this.usersService.patch(userId, { fullName });
+  }
+
+  async findProfileByUser(user: User): Promise<UserProfile | null> {
+    return this.profileRepository.findOne({ user });
+  }
+
+  async upsertProfile(user: User, dto: UpdateProfileDto): Promise<UserProfile> {
+    let profile = await this.profileRepository.findOne({ user });
+
+    if (!profile) {
+      profile = this.profileRepository.create({ user });
+    }
+
+    if (dto.phone !== undefined) profile.phone = dto.phone;
+    if (dto.address !== undefined) profile.address = dto.address;
+    if (dto.gender !== undefined) profile.gender = dto.gender as Gender;
+    if (dto.dateOfBirth !== undefined) {
+      profile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined;
+    }
+
+    await this.em.persistAndFlush(profile);
+    return profile;
+  }
+
+  async updateAvatar(user: User, file: Express.Multer.File): Promise<UserProfile> {
+    if (!process.env.CLOUDINARY_CLOUD_NAME?.trim()) {
+      throw new BadRequestException('Cloudinary chưa được cấu hình trên server');
+    }
+
+    if (!file?.buffer?.length) {
+      throw new BadRequestException('File avatar không hợp lệ');
+    }
+
+    const uploaded = await new Promise<UploadApiResponse>((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ folder: 'avatars', resource_type: 'image' }, (error, result) => {
+          if (error || !result) reject(error ?? new Error('Upload failed'));
+          else resolve(result);
+        })
+        .end(file.buffer);
+    });
+
+    let profile = await this.profileRepository.findOne({ user });
+    if (!profile) {
+      profile = this.profileRepository.create({ user });
+    }
+
+    profile.avatarUrl = uploaded.secure_url;
+    await this.em.persistAndFlush(profile);
+    return profile;
   }
 }
