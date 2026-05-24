@@ -8,6 +8,8 @@ import InventoryHistoryPage from "@/features/inventory/pages/InventoryHistoryPag
 import RolesPage from "@/features/roles/pages/RolesPage";
 import PermissionsPage from "@/features/permissions/pages/PermissionsPage";
 import UsersPage from "@/features/users/pages/UsersPage";
+import ProfilePage from "@/features/account/pages/ProfilePage";
+import ChangePasswordPage from "@/features/account/pages/ChangePasswordPage";
 import NotFoundPage from "@/features/system/pages/NotFoundPage";
 import ForbiddenPage from "@/features/system/pages/ForbiddenPage";
 import MainLayout from "@/shared/layouts/MainLayout";
@@ -104,6 +106,8 @@ export const privateRoutes = [
           </PermissionRoute>
         ),
       },
+      { path: "/account/profile", element: <ProfilePage /> },
+      { path: "/account/password", element: <ChangePasswordPage /> },
       { path: "/403", element: <ForbiddenPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],

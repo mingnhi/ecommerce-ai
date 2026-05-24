@@ -2,8 +2,10 @@ import type { ComponentProps } from "react"
 import { Link } from "react-router-dom"
 import {
   BaggageClaim,
+  KeyRound,
   LayoutDashboard,
   Package,
+  UserCircle,
   Warehouse,
   Shield,
   Users,
@@ -18,14 +20,15 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/shared/components/ui/sidebar"
-import { NavMain, type NavMainItem } from "@/shared/layouts/sidebar/NavMain"
+import { NavMain, type NavMainItem, type NavSection } from "@/shared/layouts/sidebar/NavMain"
 import { NavUser } from "@/shared/layouts/sidebar/NavUser"
 import { useMe } from "@/features/auth/hooks"
+import { useProfile } from "@/features/account/hooks"
 import { PERMISSIONS } from "@/shared/lib/casl/permissions"
 import logo from "@/assets/logo.png"
 import logoSmall from "@/assets/logo-small.png"
 
-const navMain: NavMainItem[] = [
+const navManagement: NavMainItem[] = [
   {
     title: "Tổng quan",
     url: "/dashboard",
@@ -83,13 +86,32 @@ const navMain: NavMainItem[] = [
   },
 ]
 
+const navPersonal: NavMainItem[] = [
+  {
+    title: "Thông tin tài khoản",
+    url: "/account/profile",
+    icon: <UserCircle className="size-4" />,
+  },
+  {
+    title: "Đổi mật khẩu",
+    url: "/account/password",
+    icon: <KeyRound className="size-4" />,
+  },
+]
+
+const navSections: NavSection[] = [
+  { label: "Điều hướng", items: navManagement },
+  { label: "Cá nhân", items: navPersonal },
+]
+
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const { data: user } = useMe()
+  const { data: profile } = useProfile()
 
   const activeUser = {
-    name: user?.fullName || "Quản trị viên",
+    name: profile?.fullName || user?.fullName || "Quản trị viên",
     email: user?.email || "",
-    avatar: "",
+    avatar: profile?.avatarUrl || "",
   }
 
   return (
@@ -119,7 +141,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain sections={navSections} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={activeUser} />

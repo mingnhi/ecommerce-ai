@@ -24,6 +24,7 @@ import {
   BellIcon,
   ChevronsUpDownIcon,
   CreditCardIcon,
+  KeyRoundIcon,
   LogOutIcon,
   SparklesIcon,
 } from "lucide-react"
@@ -81,24 +82,23 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+           
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <SparklesIcon />
-                Nâng cấp gói
+              <DropdownMenuItem asChild className="cursor-pointer"> 
+                <Link to="/account/profile">
+                  <BadgeCheckIcon />
+                  Thông tin tài khoản
+                </Link>
               </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheckIcon />
-                Tài khoản
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/account/password">
+                  <KeyRoundIcon />
+                  Đổi mật khẩu
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Thanh toán
-              </DropdownMenuItem>
-              <DropdownMenuItem>
+             
+              <DropdownMenuItem className="cursor-pointer">
                 <BellIcon />
                 Thông báo
               </DropdownMenuItem>
