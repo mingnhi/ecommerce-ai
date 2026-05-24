@@ -15,6 +15,7 @@ import { CloudinaryModule } from './modules/upload/upload.module';
 import { InventoryModule } from '@modules/inventory/inventory.module';
 import { CartModule } from '@modules/cart/cart.module';
 import { OrderModule } from '@modules/order/order.module';
+import { UserEventModule } from './modules/user-event/user-event.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { OrderModule } from '@modules/order/order.module';
     InventoryModule,
     CartModule,
     OrderModule,
+    UserEventModule,
   ],
   controllers: [AppController],
   providers: [AppService],
