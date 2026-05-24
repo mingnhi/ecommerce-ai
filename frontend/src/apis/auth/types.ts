@@ -90,15 +90,26 @@ export interface UserResponse {
   image?: string;
 }
 
-export interface UpdateProfileRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  introduction?: string;
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
+export interface UserProfileResponse {
+  fullName?: string;
+  phone?: string | null;
+  address?: string | null;
+  dateOfBirth?: string | null;
+  gender?: Gender | null;
+  avatarUrl?: string | null;
 }
 
-export interface ChangePasswordRequest {
+export interface UpdateProfileRequest {
+  fullName?: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  gender?: Gender;
+}
+
+export interface UpdatePasswordRequest {
   currentPassword: string;
   newPassword: string;
   logoutAllSessions?: boolean;

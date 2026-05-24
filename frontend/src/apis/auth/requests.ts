@@ -2,12 +2,13 @@ import { request } from '../axios';
 import { KEYS } from './keys';
 import type {
   ApiEnvelope,
-  ChangePasswordRequest,
+  UpdatePasswordRequest,
   LoginRequest,
   RegisterRequest,
   RegisterResponseData,
   ResendOtpRequest,
   UpdateProfileRequest,
+  UserProfileResponse,
   UserResponse,
   VerifyOtpRequest,
   VerifyRegisterOtpData,
@@ -42,20 +43,22 @@ export const AuthService = {
     return request.get<ApiEnvelope<UserResponse>>(KEYS.AUTH_ME);
   },
 
+  getProfile: async () => {
+    return request.get<ApiEnvelope<UserProfileResponse>>(KEYS.AUTH_PROFILE);
+  },
+
   updateProfile: async (data: UpdateProfileRequest) => {
-    return request.put<ApiEnvelope>(KEYS.AUTH_UPDATE_PROFILE, data);
+    return request.patch<ApiEnvelope<UserProfileResponse>>(KEYS.AUTH_PROFILE, data);
   },
 
   updateAvatar: async (file: File) => {
     const formData = new FormData();
-    formData.append('AvatarFile', file);
-    return request.post<ApiEnvelope>(KEYS.AUTH_UPDATE_AVATAR, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    formData.append('avatar', file);
+    return request.patch<ApiEnvelope<UserProfileResponse>>(KEYS.AUTH_PROFILE_AVATAR, formData);
   },
 
-  changePassword: async (data: ChangePasswordRequest) => {
-    return request.post<ApiEnvelope>(KEYS.AUTH_CHANGE_PASSWORD, data);
+  updatePassword: async (data: UpdatePasswordRequest) => {
+    return request.patch<ApiEnvelope<{ changed: boolean }>>(KEYS.AUTH_PASSWORD, data);
   },
 
   logout: async () => {
