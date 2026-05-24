@@ -20,12 +20,6 @@ import { ProductEntity } from '@entities/product.entity';
 
 import { CategoryEntity } from '@entities/category.entity';
 
-import { ProductPriceEntity } from '@entities/product-price.entity';
-
-import { ProductVariantEntity } from '@entities/product-variant.entity';
-
-import { ProductAttributeEntity } from '@entities/product-attribute.entity';
-
 import { CreateProductRequest } from './dtos/requests/create-product.request';
 
 import { UpdateProductRequest } from './dtos/requests/update-product.request';
@@ -51,31 +45,26 @@ export class ProductsService {
     name: string,
     productId?: string,
   ) {
-    const baseSlug = slugify(
-      name,
-      {
+    const baseSlug =
+      slugify(name, {
         lower: true,
-
         strict: true,
-      },
-    );
+      });
 
     let slug = baseSlug;
 
     let count = 1;
 
     while (
-      await this.productRepository.findOne(
-        {
-          slug,
+      await this.productRepository.findOne({
+        slug,
 
-          ...(productId && {
-            id: {
-              $ne: productId,
-            },
-          }),
-        },
-      )
+        ...(productId && {
+          id: {
+            $ne: productId,
+          },
+        }),
+      })
     ) {
       slug = `${baseSlug}-${count}`;
 
@@ -83,6 +72,30 @@ export class ProductsService {
     }
 
     return slug;
+  }
+
+  /**
+   * calculate discount price
+   */
+  private calculateDiscountPrice(
+    originalPrice: number,
+    discountPercent?: number,
+  ) {
+    if (
+      !discountPercent ||
+      discountPercent <= 0
+    ) {
+      return originalPrice;
+    }
+
+    const discount =
+      (originalPrice *
+        discountPercent) /
+      100;
+
+    return Math.round(
+      originalPrice - discount,
+    );
   }
 
   /**
@@ -101,16 +114,26 @@ export class ProductsService {
       {};
 
     /**
-     * search
+     * SEARCH
      */
     if (query.search) {
-      where.name = {
-        $like: `%${query.search}%`,
-      };
+      where.$or = [
+        {
+          name: {
+            $like: `%${query.search}%`,
+          },
+        },
+
+        {
+          shortDescription: {
+            $like: `%${query.search}%`,
+          },
+        },
+      ];
     }
 
     /**
-     * category
+     * FILTER CATEGORY
      */
     if (query.categoryId) {
       where.category =
@@ -118,25 +141,63 @@ export class ProductsService {
     }
 
     /**
-     * products
+     * FILTER STATUS
      */
+    if (
+      query.isActive !== undefined
+    ) {
+      where.isActive =
+        query.isActive;
+    }
+
+    /**
+     * SORT
+     */
+    let orderBy: any = {
+      createdAt:
+        QueryOrder.DESC,
+    };
+
+    switch (query.sort) {
+      case 'oldest':
+        orderBy = {
+          createdAt:
+            QueryOrder.ASC,
+        };
+        break;
+
+      case 'name_asc':
+        orderBy = {
+          name:
+            QueryOrder.ASC,
+        };
+        break;
+
+      case 'name_desc':
+        orderBy = {
+          name:
+            QueryOrder.DESC,
+        };
+        break;
+
+      default:
+        orderBy = {
+          createdAt:
+            QueryOrder.DESC,
+        };
+        break;
+    }
+
     const [products, total] =
       await this.productRepository.findAndCount(
         where,
         {
           populate: [
             'category',
-            'prices',
             'images',
           ],
 
-          orderBy: {
-            createdAt:
-              query.sort ===
-              'oldest'
-                ? QueryOrder.ASC
-                : QueryOrder.DESC,
-          },
+          orderBy,
 
           limit,
 
@@ -145,75 +206,101 @@ export class ProductsService {
         },
       );
 
+    /**
+     * FORMAT PRODUCTS
+     */
+    let formattedProducts =
+      products.map(product => {
+        const primaryImage =
+          product.images.find(
+            image =>
+              image.isPrimary,
+          );
+
+        const activePrice =
+          product.prices?.find(
+            price =>
+              price.isActive,
+          ) ||
+          product.prices?.[0] ||
+          null;
+
+        return {
+          id: product.id,
+
+          name:
+            product.name,
+
+          slug:
+            product.slug,
+
+          shortDescription:
+            product.shortDescription,
+
+          /**
+           * thumbnail
+           */
+          thumbnail:
+            product.thumbnail ||
+            primaryImage
+              ?.imageUrl ||
+            product.images[0]
+              ?.imageUrl ||
+            null,
+
+          isActive:
+            product.isActive,
+
+          category: {
+            id:
+              product.category.id,
+
+            name:
+              product.category.name,
+
+            slug:
+              product.category.slug,
+          },
+
+          price: activePrice,
+
+          createdAt:
+            product.createdAt,
+        };
+      });
+
+    /**
+     * SORT PRICE
+     */
+    if (
+      query.sort ===
+      'price_asc'
+    ) {
+      formattedProducts.sort(
+        (a, b) =>
+          (a.price?.price || 0) -
+          (b.price?.price || 0),
+      );
+    }
+
+    if (
+      query.sort ===
+      'price_desc'
+    ) {
+      formattedProducts.sort(
+        (a, b) =>
+          (b.price?.price || 0) -
+          (a.price?.price || 0),
+      );
+    }
+
     return {
       message:
         'Get products successfully',
 
       data: {
-        products: products.map(
-          product => {
-            const thumbnail =
-              product.images.find(
-                image =>
-                  image.isPrimary,
-              );
-
-            const activePrice =
-              product.prices.find(
-                price =>
-                  price.isActive,
-              );
-
-            return {
-              id: product.id,
-
-              name:
-                product.name,
-
-              slug:
-                product.slug,
-
-              shortDescription:
-                product.shortDescription,
-
-              isActive:
-                product.isActive,
-
-              thumbnail:
-                thumbnail?.imageUrl,
-
-              category: {
-                id:
-                  product.category.id,
-
-                name:
-                  product.category.name,
-
-                slug:
-                  product.category.slug,
-              },
-
-              price: activePrice
-                ? {
-                    price:
-                      activePrice.price,
-
-                    originalPrice:
-                      activePrice.originalPrice,
-
-                    discountPercent:
-                      activePrice.discountPercent,
-
-                    currency:
-                      activePrice.currency,
-                  }
-                : null,
-
-              createdAt:
-                product.createdAt,
-            };
-          },
-        ),
+        products:
+          formattedProducts,
       },
 
       meta: {
@@ -229,6 +316,22 @@ export class ProductsService {
             Math.ceil(
               total / limit,
             ),
+        },
+
+        filters: {
+          search:
+            query.search ||
+            null,
+
+          categoryId:
+            query.categoryId ||
+            null,
+
+          isActive:
+            query.isActive,
+
+          sort:
+            query.sort,
         },
       },
     };
@@ -248,9 +351,6 @@ export class ProductsService {
         {
           populate: [
             'category',
-            'prices',
-            'variants',
-            'attributes',
             'images',
             'reviews',
           ],
@@ -279,6 +379,12 @@ export class ProductsService {
           ) / totalReviews
         : 0;
 
+    const primaryImage =
+      product.images.find(
+        image =>
+          image.isPrimary,
+      );
+
     return {
       message:
         'Get product successfully',
@@ -298,6 +404,14 @@ export class ProductsService {
 
           description:
             product.description,
+
+          thumbnail:
+            product.thumbnail ||
+            primaryImage
+              ?.imageUrl ||
+            product.images[0]
+              ?.imageUrl ||
+            null,
 
           isActive:
             product.isActive,
@@ -320,67 +434,16 @@ export class ProductsService {
           },
 
           prices:
-            product.prices.map(
-              price => ({
-                id: price.id,
-
-                price:
-                  price.price,
-
-                originalPrice:
-                  price.originalPrice,
-
-                discountPercent:
-                  price.discountPercent,
-
-                currency:
-                  price.currency,
-
-                isActive:
-                  price.isActive,
-              }),
-            ),
+            product.prices ||
+            [],
 
           variants:
-            product.variants.map(
-              variant => ({
-                id: variant.id,
-
-                title:
-                  variant.title,
-
-                sku:
-                  variant.sku,
-
-                stock:
-                  variant.stock,
-
-                image:
-                  variant.image,
-
-                price:
-                  variant.price,
-
-                isActive:
-                  variant.isActive,
-
-                attributes:
-                  variant.attributes,
-              }),
-            ),
+            product.variants ||
+            [],
 
           attributes:
-            product.attributes.map(
-              attr => ({
-                id: attr.id,
-
-                name:
-                  attr.name,
-
-                value:
-                  attr.value,
-              }),
-            ),
+            product.attributes ||
+            [],
 
           images:
             product.images.map(
@@ -437,175 +500,76 @@ export class ProductsService {
       );
     }
 
-    /**
-     * slug
-     */
     const slug =
       await this.generateSlug(
         request.name,
       );
 
-    return await this.em.transactional(
-      async em => {
-        /**
-         * product
-         */
-        const product =
-          em.create(
-            ProductEntity,
-            {
-              category,
+    const product =
+      this.productRepository.create(
+        {
+          category,
 
-              name:
-                request.name,
+          name:
+            request.name,
 
-              slug,
+          slug,
 
-              shortDescription:
-                request.shortDescription,
+          shortDescription:
+            request.shortDescription,
 
-              description:
-                request.description,
+          description:
+            request.description,
 
-              isActive:
-                request.isActive ??
-                true,
-            },
-          );
+          thumbnail:
+            request.thumbnail,
 
-        em.persist(product);
+          isActive:
+            request.isActive ??
+            true,
 
-        /**
-         * prices
-         */
-        if (
-          request.prices
-            ?.length
-        ) {
-          const prices =
-            request.prices.map(
-              item =>
-                em.create(
-                  ProductPriceEntity,
-                  {
-                    product,
+          prices:
+            request.prices?.map(
+              item => ({
+                originalPrice:
+                  item.originalPrice,
 
-                    price:
-                      item.price,
+                discountPercent:
+                  item.discountPercent ||
+                  0,
 
-                    originalPrice:
-                      item.originalPrice,
+                price:
+                  this.calculateDiscountPrice(
+                    item.originalPrice,
+                    item.discountPercent,
+                  ),
 
-                    discountPercent:
-                      item.discountPercent,
+                currency:
+                  item.currency ||
+                  'VND',
 
-                    currency:
-                      item.currency ||
-                      'VND',
+                isActive:
+                  item.isActive ??
+                  true,
+              }),
+            ) || [],
 
-                    isActive:
-                      true,
-                  },
-                ),
-            );
+          variants:
+            request.variants ||
+            [],
 
-          em.persist(prices);
-        }
+          attributes:
+            request.attributes ||
+            [],
+        },
+      );
 
-        /**
-         * variants
-         */
-        if (
-          request.variants
-            ?.length
-        ) {
-          const variants =
-            request.variants.map(
-              item =>
-                em.create(
-                  ProductVariantEntity,
-                  {
-                    product,
+    await this.em.persistAndFlush(
+      product,
+    );
 
-                    title:
-                      item.title,
-
-                    sku:
-                      item.sku,
-
-                    stock:
-                      item.stock ||
-                      0,
-
-                    image:
-                      item.image,
-
-                    price:
-                      item.price,
-
-                    attributes:
-                      item.attributes,
-
-                    isActive:
-                      true,
-                  },
-                ),
-            );
-
-          em.persist(
-            variants,
-          );
-        }
-
-        /**
-         * attributes
-         */
-        if (
-          request.attributes
-            ?.length
-        ) {
-          const attributes =
-            request.attributes.map(
-              item =>
-                em.create(
-                  ProductAttributeEntity,
-                  {
-                    product,
-
-                    name:
-                      item.name,
-
-                    value:
-                      item.value,
-                  },
-                ),
-            );
-
-          em.persist(
-            attributes,
-          );
-        }
-
-        await em.flush();
-
-        const productDetail =
-          await this.findBySlug(
-            slug,
-          );
-
-        return {
-          message:
-            'Create product successfully',
-
-          data: {
-            product:
-              productDetail.data
-                .product,
-          },
-
-          meta: {},
-        };
-      },
+    return await this.findBySlug(
+      slug,
     );
   }
 
@@ -629,9 +593,6 @@ export class ProductsService {
       );
     }
 
-    /**
-     * category
-     */
     if (request.categoryId) {
       const category =
         await this.categoryRepository.findOne(
@@ -650,9 +611,6 @@ export class ProductsService {
         category;
     }
 
-    /**
-     * update info
-     */
     if (request.name) {
       product.name =
         request.name;
@@ -681,6 +639,14 @@ export class ProductsService {
     }
 
     if (
+      request.thumbnail !==
+      undefined
+    ) {
+      product.thumbnail =
+        request.thumbnail;
+    }
+
+    if (
       request.isActive !==
       undefined
     ) {
@@ -688,169 +654,48 @@ export class ProductsService {
         request.isActive;
     }
 
-    return await this.em.transactional(
-      async em => {
-        /**
-         * delete old prices
-         */
-        await em.nativeDelete(
-          ProductPriceEntity,
-          {
-            product,
-          },
+    if (request.prices) {
+      product.prices =
+        request.prices.map(
+          item => ({
+            originalPrice:
+              item.originalPrice,
+
+            discountPercent:
+              item.discountPercent ||
+              0,
+
+            price:
+              this.calculateDiscountPrice(
+                item.originalPrice,
+                item.discountPercent,
+              ),
+
+            currency:
+              item.currency ||
+              'VND',
+
+            isActive:
+              item.isActive ??
+              true,
+          }),
         );
+    }
 
-        /**
-         * delete old variants
-         */
-        await em.nativeDelete(
-          ProductVariantEntity,
-          {
-            product,
-          },
-        );
+    if (request.variants) {
+      product.variants =
+        request.variants;
+    }
 
-        /**
-         * delete old attributes
-         */
-        await em.nativeDelete(
-          ProductAttributeEntity,
-          {
-            product,
-          },
-        );
+    if (request.attributes) {
+      product.attributes =
+        request.attributes;
+    }
 
-        /**
-         * prices
-         */
-        if (
-          request.prices
-            ?.length
-        ) {
-          const prices =
-            request.prices.map(
-              item =>
-                em.create(
-                  ProductPriceEntity,
-                  {
-                    product,
+    await this.em.flush();
 
-                    price:
-                      item.price,
-
-                    originalPrice:
-                      item.originalPrice,
-
-                    discountPercent:
-                      item.discountPercent,
-
-                    currency:
-                      item.currency ||
-                      'VND',
-
-                    isActive:
-                      true,
-                  },
-                ),
-            );
-
-          em.persist(prices);
-        }
-
-        /**
-         * variants
-         */
-        if (
-          request.variants
-            ?.length
-        ) {
-          const variants =
-            request.variants.map(
-              item =>
-                em.create(
-                  ProductVariantEntity,
-                  {
-                    product,
-
-                    title:
-                      item.title,
-
-                    sku:
-                      item.sku,
-
-                    stock:
-                      item.stock ||
-                      0,
-
-                    image:
-                      item.image,
-
-                    price:
-                      item.price,
-
-                    attributes:
-                      item.attributes,
-
-                    isActive:
-                      true,
-                  },
-                ),
-            );
-
-          em.persist(
-            variants,
-          );
-        }
-
-        /**
-         * attributes
-         */
-        if (
-          request.attributes
-            ?.length
-        ) {
-          const attributes =
-            request.attributes.map(
-              item =>
-                em.create(
-                  ProductAttributeEntity,
-                  {
-                    product,
-
-                    name:
-                      item.name,
-
-                    value:
-                      item.value,
-                  },
-                ),
-            );
-
-          em.persist(
-            attributes,
-          );
-        }
-
-        await em.flush();
-
-        const productDetail =
-          await this.findBySlug(
-            product.slug,
-          );
-
-        return {
-          message:
-            'Update product successfully',
-
-          data: {
-            product:
-              productDetail.data
-                .product,
-          },
-
-          meta: {},
-        };
-      },
+    return await this.findBySlug(
+      product.slug,
     );
   }
 
@@ -885,4 +730,3 @@ export class ProductsService {
     };
   }
 }
-

@@ -1,78 +1,60 @@
-import {
-  useNavigate,
-} from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import {
-  ProductForm,
-} from "../components/product-form";
+import { ProductForm } from "../components/product-form";
+import { useCreateProduct } from "../hooks/products";
+import { useCategories } from "@/features/categories/hooks/categories";
 
-import {
-  useCreateProduct,
-} from "../hooks/products";
+import type { ProductFormValues } from "../types/product.type";
+import productService from "@/services/product";
 
-import type {
-  CreateProductPayload,
-} from "../types/product.type";
+const CreateProductPage = () => {
+  const navigate = useNavigate();
+  const createMutation = useCreateProduct();
+  const { data: categoriesData } = useCategories("flat");
 
-export const CreateProductPage =
-  () => {
-    const navigate =
-      useNavigate();
+  const categories = categoriesData?.categories || [];
 
-    const createMutation =
-      useCreateProduct();
+  const handleSubmit = async (values: ProductFormValues) => {
+    try {
+      const response = await createMutation.mutateAsync(values);
+      const productId = response.data?.product?.id || response.data?.data?.product?.id;
 
-    const handleSubmit =
-      async (
-        values: CreateProductPayload
-      ) => {
-        try {
-          await createMutation.mutateAsync(
-            values
-          );
+      if (productId) {
+        if (values.thumbnailFile) {
+          await productService.uploadImage(productId, values.thumbnailFile, "THUMBNAIL", 0);
+        }
 
-          toast.success(
-            "Create product successfully"
-          );
-
-          navigate(
-            "/products"
-          );
-        } catch (
-          error
-        ) {
-          console.error(
-            error
-          );
-
-          toast.error(
-            "Create product failed"
+        if (values.galleryFiles?.length) {
+          await Promise.all(
+            values.galleryFiles.map((file, index) =>
+              productService.uploadImage(productId, file, "GALLERY", index + 1)
+            )
           );
         }
-      };
+      }
 
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Create Product
-          </h1>
-
-          <p className="text-muted-foreground">
-            Create new product
-          </p>
-        </div>
-
-        <ProductForm
-          loading={
-            createMutation.isPending
-          }
-          onSubmit={
-            handleSubmit
-          }
-        />
-      </div>
-    );
+      toast.success("Tạo sản phẩm thành công");
+      navigate("/products");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi tạo sản phẩm");
+    }
   };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Tạo sản phẩm mới</h1>
+      </div>
+
+      <ProductForm
+        categories={categories}
+        loading={createMutation.isPending}
+        onSubmit={handleSubmit}
+      />
+    </div>
+  );
+};
+
+export default CreateProductPage;

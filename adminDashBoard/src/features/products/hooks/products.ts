@@ -1,237 +1,170 @@
 import {
-  useEffect,
-  useState,
-} from "react";
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
-import {
-  createProduct,
-  deleteProduct,
-  getProductDetail,
-  getProducts,
-  updateProduct,
-} from "@/services/product";
+import productService from "@/services/product";
 
-import type {
-  CreateProductPayload,
-  Product,
-  ProductQuery,
-  UpdateProductPayload,
-} from "@/features/products/types/product.type";
+import type { ProductFormValues } from "../types/product.type";
 
 /**
- * GET products
+ * GET ALL PRODUCTS
  */
-export const useProducts = (
-  query?: ProductQuery
-) => {
-  const [
-    products,
-    setProducts,
-  ] = useState<Product[]>(
-    []
-  );
+export const useProducts = (params?: any) => {
+  return useQuery({
+    queryKey: ["products", params],
 
-  const [
-    pagination,
-    setPagination,
-  ] = useState<any>(null);
+    queryFn: () =>
+      productService.getAll(params),
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+    staleTime: 1000 * 30,
 
-  const fetchProducts =
-    async () => {
-      try {
-        setLoading(true);
+    gcTime: 1000 * 60 * 5,
 
-        const res =
-          await getProducts(
-            query
-          );
+    refetchOnMount: true,
 
-        setProducts(
-          res.products
-        );
-
-        setPagination(
-          res.pagination
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [
-    query?.page,
-    query?.limit,
-    query?.search,
-    query?.categoryId,
-    query?.sort,
-  ]);
-
-  return {
-    products,
-
-    pagination,
-
-    loading,
-
-    refetch:
-      fetchProducts,
-  };
+    refetchOnWindowFocus: false,
+  });
 };
 
 /**
- * GET product detail
+ * GET PRODUCT BY SLUG
  */
-export const useProductDetail =
-  (slug?: string) => {
-    const [
-      product,
-      setProduct,
-    ] =
-      useState<Product | null>(
-        null
-      );
+export const useProductBySlug = (
+  slug: string
+) => {
+  return useQuery({
+    queryKey: ["product", slug],
 
-    const [
-      loading,
-      setLoading,
-    ] = useState(false);
+    queryFn: () =>
+      productService.getBySlug(slug),
 
-    const fetchProduct =
-      async () => {
-        if (!slug) return;
-
-        try {
-          setLoading(true);
-
-          const data =
-            await getProductDetail(
-              slug
-            );
-
-          setProduct(data);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-    useEffect(() => {
-      fetchProduct();
-    }, [slug]);
-
-    return {
-      product,
-
-      loading,
-
-      refetch:
-        fetchProduct,
-    };
-  };
+    enabled: !!slug,
+  });
+};
 
 /**
- * CREATE product
+ * CREATE PRODUCT
  */
-export const useCreateProduct =
-  () => {
-    const [
-      loading,
-      setLoading,
-    ] = useState(false);
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
 
-    const submit =
-      async (
-        payload: CreateProductPayload
-      ) => {
-        try {
-          setLoading(true);
+  return useMutation({
+    mutationFn: (
+      payload: ProductFormValues
+    ) => productService.create(payload),
 
-          return await createProduct(
-            payload
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
-
-    return {
-      createProduct:
-        submit,
-
-      loading,
-    };
-  };
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+  });
+};
 
 /**
- * UPDATE product
+ * UPDATE PRODUCT
  */
-export const useUpdateProduct =
-  () => {
-    const [
-      loading,
-      setLoading,
-    ] = useState(false);
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
 
-    const submit =
-      async (
-        id: string,
-        payload: UpdateProductPayload
-      ) => {
-        try {
-          setLoading(true);
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: Partial<ProductFormValues>;
+    }) =>
+      productService.update(id, payload),
 
-          return await updateProduct(
-            id,
-            payload
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
-
-    return {
-      updateProduct:
-        submit,
-
-      loading,
-    };
-  };
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+  });
+};
 
 /**
- * DELETE product
+ * DELETE PRODUCT
  */
-export const useDeleteProduct =
-  () => {
-    const [
-      loading,
-      setLoading,
-    ] = useState(false);
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
 
-    const submit =
-      async (
-        id: string
-      ) => {
-        try {
-          setLoading(true);
+  return useMutation({
+    mutationFn: (id: string) =>
+      productService.delete(id),
 
-          return await deleteProduct(
-            id
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+  });
+};
 
-    return {
-      deleteProduct:
-        submit,
+/**
+ * UPLOAD IMAGE
+ */
+export const useUploadProductImage = () => {
+  const queryClient = useQueryClient();
 
-      loading,
-    };
-  };
+  return useMutation({
+    mutationFn: ({
+      productId,
+      file,
+      type,
+      sortOrder,
+    }: any) =>
+      productService.uploadImage(
+        productId,
+        file,
+        type,
+        sortOrder
+      ),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+  });
+};
+
+/**
+ * DELETE IMAGE
+ */
+export const useDeleteProductImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (imageId: string) =>
+      productService.deleteImage(imageId),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+  });
+};
+
+/**
+ * SET THUMBNAIL
+ */
+export const useSetProductThumbnail = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (imageId: string) =>
+      productService.setThumbnail(imageId),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+  });
+};

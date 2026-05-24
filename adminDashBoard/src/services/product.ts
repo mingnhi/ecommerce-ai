@@ -1,301 +1,325 @@
-import { httpClient } from "@/services/http";
+import { httpClient } from "./http";
 
 import type {
   Product,
-  ProductQuery,
-  CreateProductPayload,
-  UpdateProductPayload,
+  ProductFormValues,
+  ProductImage,
+  ProductListItem,
 } from "../features/products/types/product.type";
 
-/**
- * normalize product
- */
+const normalizeImage = (image: any): ProductImage => ({
+  id: String(image.id),
+
+  imageUrl: image.imageUrl || "",
+
+  type: image.type || "GALLERY",
+
+  sortOrder: image.sortOrder || 0,
+
+  isPrimary: image.isPrimary || false,
+
+  createdAt: image.createdAt,
+});
+
 const normalizeProduct = (
   product: any
-): Product => {
-  return {
-    id: String(product.id),
+): Product => ({
+  id: String(product.id),
 
-    name: product.name,
+  name: product.name,
 
-    slug: product.slug,
+  slug: product.slug,
 
-    shortDescription:
-      product.shortDescription,
+  shortDescription:
+    product.shortDescription || "",
 
-    description:
-      product.description,
+  description:
+    product.description || "",
 
-    isActive:
-      product.isActive,
+  thumbnail:
+    product.thumbnail ||
+    product.images?.find(
+      (img: any) => img.isPrimary
+    )?.imageUrl ||
+    "",
 
-    thumbnail:
-      product.thumbnail,
+  isActive:
+    product.isActive ?? true,
 
-    createdAt:
-      product.createdAt,
+  createdAt: product.createdAt,
 
-    updatedAt:
-      product.updatedAt,
+  updatedAt: product.updatedAt,
 
-    category: {
-      id: String(
-        product.category?.id
-      ),
+  category: {
+    id: String(
+      product.category?.id || ""
+    ),
 
-      name:
-        product.category?.name,
+    name:
+      product.category?.name || "",
 
-      slug:
-        product.category?.slug,
+    slug:
+      product.category?.slug || "",
+  },
+
+  prices: product.prices || [],
+
+  variants:
+    product.variants || [],
+
+  attributes:
+    product.attributes || [],
+
+  images:
+    product.images?.map(
+      normalizeImage
+    ) || [],
+
+  reviewSummary:
+    product.reviewSummary || {
+      averageRating: 0,
+      totalReviews: 0,
     },
+});
 
-    price: product.price
-      ? {
-          price:
-            Number(
-              product.price.price
-            ),
+const normalizeProductList = (
+  product: any
+): ProductListItem => ({
+  id: String(product.id),
 
-          originalPrice:
-            product.price
-              .originalPrice
-              ? Number(
-                  product.price
-                    .originalPrice
-                )
-              : undefined,
+  name: product.name,
 
-          discountPercent:
-            product.price
-              .discountPercent,
+  slug: product.slug,
 
-          currency:
-            product.price
-              .currency,
-        }
-      : undefined,
+  shortDescription:
+    product.shortDescription || "",
 
-    prices:
-      product.prices?.map(
-        (price: any) => ({
-          id: String(price.id),
+  thumbnail:
+    product.thumbnail ||
+    product.images?.find(
+      (img: any) => img.isPrimary
+    )?.imageUrl ||
+    "",
 
-          price:
-            Number(price.price),
+  isActive:
+    product.isActive ?? true,
 
-          originalPrice:
-            price.originalPrice
-              ? Number(
-                  price.originalPrice
-                )
-              : undefined,
+  createdAt: product.createdAt,
 
-          discountPercent:
-            price.discountPercent,
+  category: {
+    id: String(
+      product.category?.id || ""
+    ),
 
-          currency:
-            price.currency,
+    name:
+      product.category?.name || "",
 
-          isActive:
-            price.isActive,
-        })
-      ) || [],
+    slug:
+      product.category?.slug || "",
+  },
 
-    variants:
-      product.variants?.map(
-        (variant: any) => ({
-          id: String(
-            variant.id
-          ),
+  price:
+    product.price ||
+    product.prices?.find(
+      (p: any) => p.isActive
+    ) ||
+    product.prices?.[0] ||
+    null,
+});
 
-          title:
-            variant.title,
+export const productService = {
+  /**
+   * GET ALL PRODUCTS
+   */
+  getAll: async (params?: any) => {
+    const res = await httpClient.get(
+      "/products",
+      {
+        params,
+      }
+    );
 
-          sku: variant.sku,
-
-          stock:
-            Number(
-              variant.stock
-            ),
-
-          image:
-            variant.image,
-
-          price:
-            variant.price
-              ? Number(
-                  variant.price
-                )
-              : undefined,
-
-          isActive:
-            variant.isActive,
-
-          attributes:
-            variant.attributes,
-        })
-      ) || [],
-
-    attributes:
-      product.attributes?.map(
-        (attr: any) => ({
-          id: String(attr.id),
-
-          name: attr.name,
-
-          value: attr.value,
-        })
-      ) || [],
-
-    images:
-      product.images?.map(
-        (image: any) => ({
-          id: String(image.id),
-
-          imageUrl:
-            image.imageUrl,
-
-          type: image.type,
-
-          sortOrder:
-            image.sortOrder,
-
-          isPrimary:
-            image.isPrimary,
-        })
-      ) || [],
-
-    reviewSummary:
-      product.reviewSummary,
-  };
-};
-
-/**
- * GET products
- */
-export const getProducts =
-  async (
-    query?: ProductQuery
-  ) => {
-    const params =
-      new URLSearchParams();
-
-    if (query?.page) {
-      params.append(
-        "page",
-        String(query.page)
-      );
-    }
-
-    if (query?.limit) {
-      params.append(
-        "limit",
-        String(query.limit)
-      );
-    }
-
-    if (query?.search) {
-      params.append(
-        "search",
-        query.search
-      );
-    }
-
-    if (query?.categoryId) {
-      params.append(
-        "categoryId",
-        query.categoryId
-      );
-    }
-
-    if (query?.sort) {
-      params.append(
-        "sort",
-        query.sort
-      );
-    }
-
-    const res =
-      await httpClient.get(
-        `/products?${params.toString()}`
-      );
-
-    const rawProducts =
-      res.data?.data
-        ?.products || [];
+    console.log(
+      "PRODUCTS API:",
+      res.data
+    );
 
     return {
-      products:
-        rawProducts.map(
-          normalizeProduct
-        ),
+      // FIX RESPONSE STRUCTURE
+      products: (
+        res.data?.data?.data
+          ?.products || []
+      ).map(normalizeProductList),
 
-      pagination:
-        res.data?.meta
-          ?.pagination,
+      meta:
+        res.data?.data?.meta ||
+        {},
     };
-  };
+  },
 
-/**
- * GET product detail
- */
-export const getProductDetail =
-  async (slug: string) => {
-    const res =
-      await httpClient.get(
-        `/products/${slug}`
-      );
-
-    return normalizeProduct(
-      res.data?.data?.product
-    );
-  };
-
-/**
- * CREATE product
- */
-export const createProduct =
-  async (
-    payload: CreateProductPayload
+  /**
+   * GET PRODUCT BY SLUG
+   */
+  getBySlug: async (
+    slug: string
   ) => {
+    const res = await httpClient.get(
+      `/products/${slug}`
+    );
+
+    return {
+      // FIX RESPONSE STRUCTURE
+      product: normalizeProduct(
+        res.data?.data?.data
+          ?.product
+      ),
+    };
+  },
+
+  /**
+   * CREATE PRODUCT
+   */
+  create: async (
+    payload: ProductFormValues
+  ) => {
+    const body = {
+      categoryId:
+        payload.categoryId,
+
+      name: payload.name,
+
+      shortDescription:
+        payload.shortDescription,
+
+      description:
+        payload.description,
+
+      isActive:
+        payload.isActive,
+
+      prices: payload.prices,
+
+      variants:
+        payload.variants,
+
+      attributes:
+        payload.attributes,
+    };
+
     const res =
       await httpClient.post(
         "/products",
-        payload
+        body
       );
 
     return res.data;
-  };
+  },
 
-/**
- * UPDATE product
- */
-export const updateProduct =
-  async (
+  /**
+   * UPDATE PRODUCT
+   */
+  update: async (
     id: string,
-    payload: UpdateProductPayload
+    payload: Partial<ProductFormValues>
   ) => {
+    const body = {
+      categoryId:
+        payload.categoryId,
+
+      name: payload.name,
+
+      shortDescription:
+        payload.shortDescription,
+
+      description:
+        payload.description,
+
+      isActive:
+        payload.isActive,
+
+      prices: payload.prices,
+
+      variants:
+        payload.variants,
+
+      attributes:
+        payload.attributes,
+    };
+
     const res =
       await httpClient.put(
         `/products/${id}`,
-        payload
+        body
       );
 
     return res.data;
-  };
+  },
 
-/**
- * DELETE product
- */
-export const deleteProduct =
-  async (
-    id: string
+  /**
+   * DELETE PRODUCT
+   */
+  delete: async (id: string) =>
+    await httpClient.delete(
+      `/products/${id}`
+    ),
+
+  /**
+   * UPLOAD IMAGE
+   */
+  uploadImage: async (
+    productId: string,
+    file: File,
+    type:
+      | "THUMBNAIL"
+      | "GALLERY" = "GALLERY",
+    sortOrder: number = 0
   ) => {
+    const formData =
+      new FormData();
+
+    formData.append("file", file);
+
+    formData.append("type", type);
+
+    formData.append(
+      "sortOrder",
+      String(sortOrder)
+    );
+
     const res =
-      await httpClient.delete(
-        `/products/${id}`
+      await httpClient.post(
+        `/products/${productId}/images`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
       );
 
     return res.data;
-  };
+  },
+
+  /**
+   * SET THUMBNAIL
+   */
+  setThumbnail: async (
+    imageId: string
+  ) =>
+    await httpClient.patch(
+      `/images/${imageId}/thumbnail`
+    ),
+
+  /**
+   * DELETE IMAGE
+   */
+  deleteImage: async (
+    imageId: string
+  ) =>
+    await httpClient.delete(
+      `/images/${imageId}`
+    ),
+};
+
+export default productService;

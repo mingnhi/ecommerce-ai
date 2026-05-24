@@ -74,15 +74,21 @@ export class ProductImageService {
       await this.em.nativeUpdate(
         ProductImageEntity,
         {
-          product:
-            product.id,
-
+          product: product.id,
           isPrimary: true,
         },
         {
           isPrimary: false,
         },
       );
+
+      /**
+       * update product thumbnail
+       */
+      product.thumbnail =
+        uploaded.secure_url;
+
+      await this.em.flush();
     }
 
     /**
@@ -154,6 +160,9 @@ export class ProductImageService {
         {
           id: imageId,
         },
+        {
+          populate: ['product'],
+        },
       );
 
     if (!image) {
@@ -162,6 +171,9 @@ export class ProductImageService {
       );
     }
 
+    /**
+     * old thumbnail false
+     */
     await this.em.nativeUpdate(
       ProductImageEntity,
       {
@@ -175,10 +187,19 @@ export class ProductImageService {
       },
     );
 
+    /**
+     * set new thumbnail
+     */
     image.isPrimary = true;
 
     image.type =
       ProductImageType.THUMBNAIL;
+
+    /**
+     * update product thumbnail
+     */
+    image.product.thumbnail =
+      image.imageUrl;
 
     await this.em.flush();
 
@@ -191,6 +212,9 @@ export class ProductImageService {
           id: image.id,
 
           isPrimary: true,
+
+          imageUrl:
+            image.imageUrl,
         },
       },
 
@@ -207,6 +231,9 @@ export class ProductImageService {
         {
           id: imageId,
         },
+        {
+          populate: ['product'],
+        },
       );
 
     if (!image) {
@@ -221,6 +248,14 @@ export class ProductImageService {
     await cloudinary.uploader.destroy(
       image.publicId,
     );
+
+    /**
+     * reset thumbnail
+     */
+    if (image.isPrimary) {
+      image.product.thumbnail =
+        null;
+    }
 
     /**
      * delete db
@@ -239,4 +274,3 @@ export class ProductImageService {
     };
   }
 }
-
