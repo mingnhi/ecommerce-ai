@@ -27,6 +27,7 @@ export function CartSummarySidebar({
   onDeleteSelected,
 }: CartSummarySidebarProps) {
   const router = useRouter();
+  
 
   return (
     <aside
@@ -90,7 +91,8 @@ export function CartSummarySidebar({
             disabled={selectedQty === 0}
             onClick={() => {
               const ids = Array.from(selected).join(",");
-              router.push(`${ROUTES.CHECKOUT}?ids=${ids}`);
+              const orderId = "c989a77b-624c-4720-8a52-41655e8bb73f";
+              `${ROUTES.CHECKOUT}?orderId=${orderId}&ids=${ids}`;
             }}
             className="h-11 w-full cursor-pointer rounded-lg bg-sky-600 text-base font-semibold text-white shadow-md shadow-sky-600/20 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
           >
