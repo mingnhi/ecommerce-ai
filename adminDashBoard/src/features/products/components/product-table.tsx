@@ -1,205 +1,183 @@
 import {
-  Link,
-} from "react-router-dom";
-
-import {
-  Pencil,
-  Trash2,
-  Eye,
+  EyeIcon,
+  PencilIcon,
+  Trash2Icon,
+  ImageIcon,
 } from "lucide-react";
 
-import {
-  Button,
-} from "@/shared/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 
-import type {
-  Product,
-} from "../types/product.type";
+import type { ProductListItem } from "../types/product.type";
 
-type Props = {
-  products: Product[];
+interface Props {
+  products: ProductListItem[];
 
-  loading?: boolean;
+  onView: (slug: string) => void;
 
-  onDelete: (
-    id: string
-  ) => void;
-};
+  onEdit: (product: ProductListItem) => void;
 
-export const ProductTable =
-  ({
-    products,
-    loading,
-    onDelete,
-  }: Props) => {
-    if (loading) {
-      return (
-        <div className="rounded-xl border bg-white p-10 text-center">
-          Loading...
-        </div>
-      );
-    }
+  onDelete: (id: string) => void;
+}
 
-    return (
-      <div className="overflow-hidden rounded-xl border bg-white">
-        <table className="w-full">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Product
-              </th>
+export const ProductTable = ({
+  products,
+  onView,
+  onEdit,
+  onDelete,
+}: Props) => {
+  return (
+    <div className="overflow-hidden rounded-2xl border bg-card">
+      <table className="w-full">
+        <thead className="bg-muted/50">
+          <tr>
+            <th className="px-4 py-4 text-left font-semibold">
+              Hình ảnh
+            </th>
 
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Category
-              </th>
+            <th className="px-4 py-4 text-left font-semibold">
+              Tên sản phẩm
+            </th>
 
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Price
-              </th>
+            <th className="px-4 py-4 text-left font-semibold">
+              Danh mục
+            </th>
 
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Status
-              </th>
+            <th className="px-4 py-4 text-right font-semibold">
+              Giá
+            </th>
 
-              <th className="px-4 py-3 text-right text-sm font-medium">
-                Actions
-              </th>
-            </tr>
-          </thead>
+            <th className="px-4 py-4 text-center font-semibold">
+              Trạng thái
+            </th>
 
-          <tbody>
-            {products.map(
-              (
-                product
-              ) => (
-                <tr
-                  key={
-                    product.id
-                  }
-                  className="border-t"
-                >
-                  {/* product */}
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={
-                          product.thumbnail ||
-                          "https://placehold.co/80x80"
-                        }
-                        alt={
-                          product.name
-                        }
-                        className="h-14 w-14 rounded-lg object-cover border"
-                      />
+            <th className="px-4 py-4 text-right font-semibold">
+              Hành động
+            </th>
+          </tr>
+        </thead>
 
-                      <div>
-                        <p className="font-medium">
-                          {
-                            product.name
-                          }
-                        </p>
-
-                        <p className="text-sm text-muted-foreground">
-                          {
-                            product.slug
-                          }
-                        </p>
-                      </div>
+        <tbody>
+          {products.map((product) => {
+            return (
+              <tr
+                key={product.id}
+                className="border-t transition-colors hover:bg-muted/40"
+              >
+                {/* IMAGE */}
+                <td className="px-4 py-4">
+                  {product.thumbnail ? (
+                    <img
+                      src={product.thumbnail}
+                      alt={product.name}
+                      className="h-16 w-16 rounded-xl border object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl border bg-muted">
+                      <ImageIcon className="size-5 text-muted-foreground" />
                     </div>
-                  </td>
+                  )}
+                </td>
 
-                  {/* category */}
-                  <td className="px-4 py-4 text-sm">
-                    {
-                      product
-                        .category
-                        ?.name
-                    }
-                  </td>
+                {/* NAME */}
+                <td className="px-4 py-4">
+                  <div className="font-semibold">
+                    {product.name}
+                  </div>
 
-                  {/* price */}
-                  <td className="px-4 py-4 text-sm">
-                    {product.price
-                      ?.price?.toLocaleString(
-                        "vi-VN"
-                      )}{" "}
-                    ₫
-                  </td>
+                  {product.shortDescription && (
+                    <div className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                      {product.shortDescription}
+                    </div>
+                  )}
+                </td>
 
-                  {/* status */}
-                  <td className="px-4 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        product.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {product.isActive
-                        ? "Active"
-                        : "Inactive"}
+                {/* CATEGORY */}
+                <td className="px-4 py-4 text-muted-foreground">
+                  {product.category?.name}
+                </td>
+
+                {/* PRICE */}
+                <td className="px-4 py-4 text-right">
+                  {product.price ? (
+                    <div className="font-semibold">
+                      {Number(
+                        product.price?.price || 0
+                      ).toLocaleString("vi-VN")}
+                      đ
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      —
                     </span>
-                  </td>
+                  )}
+                </td>
 
-                  {/* actions */}
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      {/* detail */}
-                      <Link
-                        to={`/products/${product.slug}`}
-                      >
-                        <Button
-                          size="icon"
-                          variant="outline"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                {/* STATUS */}
+                <td className="px-4 py-4 text-center">
+                  <Badge
+                    variant={
+                      product.isActive
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
+                    {product.isActive
+                      ? "Hoạt động"
+                      : "Ẩn"}
+                  </Badge>
+                </td>
 
-                      {/* edit */}
-                      <Link
-                        to={`/products/${product.id}/edit`}
-                      >
-                        <Button
-                          size="icon"
-                          variant="outline"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                {/* ACTIONS */}
+                <td className="px-4 py-4">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() =>
+                        onView(product.slug)
+                      }
+                    >
+                      <EyeIcon className="size-4" />
+                    </Button>
 
-                      {/* delete */}
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        onClick={() =>
-                          onDelete(
-                            product.id
-                          )
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            )}
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() =>
+                        onEdit(product)
+                      }
+                    >
+                      <PencilIcon className="size-4" />
+                    </Button>
 
-            {!products.length && (
-              <tr>
-                <td
-                  colSpan={
-                    5
-                  }
-                  className="py-10 text-center text-muted-foreground"
-                >
-                  No products
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      onClick={() =>
+                        onDelete(product.id)
+                      }
+                    >
+                      <Trash2Icon className="size-4" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+            );
+          })}
+
+          {!products.length && (
+            <tr>
+              <td
+                colSpan={6}
+                className="py-16 text-center text-muted-foreground"
+              >
+                Không có sản phẩm nào
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};

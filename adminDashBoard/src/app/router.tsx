@@ -69,11 +69,11 @@ export const privateRoutes = [
         element: <CreateProductPage />,
       },
       {
-        path: "/products/edit/:id",        // Sửa theo id thay vì slug cho dễ quản lý
+        path: "/products/:slug/edit",     // ← Sửa thành slug cho đồng bộ
         element: <EditProductPage />,
       },
       {
-        path: "/products/:slug",
+        path: "/products/:slug",          // Detail
         element: <ProductDetailPage />,
       },
 

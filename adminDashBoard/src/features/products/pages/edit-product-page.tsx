@@ -1,210 +1,103 @@
-import {
-  useMemo,
-} from "react";
-
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
-  ProductForm,
-} from "../components/product-form";
-
-import {
-  useProductDetail,
+  useProductBySlug,
   useUpdateProduct,
+  useUploadProductImage,
 } from "../hooks/products";
 
-import type {
-  CreateProductPayload,
-} from "../types/product.type";
+import { ProductForm } from "../components/product-form";
+import { useCategories } from "@/features/categories/hooks/categories";
 
-export const EditProductPage =
-  () => {
-    const navigate =
-      useNavigate();
+import type { ProductFormValues } from "../types/product.type";
+import { ProductImageType } from "../types/product.type";
 
-    const { id } =
-      useParams();
+const EditProductPage = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
 
-    const {
-      data,
-      isLoading,
-    } =
-      useProductDetail(
-        id || ""
-      );
+  const { data, isLoading, refetch } = useProductBySlug(slug || "");
+  const { data: categoriesData } = useCategories("flat");
 
-    const updateMutation =
-      useUpdateProduct();
+  const updateMutation = useUpdateProduct();
+  const uploadImageMutation = useUploadProductImage();
 
-    const product =
-      data?.product;
+  const categories = categoriesData?.categories || [];
+  const product = data?.product;
 
-    const defaultValues =
-      useMemo(() => {
-        if (!product)
-          return undefined;
+  const handleSubmit = async (values: ProductFormValues) => {
+    if (!product) return;
 
-        return {
-          categoryId:
-            product.category
-              .id,
+    try {
+      await updateMutation.mutateAsync({
+        id: product.id,
+        payload: {
+          categoryId: values.categoryId,
+          name: values.name,
+          shortDescription: values.shortDescription,
+          description: values.description,
+          isActive: values.isActive,
+          prices: values.prices,
+          variants: values.variants,
+          attributes: values.attributes,
+        },
+      });
 
-          name:
-            product.name,
+      if (values.thumbnailFile) {
+        await uploadImageMutation.mutateAsync({
+          productId: product.id,
+          file: values.thumbnailFile,
+          type: ProductImageType.THUMBNAIL,
+          sortOrder: 0,
+        });
+      }
 
-          shortDescription:
-            product.shortDescription,
+      if (values.galleryFiles?.length) {
+        await Promise.all(
+          values.galleryFiles.map((file, index) =>
+            uploadImageMutation.mutateAsync({
+              productId: product.id,
+              file,
+              type: ProductImageType.GALLERY,
+              sortOrder: index + 1,
+            })
+          )
+        );
+      }
 
-          description:
-            product.description,
-
-          isActive:
-            product.isActive,
-
-          prices:
-            product.prices.map(
-              (
-                item
-              ) => ({
-                price:
-                  item.price,
-
-                originalPrice:
-                  item.originalPrice,
-
-                discountPercent:
-                  item.discountPercent,
-
-                currency:
-                  item.currency,
-              })
-            ),
-
-          variants:
-            product.variants.map(
-              (
-                item
-              ) => ({
-                title:
-                  item.title,
-
-                sku:
-                  item.sku,
-
-                stock:
-                  item.stock,
-
-                image:
-                  item.image,
-
-                price:
-                  item.price,
-
-                attributes:
-                  item.attributes,
-              })
-            ),
-
-          attributes:
-            product.attributes.map(
-              (
-                item
-              ) => ({
-                name:
-                  item.name,
-
-                value:
-                  item.value,
-              })
-            ),
-        };
-      }, [product]);
-
-    const handleSubmit =
-      async (
-        values: CreateProductPayload
-      ) => {
-        if (!id)
-          return;
-
-        try {
-          await updateMutation.mutateAsync(
-            {
-              id,
-              payload:
-                values,
-            }
-          );
-
-          toast.success(
-            "Update product successfully"
-          );
-
-          navigate(
-            "/products"
-          );
-        } catch (
-          error
-        ) {
-          console.error(
-            error
-          );
-
-          toast.error(
-            "Update product failed"
-          );
-        }
-      };
-
-    if (
-      isLoading
-    ) {
-      return (
-        <div>
-          Loading...
-        </div>
-      );
+      await refetch();
+      toast.success("Cập nhật sản phẩm thành công");
+      navigate("/products");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi cập nhật sản phẩm");
     }
-
-    if (
-      !product
-    ) {
-      return (
-        <div>
-          Product not found
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Edit Product
-          </h1>
-
-          <p className="text-muted-foreground">
-            Update product
-            information
-          </p>
-        </div>
-
-        <ProductForm
-          loading={
-            updateMutation.isPending
-          }
-          defaultValues={
-            defaultValues
-          }
-          onSubmit={
-            handleSubmit
-          }
-        />
-      </div>
-    );
   };
+
+  if (isLoading) {
+    return <div className="py-20 text-center">Đang tải sản phẩm...</div>;
+  }
+
+  if (!product) {
+    return <div className="py-20 text-center">Không tìm thấy sản phẩm</div>;
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Chỉnh sửa sản phẩm</h1>
+        <p className="text-muted-foreground mt-1">{product.name}</p>
+      </div>
+
+      <ProductForm
+        categories={categories}
+        initialData={product}
+        loading={updateMutation.isPending || uploadImageMutation.isPending}
+        onSubmit={handleSubmit}
+      />
+    </div>
+  );
+};
+
+export default EditProductPage;

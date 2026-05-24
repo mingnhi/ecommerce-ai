@@ -1,170 +1,93 @@
-export type ProductPrice = {
+export const ProductImageType = {
+  THUMBNAIL: "THUMBNAIL",
+  GALLERY: "GALLERY",
+  ZOOM: "ZOOM",
+} as const;
+
+export type ProductImageType = (typeof ProductImageType)[keyof typeof ProductImageType];
+
+export interface ProductImage {
   id: string;
-
-  price: number;
-
-  originalPrice?: number;
-
-  discountPercent?: number;
-
-  currency: string;
-
-  isActive: boolean;
-};
-
-export type ProductVariant = {
-  id: string;
-
-  title: string;
-
-  sku: string;
-
-  stock: number;
-
-  image?: string;
-
-  price?: number;
-
-  isActive: boolean;
-
-  attributes?: Record<
-    string,
-    any
-  >;
-};
-
-export type ProductAttribute = {
-  id: string;
-
-  name: string;
-
-  value: string;
-};
-
-export type ProductImage = {
-  id: string;
-
   imageUrl: string;
-
-  type: string;
-
+  type: ProductImageType;
   sortOrder: number;
-
   isPrimary: boolean;
-};
+  createdAt?: string;
+}
 
-export type ProductReviewSummary =
-  {
-    averageRating: number;
+export interface ProductPrice {
+  price: number;
+  originalPrice: number;
+  discountPercent?: number;
+  currency?: string;
+  isActive?: boolean;
+}
 
-    totalReviews: number;
-  };
+export interface ProductVariant {
+  title: string;
+  sku: string;
+  stock?: number;
+  image?: string;
+  price?: number;
+  isActive?: boolean;
+  attributes?: Record<string, any>;
+}
 
-export type Product = {
-  id: string;
-
+export interface ProductAttribute {
   name: string;
+  value: string;
+}
 
+export interface Product {
+  id: string;
+  name: string;
   slug: string;
-
   shortDescription?: string;
-
   description?: string;
-
-  isActive: boolean;
-
   thumbnail?: string;
-
-  createdAt: string;
-
+  isActive: boolean;
+  createdAt?: string;
   updatedAt?: string;
-
   category: {
     id: string;
-
     name: string;
-
     slug: string;
   };
-
-  price?: {
-    price: number;
-
-    originalPrice?: number;
-
-    discountPercent?: number;
-
-    currency: string;
-  };
-
   prices?: ProductPrice[];
-
   variants?: ProductVariant[];
-
   attributes?: ProductAttribute[];
-
   images?: ProductImage[];
-
-  reviewSummary?: ProductReviewSummary;
-};
-
-export type ProductQuery = {
-  page?: number;
-
-  limit?: number;
-
-  search?: string;
-
-  categoryId?: string;
-
-  sort?: string;
-};
-
-export type CreateProductPayload =
-  {
-    categoryId: string;
-
-    name: string;
-
-    shortDescription?: string;
-
-    description?: string;
-
-    isActive?: boolean;
-
-    prices?: {
-      price: number;
-
-      originalPrice?: number;
-
-      discountPercent?: number;
-
-      currency?: string;
-    }[];
-
-    variants?: {
-      title: string;
-
-      sku: string;
-
-      stock?: number;
-
-      image?: string;
-
-      price?: number;
-
-      attributes?: Record<
-        string,
-        any
-      >;
-    }[];
-
-    attributes?: {
-      name: string;
-
-      value: string;
-    }[];
+  reviewSummary?: {
+    averageRating: number;
+    totalReviews: number;
   };
+}
 
-export type UpdateProductPayload =
-  Partial<CreateProductPayload>;
+export interface ProductFormValues {
+  categoryId: string;
+  name: string;
+  shortDescription?: string;
+  description?: string;
+  isActive: boolean;
+  prices: ProductPrice[];
+  variants: ProductVariant[];
+  attributes: ProductAttribute[];
+  thumbnailFile?: File;
+  galleryFiles?: File[];
+}
+
+export interface ProductListItem {
+  id: string;
+  name: string;
+  slug: string;
+  shortDescription?: string;
+  thumbnail?: string;
+  isActive: boolean;
+  createdAt?: string;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  price?: ProductPrice | null;
+}

@@ -22,11 +22,11 @@ export class ProductListResponse {
   price?: {
     price: number;
 
-    originalPrice?: number;
+    originalPrice: number;
 
     discountPercent?: number;
 
-    currency: string;
+    currency?: string;
   };
 
   createdAt: Date;
