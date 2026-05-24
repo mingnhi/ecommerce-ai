@@ -1,21 +1,13 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { useMe } from "@/features/auth/hooks";
-import {
-  clearAuthSession,
-  hasAuthToken,
-  isAdmin,
-} from "@/features/auth/lib";
-import { useCan } from "@/shared/hooks/use-can";
+import { clearAuthSession, hasAuthToken, isAdmin } from "@/features/auth/lib";
 import { LoadingScreen } from "@/shared/components/common/LoadingScreen";
 
 export { LoginPage };
 
-type RouteProps = {
-  children: React.ReactNode;
-};
-
-export function PrivateRoute({ children }: RouteProps) {
+export const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const authenticated = hasAuthToken();
   const { data: user, isLoading, isError } = useMe();
 
@@ -30,7 +22,7 @@ export function PrivateRoute({ children }: RouteProps) {
         description="Xác thực quyền quản trị..."
       />
     );
-  }
+  } 
 
   if (isError || !user || !isAdmin(user)) {
     clearAuthSession();
@@ -38,22 +30,11 @@ export function PrivateRoute({ children }: RouteProps) {
   }
 
   return <>{children}</>;
-}
+};
 
-export function PublicLoginRoute({ children }: RouteProps) {
+export const PublicLoginRoute = ({ children }: { children: React.ReactNode }) => {
   if (hasAuthToken()) {
     return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
-}
-
-type PermissionRouteProps = RouteProps & {
-  permission: string;
 };
-
-export function PermissionRoute({ permission, children }: PermissionRouteProps) {
-  if (!useCan(permission)) {
-    return <Navigate to="/403" replace />;
-  }
-  return <>{children}</>;
-}
