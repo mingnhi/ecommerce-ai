@@ -7,20 +7,33 @@ import type {
   ProductListItem,
 } from "../features/products/types/product.type";
 
-const normalizeImage = (image: any): ProductImage => ({
+/**
+ * NORMALIZE IMAGE
+ */
+const normalizeImage = (
+  image: any
+): ProductImage => ({
   id: String(image.id),
 
-  imageUrl: image.imageUrl || "",
+  imageUrl:
+    image.imageUrl || "",
 
-  type: image.type || "GALLERY",
+  type:
+    image.type || "GALLERY",
 
-  sortOrder: image.sortOrder || 0,
+  sortOrder:
+    image.sortOrder || 0,
 
-  isPrimary: image.isPrimary || false,
+  isPrimary:
+    image.isPrimary || false,
 
-  createdAt: image.createdAt,
+  createdAt:
+    image.createdAt,
 });
 
+/**
+ * NORMALIZE PRODUCT DETAIL
+ */
 const normalizeProduct = (
   product: any
 ): Product => ({
@@ -31,7 +44,8 @@ const normalizeProduct = (
   slug: product.slug,
 
   shortDescription:
-    product.shortDescription || "",
+    product.shortDescription ||
+    "",
 
   description:
     product.description || "",
@@ -39,30 +53,38 @@ const normalizeProduct = (
   thumbnail:
     product.thumbnail ||
     product.images?.find(
-      (img: any) => img.isPrimary
+      (img: any) =>
+        img.isPrimary
     )?.imageUrl ||
     "",
 
   isActive:
-    product.isActive ?? true,
+    product.isActive ??
+    true,
 
-  createdAt: product.createdAt,
+  createdAt:
+    product.createdAt,
 
-  updatedAt: product.updatedAt,
+  updatedAt:
+    product.updatedAt,
 
   category: {
     id: String(
-      product.category?.id || ""
+      product.category?.id ||
+        ""
     ),
 
     name:
-      product.category?.name || "",
+      product.category?.name ||
+      "",
 
     slug:
-      product.category?.slug || "",
+      product.category?.slug ||
+      "",
   },
 
-  prices: product.prices || [],
+  prices:
+    product.prices || [],
 
   variants:
     product.variants || [],
@@ -82,6 +104,9 @@ const normalizeProduct = (
     },
 });
 
+/**
+ * NORMALIZE PRODUCT LIST
+ */
 const normalizeProductList = (
   product: any
 ): ProductListItem => ({
@@ -92,30 +117,37 @@ const normalizeProductList = (
   slug: product.slug,
 
   shortDescription:
-    product.shortDescription || "",
+    product.shortDescription ||
+    "",
 
   thumbnail:
     product.thumbnail ||
     product.images?.find(
-      (img: any) => img.isPrimary
+      (img: any) =>
+        img.isPrimary
     )?.imageUrl ||
     "",
 
   isActive:
-    product.isActive ?? true,
+    product.isActive ??
+    true,
 
-  createdAt: product.createdAt,
+  createdAt:
+    product.createdAt,
 
   category: {
     id: String(
-      product.category?.id || ""
+      product.category?.id ||
+        ""
     ),
 
     name:
-      product.category?.name || "",
+      product.category?.name ||
+      "",
 
     slug:
-      product.category?.slug || "",
+      product.category?.slug ||
+      "",
   },
 
   price:
@@ -127,17 +159,43 @@ const normalizeProductList = (
     null,
 });
 
+/**
+ * PRODUCT SERVICE
+ */
 export const productService = {
   /**
    * GET ALL PRODUCTS
    */
-  getAll: async (params?: any) => {
-    const res = await httpClient.get(
-      "/products",
-      {
-        params,
-      }
-    );
+  getAll: async (
+    params?: any
+  ) => {
+    const queryParams = {
+      page:
+        params?.page || 1,
+
+      limit:
+        params?.limit || 10,
+
+      search:
+        params?.search ||
+        undefined,
+
+      categoryId:
+        params?.categoryId ||
+        undefined,
+
+      sort:
+        params?.sort ||
+        "newest",
+    };
+
+    const res =
+      await httpClient.get(
+        "/products",
+        {
+          params: queryParams,
+        }
+      );
 
     console.log(
       "PRODUCTS API:",
@@ -145,11 +203,12 @@ export const productService = {
     );
 
     return {
-      // FIX RESPONSE STRUCTURE
       products: (
         res.data?.data?.data
           ?.products || []
-      ).map(normalizeProductList),
+      ).map(
+        normalizeProductList
+      ),
 
       meta:
         res.data?.data?.meta ||
@@ -163,16 +222,17 @@ export const productService = {
   getBySlug: async (
     slug: string
   ) => {
-    const res = await httpClient.get(
-      `/products/${slug}`
-    );
+    const res =
+      await httpClient.get(
+        `/products/${slug}`
+      );
 
     return {
-      // FIX RESPONSE STRUCTURE
-      product: normalizeProduct(
-        res.data?.data?.data
-          ?.product
-      ),
+      product:
+        normalizeProduct(
+          res.data?.data
+            ?.data?.product
+        ),
     };
   },
 
@@ -197,7 +257,8 @@ export const productService = {
       isActive:
         payload.isActive,
 
-      prices: payload.prices,
+      prices:
+        payload.prices,
 
       variants:
         payload.variants,
@@ -237,7 +298,8 @@ export const productService = {
       isActive:
         payload.isActive,
 
-      prices: payload.prices,
+      prices:
+        payload.prices,
 
       variants:
         payload.variants,
@@ -258,7 +320,9 @@ export const productService = {
   /**
    * DELETE PRODUCT
    */
-  delete: async (id: string) =>
+  delete: async (
+    id: string
+  ) =>
     await httpClient.delete(
       `/products/${id}`
     ),
@@ -277,9 +341,15 @@ export const productService = {
     const formData =
       new FormData();
 
-    formData.append("file", file);
+    formData.append(
+      "file",
+      file
+    );
 
-    formData.append("type", type);
+    formData.append(
+      "type",
+      type
+    );
 
     formData.append(
       "sortOrder",
