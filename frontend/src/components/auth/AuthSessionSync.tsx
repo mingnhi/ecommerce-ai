@@ -14,23 +14,25 @@ import type { IUser } from '@/types/user';
 
 async function buildUserFromMe(accessToken: string): Promise<IUser | null> {
   try {
-    const res = await AuthService.me();
-    if (!isApiSuccess(res) || !res.data) return null;
-    const d = res.data as {
-      id?: string; email?: string; firstName?: string; lastName?: string;
-      phoneNumber?: string; introduction?: string; avatar?: string; image?: string;
-    };
+    const [meRes, profileRes] = await Promise.all([
+      AuthService.me(),
+      AuthService.getProfile().catch(() => null),
+    ]);
+    if (!isApiSuccess(meRes) || !meRes.data) return null;
+
+    const d = meRes.data;
+    const profile = profileRes && isApiSuccess(profileRes) ? profileRes.data : undefined;
+    const current = store.getState().user.user;
+
     return {
       id: d.id ?? '',
       email: d.email ?? '',
-      firstName: d.firstName ?? '',
-      lastName: d.lastName ?? '',
+      fullName: profile?.fullName ?? d.fullName,
       phoneNumber: d.phoneNumber,
       introduction: d.introduction,
-      name: [d.firstName, d.lastName].filter(Boolean).join(' ').trim() || undefined,
-      image: d.avatar ?? d.image,
+      image: profile?.avatarUrl || current?.image || d.avatar || d.image,
       roles: getRoleFromToken(accessToken) ?? undefined,
-    } as IUser;
+    };
   } catch {
     return null;
   }

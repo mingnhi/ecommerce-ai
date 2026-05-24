@@ -12,6 +12,10 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   Configuration: 'Cấu hình Google OAuth chưa đúng.',
   OAuthAccountNotLinked: 'Tài khoản Google này chưa được liên kết.',
   GoogleAuthFailed: 'Đăng nhập Google thất bại.',
+  'Current password is incorrect': 'Mật khẩu hiện tại không đúng.',
+  'New password must be different from current password': 'Mật khẩu mới phải khác mật khẩu hiện tại.',
+  'newPassword must be longer than or equal to 6 characters': 'Mật khẩu mới phải có ít nhất 6 ký tự.',
+  'currentPassword should not be empty': 'Vui lòng nhập mật khẩu hiện tại.',
 };
 
 export function normalizeApiMessage(message: string | string[] | undefined): string | null {
@@ -29,6 +33,11 @@ export function isApiSuccess<T>(response: ApiEnvelope<T> | unknown): response is
   if (!response || typeof response !== 'object') return false;
   const r = response as ApiEnvelope<T> & { succeeded?: boolean };
   return r.status === 'success' || r.succeeded === true;
+}
+
+export function getEnvelopeData<T>(response: ApiEnvelope<T> | unknown): T | undefined {
+  if (!isApiSuccess(response)) return undefined;
+  return (response as ApiEnvelope<T>).data;
 }
 
 export function getApiMessage(
@@ -49,7 +58,11 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
     if (msg) return localizeAuthMessage(msg);
     const legacy = body?.messages?.filter(Boolean).join(', ');
     if (legacy) return localizeAuthMessage(legacy);
-    if (err.response?.status === 401) return 'Email hoặc mật khẩu không đúng.';
+    if (err.response?.status === 401) {
+      const bodyMsg = normalizeApiMessage(body?.message);
+      if (bodyMsg) return localizeAuthMessage(bodyMsg);
+      return 'Email hoặc mật khẩu không đúng.';
+    }
     if (err.response?.status === 409) return 'Email đã được sử dụng.';
     if (err.response?.status === 400) return 'Dữ liệu không hợp lệ.';
     if (err.response?.status && err.response.status >= 500) {

@@ -6,4 +6,8 @@ export const ROUTES = {
   CART: '/gio-hang',
   CHECKOUT: '/thanh-toan',
   ORDER_HISTORY: '/lich-su-don-hang',
+  PROFILE: '/thong-tin-tai-khoan',
+  VOUCHERS: '/voucher-cua-toi',
+  NOTIFICATIONS: '/thong-bao',
+  CHANGE_PASSWORD: '/doi-mat-khau',
 };
