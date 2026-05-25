@@ -10,7 +10,7 @@ import {
 import {
   EntityManager,
   EntityRepository,
-} from '@mikro-orm/mysql';
+} from '@mikro-orm/core';
 
 import cloudinary from '@config/cloudinary.config';
 

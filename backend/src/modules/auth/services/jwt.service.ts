@@ -16,7 +16,7 @@ export class JwtService {
     return this.nestJwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn:
-        this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME') || '7d',
+        (this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME') || '7d') as any,
     });
   }
   async verifyAccessToken(token: string): Promise<any> {
