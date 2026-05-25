@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { X } from "lucide-react";
 
@@ -50,69 +50,33 @@ const DialogOverlay =
 DialogOverlay.displayName =
   DialogPrimitive.Overlay.displayName;
 
-const DialogContent =
-  React.forwardRef<
-    React.ElementRef<
-      typeof DialogPrimitive.Content
-    >,
-    React.ComponentPropsWithoutRef<
-      typeof DialogPrimitive.Content
-    >
-  >(
-    (
-      {
+type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean;
+};
+
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  DialogContentProps
+>(({ className, children, showCloseButton = true, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-[1400px] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border bg-white p-0 shadow-lg duration-200",
         className,
-        children,
-        ...props
-      },
-      ref,
-    ) => (
-      <DialogPortal>
-        <DialogOverlay />
-
-        <DialogPrimitive.Content
-          ref={ref}
-          className={cn(
-            `
-            fixed
-            left-1/2
-            top-1/2
-            z-50
-            w-[95vw]
-            max-w-[1400px]
-            translate-x-[-50%]
-            translate-y-[-50%]
-            gap-4
-            border
-            bg-white
-            p-0
-            shadow-lg
-            duration-200
-            rounded-2xl
-            `,
-            className,
-          )}
-          {...props}
-        >
-          {children}
-
-          <DialogPrimitive.Close
-            className="
-              absolute
-              right-4
-              top-4
-              rounded-sm
-              opacity-70
-              transition-opacity
-              hover:opacity-100
-            "
-          >
-            <X className="h-4 w-4" />
-          </DialogPrimitive.Close>
-        </DialogPrimitive.Content>
-      </DialogPortal>
-    ),
-  );
+      )}
+      {...props}
+    >
+      {children}
+      {showCloseButton && (
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100">
+          <X className="h-4 w-4" />
+        </DialogPrimitive.Close>
+      )}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+));
 
 DialogContent.displayName =
   DialogPrimitive.Content.displayName;
