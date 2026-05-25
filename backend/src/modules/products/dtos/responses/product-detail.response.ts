@@ -9,6 +9,8 @@ export class ProductDetailResponse {
 
   description?: string;
 
+  thumbnail?: string;
+
   isActive: boolean;
 
   createdAt: Date;
@@ -23,34 +25,30 @@ export class ProductDetailResponse {
     slug: string;
   };
 
-  prices: {
-    id: string;
-
+  prices?: {
     price: number;
 
-    originalPrice?: number;
+    originalPrice: number;
 
     discountPercent?: number;
 
-    currency: string;
+    currency?: string;
 
-    isActive: boolean;
+    isActive?: boolean;
   }[];
 
-  variants: {
-    id: string;
-
+  variants?: {
     title: string;
 
     sku: string;
 
-    stock: number;
+    stock?: number;
 
     image?: string;
 
     price?: number;
 
-    isActive: boolean;
+    isActive?: boolean;
 
     attributes?: Record<
       string,
@@ -58,9 +56,7 @@ export class ProductDetailResponse {
     >;
   }[];
 
-  attributes: {
-    id: string;
-
+  attributes?: {
     name: string;
 
     value: string;

@@ -23,9 +23,6 @@ export class CategoryController {
     private readonly categoryService: CategoryService,
   ) {}
 
-  /**
-   * GET /categories
-   */
   @Get()
   async findAll(
     @Query()
@@ -36,9 +33,6 @@ export class CategoryController {
     );
   }
 
-  /**
-   * POST /categories
-   */
   @Post()
   async create(
     @Body()
@@ -49,9 +43,6 @@ export class CategoryController {
     );
   }
 
-  /**
-   * PUT /categories/:id
-   */
   @Put(':id')
   async update(
     @Param('id')
@@ -66,9 +57,6 @@ export class CategoryController {
     );
   }
 
-  /**
-   * DELETE /categories/:id
-   */
   @Delete(':id')
   async remove(
     @Param('id')
@@ -79,4 +67,3 @@ export class CategoryController {
     );
   }
 }
-

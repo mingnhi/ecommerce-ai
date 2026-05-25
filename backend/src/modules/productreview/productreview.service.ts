@@ -12,7 +12,7 @@ import {
   EntityManager,
   EntityRepository,
   QueryOrder,
-} from '@mikro-orm/mysql';
+} from '@mikro-orm/core';
 
 import { ProductEntity } from '@entities/product.entity';
 

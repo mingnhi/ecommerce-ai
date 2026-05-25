@@ -11,11 +11,11 @@ import {
 import {
   EntityManager,
   EntityRepository,
-} from '@mikro-orm/mysql';
-
-import { CategoryEntity } from '@entities/category.entity';
+} from '@mikro-orm/core';
 
 import slugify from 'slugify';
+
+import { CategoryEntity } from '@entities/category.entity';
 
 import { CreateCategoryRequest } from './dtos/requests/create-category.request';
 
@@ -32,15 +32,11 @@ export class CategoryService {
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
   ) {}
 
-  /**
-   * generate slug
-   */
   private async generateSlug(
     name: string,
   ) {
     const baseSlug = slugify(name, {
       lower: true,
-
       strict: true,
     });
 
@@ -61,9 +57,6 @@ export class CategoryService {
     return slug;
   }
 
-  /**
-   * create category
-   */
   async create(
     request: CreateCategoryRequest,
   ) {
@@ -71,16 +64,14 @@ export class CategoryService {
       | CategoryEntity
       | undefined;
 
-    /**
-     * parent category
-     */
-    if (request.parentId) {
+    if (
+      request.parentId &&
+      request.parentId !== '0'
+    ) {
       parent =
-        await this.categoryRepository.findOne(
-          {
-            id: request.parentId,
-          },
-        );
+        await this.categoryRepository.findOne({
+          id: request.parentId,
+        });
 
       if (!parent) {
         throw new NotFoundException(
@@ -89,25 +80,17 @@ export class CategoryService {
       }
     }
 
-    /**
-     * slug
-     */
     const slug =
       await this.generateSlug(
         request.name,
       );
 
-    /**
-     * category
-     */
     const category =
       this.em.create(
         CategoryEntity,
         {
           name: request.name,
-
           slug,
-
           parent,
         },
       );
@@ -117,72 +100,42 @@ export class CategoryService {
     );
 
     return {
-      message:
-        'Create category successfully',
-
-      data: {
-        category,
-      },
-
-      meta: {},
+      categories: category,
     };
   }
 
-  /**
-   * get categories
-   */
   async findAll(
     query: QueryCategoryRequest,
   ) {
     const categories =
-      await this.categoryRepository.findAll(
-        {
-          populate: ['parent', 'children'],
-        },
-      );
+      await this.categoryRepository.findAll({
+        populate: ['parent', 'children'],
+      });
 
-    /**
-     * flat
-     */
     if (
       query.type === 'flat'
     ) {
       return {
-        message:
-          'Get categories successfully',
-
-        data: {
-          categories:
-            categories.map(
-              category => ({
-                id: category.id,
-
-                name:
-                  category.name,
-
-                slug:
-                  category.slug,
-
-                parentId:
-                  category.parent?.id ??
-                  null,
-
-                createdAt:
-                  category.createdAt,
-
-                updatedAt:
-                  category.updatedAt,
-              }),
-            ),
-        },
-
-        meta: {},
+        categories:
+          categories.map(
+            category => ({
+              id: category.id,
+              name:
+                category.name,
+              slug:
+                category.slug,
+              parentId:
+                category.parent
+                  ?.id || null,
+              createdAt:
+                category.createdAt,
+              updatedAt:
+                category.updatedAt,
+            }),
+          ),
       };
     }
 
-    /**
-     * tree
-     */
     const buildTree = (
       parentId?: string,
     ): any[] => {
@@ -199,13 +152,13 @@ export class CategoryService {
         })
         .map(category => ({
           id: category.id,
-
           name:
             category.name,
-
           slug:
             category.slug,
-
+          parentId:
+            category.parent
+              ?.id || null,
           children:
             buildTree(
               category.id,
@@ -214,35 +167,19 @@ export class CategoryService {
     };
 
     return {
-      message:
-        'Get categories successfully',
-
-      data: {
-        categories:
-          buildTree(),
-      },
-
-      meta: {
-        type:
-          query.type ??
-          'tree',
-      },
+      categories:
+        buildTree(),
     };
   }
 
-  /**
-   * update category
-   */
   async update(
     id: string,
     request: UpdateCategoryRequest,
   ) {
     const category =
-      await this.categoryRepository.findOne(
-        {
-          id,
-        },
-      );
+      await this.categoryRepository.findOne({
+        id,
+      });
 
     if (!category) {
       throw new NotFoundException(
@@ -250,9 +187,6 @@ export class CategoryService {
       );
     }
 
-    /**
-     * name
-     */
     if (request.name) {
       category.name =
         request.name;
@@ -263,59 +197,56 @@ export class CategoryService {
         );
     }
 
-    /**
-     * parent
-     */
-    if (request.parentId) {
+    if (
+      request.parentId !==
+        undefined &&
+      request.parentId !==
+        null
+    ) {
       if (
-        request.parentId === id
+        request.parentId ===
+        id
       ) {
         throw new BadRequestException(
           'Category cannot be parent of itself',
         );
       }
 
-      const parent =
-        await this.categoryRepository.findOne(
-          {
+      if (
+        request.parentId ===
+        '0'
+      ) {
+        category.parent =
+          undefined;
+      } else {
+        const parent =
+          await this.categoryRepository.findOne({
             id: request.parentId,
-          },
-        );
+          });
 
-      if (!parent) {
-        throw new NotFoundException(
-          'Parent category not found',
-        );
+        if (!parent) {
+          throw new NotFoundException(
+            'Parent category not found',
+          );
+        }
+
+        category.parent =
+          parent;
       }
-
-      category.parent =
-        parent;
     }
 
     await this.em.flush();
 
     return {
-      message:
-        'Update category successfully',
-
-      data: {
-        category,
-      },
-
-      meta: {},
+      category,
     };
   }
 
-  /**
-   * delete category
-   */
   async remove(id: string) {
     const category =
-      await this.categoryRepository.findOne(
-        {
-          id,
-        },
-      );
+      await this.categoryRepository.findOne({
+        id,
+      });
 
     if (!category) {
       throw new NotFoundException(
@@ -328,13 +259,7 @@ export class CategoryService {
     );
 
     return {
-      message:
-        'Delete category successfully',
-
-      data: null,
-
-      meta: {},
+      success: true,
     };
   }
 }
-
