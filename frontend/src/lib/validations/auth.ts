@@ -23,5 +23,29 @@ export const registerSchema = z
         path: ['confirmPassword'],
     });
 
+export const otpSchema = z.object({
+  otp: z
+    .string()
+    .length(6, 'Mã OTP gồm 6 chữ số')
+    .regex(/^\d+$/, 'Chỉ nhập số'),
+});
+
+export const updatePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Vui lòng nhập mật khẩu hiện tại'),
+    newPassword: passwordRule,
+    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu mới'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'Mật khẩu mới phải khác mật khẩu hiện tại',
+    path: ['newPassword'],
+  });
+
 export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
+export type OtpSchemaType = z.infer<typeof otpSchema>;
+export type UpdatePasswordSchemaType = z.infer<typeof updatePasswordSchema>;

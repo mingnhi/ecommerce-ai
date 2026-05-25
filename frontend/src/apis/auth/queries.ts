@@ -2,14 +2,26 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { AuthService } from './requests';
-import { LoginRequest, RegisterRequest, UserResponse, UpdateProfileRequest, ChangePasswordRequest } from './types';
+import { LoginRequest, RegisterRequest, UserResponse, UpdateProfileRequest, UpdatePasswordRequest, UserProfileResponse } from './types';
 import { useAppDispatch, useAppSelector, store } from '@/stores';
-import { loginAction, loginSuccessAction, loginFailureAction, registerAction, registerSuccessAction, registerFailureAction } from '@/stores/auth/actions';
+import { loginAction, loginSuccessAction, loginFailureAction } from '@/stores/auth/actions';
 import { setUserAction, setAccessTokenAction, setRefreshTokenAction, clearUserAction } from '@/stores/user/actions';
 import { selectUser, selectAccessToken } from '@/stores/user/selectors';
 import { getRoleFromToken } from '@/utils/jwt';
 import { KEYS } from './keys';
 import { IUser } from '@/types/user';
+import { getApiErrorMessage, getEnvelopeData, isApiSuccess } from '@/lib/api-response';
+
+function applyProfileToStore(profile: UserProfileResponse) {
+  const current = store.getState().user.user;
+  if (!current) return;
+
+  store.dispatch(setUserAction({
+    ...current,
+    ...(profile.fullName !== undefined && { fullName: profile.fullName }),
+    ...(profile.avatarUrl && { image: profile.avatarUrl }),
+  }));
+}
 
 export const useLogin = () => {
     const dispatch = useAppDispatch();
@@ -22,7 +34,7 @@ export const useLogin = () => {
             dispatch(loginAction(credentials));
         },
         onSuccess: (response: import('./types').AuthResponse) => {
-            if (response && (response.succeeded === true || response.status === true) && response.data) {
+            if (isApiSuccess(response) && response.data) {
                 dispatch(loginSuccessAction(response.data));
 
                 if (response.data.token) {
@@ -34,29 +46,24 @@ export const useLogin = () => {
                 if (response.data.user) {
                     const serverUser = response.data.user as any;
                     const token = response.data.token;
-                    const userData: IUser = {
+                    dispatch(setUserAction({
                         id: serverUser.id || '',
                         email: serverUser.email || '',
-                        firstName: serverUser.firstName || '',
-                        lastName: serverUser.lastName || '',
-                        name: `${serverUser.firstName || ''} ${serverUser.lastName || ''}`.trim() || undefined,
+                        fullName: serverUser.fullName,
                         image: serverUser.image || serverUser.avatar,
                         roles: getRoleFromToken(token) ?? undefined,
-                    };
-                    dispatch(setUserAction(userData));
+                    }));
                     AuthService.me()
                         .then((meResponse) => {
-                            if (meResponse?.data && (meResponse.succeeded === true || meResponse.status === true)) {
+                            if (isApiSuccess(meResponse) && meResponse.data) {
                                 const d = meResponse.data;
                                 const currentToken = store.getState().user.accessToken;
                                 dispatch(setUserAction({
                                     id: d.id || '',
                                     email: d.email || '',
-                                    firstName: d.firstName || '',
-                                    lastName: d.lastName || '',
-                                    phoneNumber: d.phoneNumber || '',
-                                    introduction: d.introduction || '',
-                                    name: `${d.firstName || ''} ${d.lastName || ''}`.trim() || undefined,
+                                    fullName: d.fullName,
+                                    phoneNumber: d.phoneNumber,
+                                    introduction: d.introduction,
                                     image: d.avatar || d.image,
                                     roles: getRoleFromToken(currentToken) ?? undefined,
                                 }));
@@ -77,68 +84,21 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-    const dispatch = useAppDispatch();
-
     return useMutation({
-        mutationFn: async (credentials: RegisterRequest) => {
-            return await AuthService.register(credentials);
-        },
-        onMutate: (credentials: RegisterRequest) => {
-            dispatch(registerAction(credentials));
-        },
-        onSuccess: (response: import('./types').AuthResponse) => {
-            if (response.succeeded && response.data) {
-                dispatch(registerSuccessAction(response.data));
+        mutationFn: (credentials: RegisterRequest) => AuthService.register(credentials),
+    });
+};
 
-                // Also update user store
-                if (response.data.token) {
-                    dispatch(setAccessTokenAction(response.data.token));
-                }
-                if (response.data.refreshToken) {
-                    dispatch(setRefreshTokenAction(response.data.refreshToken));
-                }
-                if (response.data.user) {
-                    const serverUser = response.data.user as UserResponse;
-                    const token = response.data.token;
-                    const userData: IUser = {
-                        id: serverUser.id || '',
-                        email: serverUser.email || '',
-                        firstName: serverUser.firstName,
-                        lastName: serverUser.lastName,
-                        name: `${serverUser.firstName || ''} ${serverUser.lastName || ''}`.trim() || undefined,
-                        image: serverUser.image || serverUser.avatar,
-                        roles: getRoleFromToken(token) ?? undefined,
-                    };
-                    dispatch(setUserAction(userData));
-                    AuthService.me()
-                        .then((meResponse) => {
-                            if (meResponse?.data && (meResponse.succeeded === true || meResponse.status === true)) {
-                                const d = meResponse.data;
-                                const currentToken = store.getState().user.accessToken;
-                                dispatch(setUserAction({
-                                    id: d.id || '',
-                                    email: d.email || '',
-                                    firstName: d.firstName || '',
-                                    lastName: d.lastName || '',
-                                    phoneNumber: d.phoneNumber || '',
-                                    introduction: d.introduction || '',
-                                    name: `${d.firstName || ''} ${d.lastName || ''}`.trim() || undefined,
-                                    image: d.avatar || d.image,
-                                    roles: getRoleFromToken(currentToken) ?? undefined,
-                                }));
-                            }
-                        })
-                        .catch(() => { });
-                }
-            } else {
-                const error = { messages: response.messages || ['Đăng ký thất bại'] };
-                dispatch(registerFailureAction(error));
-            }
-        },
-        onError: (error: any) => {
-            const errorMessages = error.response?.data?.messages || ['Đăng ký thất bại'];
-            dispatch(registerFailureAction({ messages: errorMessages }));
-        },
+export const useVerifyRegisterOtp = () => {
+    return useMutation({
+        mutationFn: (payload: import('./types').VerifyOtpRequest) =>
+            AuthService.verifyRegisterOtp(payload),
+    });
+};
+
+export const useResendRegisterOtp = () => {
+    return useMutation({
+        mutationFn: (email: string) => AuthService.resendRegisterOtp(email),
     });
 };
 
@@ -161,99 +121,81 @@ export const useMe = (options?: { refetchProfile?: boolean; enabled?: boolean })
     });
 
     useEffect(() => {
-        if (response && (response.succeeded === true || response.status === true) && response.data) {
+        if (isApiSuccess(response) && response.data) {
             const token = store.getState().user.accessToken;
-            const userData: IUser = {
-                id: response.data.id || '',
-                email: response.data.email || '',
-                firstName: response.data.firstName || '',
-                lastName: response.data.lastName || '',
-                phoneNumber: response.data.phoneNumber || '',
-                introduction: response.data.introduction || '',
-                name: `${response.data.firstName || ''} ${response.data.lastName || ''}`.trim() || undefined,
-                image: response.data.avatar || response.data.image,
+            const d = response.data;
+            dispatch(setUserAction({
+                id: d.id || '',
+                email: d.email || '',
+                fullName: d.fullName,
+                phoneNumber: d.phoneNumber,
+                introduction: d.introduction,
+                image: d.avatar || d.image,
                 roles: getRoleFromToken(token) ?? undefined,
-            };
-            dispatch(setUserAction(userData));
+            }));
         }
     }, [response, dispatch]);
 };
 
-export const useUpdateProfile = () => {
-    const dispatch = useAppDispatch();
-    const queryClient = useQueryClient();
+export const useGetProfile = () => {
+  return useQuery({
+    queryKey: [KEYS.AUTH_PROFILE],
+    queryFn: () => AuthService.getProfile(),
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
 
-    return useMutation({
-        mutationFn: async (data: UpdateProfileRequest) => {
-            return await AuthService.updateProfile(data);
-        },
-        onSuccess: async (response) => {
-            if (response && (response.succeeded === true || response.status === true)) {
-                await queryClient.invalidateQueries({ queryKey: [KEYS.AUTH_ME] });
-                const meResponse = await AuthService.me();
-                if (meResponse && (meResponse.succeeded === true || meResponse.status === true) && meResponse.data) {
-                    const token = store.getState().user.accessToken;
-                    const userData: IUser = {
-                        id: meResponse.data.id || '',
-                        email: meResponse.data.email || '',
-                        firstName: meResponse.data.firstName || '',
-                        lastName: meResponse.data.lastName || '',
-                        phoneNumber: meResponse.data.phoneNumber || '',
-                        introduction: meResponse.data.introduction || '',
-                        name: `${meResponse.data.firstName || ''} ${meResponse.data.lastName || ''}`.trim() || undefined,
-                        image: meResponse.data.avatar || meResponse.data.image,
-                        roles: getRoleFromToken(token) ?? undefined,
-                    };
-                    dispatch(setUserAction(userData));
-                }
-            }
-        },
-    });
+export const useSyncProfileToStore = () => {
+  const { data } = useGetProfile();
+
+  useEffect(() => {
+    const profile = getEnvelopeData<UserProfileResponse>(data);
+    if (profile?.avatarUrl || profile?.fullName) applyProfileToStore(profile);
+  }, [data]);
+};
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateProfileRequest) => AuthService.updateProfile(data),
+    onSuccess: (response) => {
+      const profile = getEnvelopeData<UserProfileResponse>(response);
+      if (profile) {
+        applyProfileToStore(profile);
+        queryClient.setQueryData([KEYS.AUTH_PROFILE], response);
+      }
+    },
+  });
 };
 
 export const useUpdateAvatar = () => {
-    const dispatch = useAppDispatch();
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (file: File) => {
-            return await AuthService.updateAvatar(file);
-        },
-        onSuccess: async (response) => {
-            if (response && (response.succeeded === true || response.status === true)) {
-                toast.success("Cập nhật avatar thành công!");
-                await queryClient.invalidateQueries({ queryKey: [KEYS.AUTH_ME] });
-                const meResponse = await AuthService.me();
-                if (meResponse && (meResponse.succeeded === true || meResponse.status === true) && meResponse.data) {
-                    const token = store.getState().user.accessToken;
-                    const userData: IUser = {
-                        id: meResponse.data.id || '',
-                        email: meResponse.data.email || '',
-                        firstName: meResponse.data.firstName || '',
-                        lastName: meResponse.data.lastName || '',
-                        phoneNumber: meResponse.data.phoneNumber || '',
-                        introduction: meResponse.data.introduction || '',
-                        name: `${meResponse.data.firstName || ''} ${meResponse.data.lastName || ''}`.trim() || undefined,
-                        image: meResponse.data.avatar || meResponse.data.image,
-                        roles: getRoleFromToken(token) ?? undefined,
-                    };
-                    dispatch(setUserAction(userData));
-                }
-            } else {
-                toast.error(response?.messages?.[0] || response?.message || "Cập nhật avatar thất bại.");
-            }
-        },
-        onError: (error: any) => {
-            const errorMessage = error.response?.data?.messages?.[0] || error.response?.data?.message || "Cập nhật avatar thất bại.";
-            toast.error(errorMessage);
-        },
-    });
+  return useMutation({
+    mutationFn: (file: File) => AuthService.updateAvatar(file),
+    onSuccess: (response) => {
+      const profile = getEnvelopeData<UserProfileResponse>(response);
+      if (!profile?.avatarUrl) {
+        toast.error('Cập nhật avatar thất bại.');
+        return;
+      }
+
+      applyProfileToStore(profile);
+      queryClient.setQueryData([KEYS.AUTH_PROFILE], response);
+      toast.success('Cập nhật avatar thành công!');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Cập nhật avatar thất bại.'));
+    },
+  });
 };
 
-export const useChangePassword = () => {
-    return useMutation({
-        mutationFn: (data: ChangePasswordRequest) => AuthService.changePassword(data),
-    });
+export const useUpdatePassword = () => {
+  return useMutation({
+    mutationFn: (data: UpdatePasswordRequest) => AuthService.updatePassword(data),
+  });
 };
 
 export const useLogout = () => {

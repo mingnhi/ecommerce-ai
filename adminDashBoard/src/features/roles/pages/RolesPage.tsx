@@ -40,7 +40,7 @@ export default function RolesPage() {
 
   const toolbarConfig = useMemo(
     () => ({
-      title: "Quản lý vai trò",
+      title: "Bộ lọc vai trò",
       description: "Danh sách các vai trò và phân quyền trong hệ thống",
       fields: [
         {
@@ -71,14 +71,8 @@ export default function RolesPage() {
   if (isLoading) return <PageSkeleton filterCount={1} columnCount={5} />;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Quản lý vai trò</h1>
-          <p className="text-sm text-muted-foreground">
-            Quản lý các vai trò và phân quyền trong hệ thống
-          </p>
-        </div>
+    <div className="mx-auto flex w-full flex-col gap-6 md:gap-3">
+      <div className="flex items-center justify-end">
         <PermissionButton
           permission={PERMISSIONS.ROLE.CREATE}
           fallbackBehavior="alert"

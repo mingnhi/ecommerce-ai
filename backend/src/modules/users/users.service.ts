@@ -20,9 +20,15 @@ export class UsersService {
   ) {}
 
   async findAll() {
-    return this.userRepository.findAll({
-      fields: ['id', 'email', 'fullName', 'status', 'createdAt'],
-    });
+    const users = await this.userRepository.findAll({ populate: ['userRoles.role'] });
+    return users.map(u => ({
+      id: u.id,
+      email: u.email,
+      fullName: u.fullName,
+      status: u.status,
+      createdAt: u.createdAt,
+      roles: u.userRoles.getItems().map(ur => ur.role),
+    }));
   }
 
   async findOne(id: string) {
@@ -60,13 +66,31 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, data: Partial<User>) {
+  async update(id: string, dto: UpdateUserDto) {
     const user = await this.findOne(id);
 
-    Object.assign(user, data);
+    if (dto.email && dto.email !== user.email) {
+      const existed = await this.findByEmail(dto.email);
+      if (existed) throw new ConflictException('Email already exists');
+      user.email = dto.email;
+    }
+
+    if (dto.fullName !== undefined) user.fullName = dto.fullName;
+    if (dto.status !== undefined) user.status = dto.status;
+
+    if (dto.password) {
+      user.passwordHash = await bcrypt.hash(dto.password, 10);
+    }
 
     await this.em.flush();
 
+    return user;
+  }
+
+  async patch(id: string, data: Partial<User>) {
+    const user = await this.findOne(id);
+    Object.assign(user, data);
+    await this.em.flush();
     return user;
   }
 
@@ -93,3 +117,4 @@ export class UsersService {
     };
   }
 }
+

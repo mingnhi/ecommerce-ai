@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { KEYS } from '@/apis/auth/keys';
+import { getApiMessage } from '@/lib/api-response';
 import {
   isAccessTokenExpired,
   postToAts,
@@ -21,20 +23,30 @@ const nextAuth = NextAuth({
       credentials: { email: { type: 'email' }, password: { type: 'password' } },
       async authorize(creds) {
         if (!creds?.email || !creds?.password) return null;
-        const res = await postToAts('/api/auth/login', { email: creds.email, password: creds.password });
-        if (!res.ok) return null;
+
+        const res = await postToAts(KEYS.AUTH_LOGIN, {
+          email: creds.email,
+          password: creds.password,
+        });
         const raw = (await res.json()) as Record<string, unknown>;
-        if (!isAtsSuccess(raw)) return null;
+
+        if (!res.ok || !isAtsSuccess(raw)) {
+          throw new Error(getApiMessage(raw, 'Email hoặc mật khẩu không đúng.'));
+        }
+
         const d = getAtsData(raw);
         if (!d) return null;
+
         const { token, refreshToken } = getAtsTokenPair(d);
         if (!token) return null;
+
         const u = (d.user ?? d.User) as Record<string, unknown> | undefined;
-        const name = [u?.firstName, u?.lastName].filter(Boolean).join(' ').trim() || undefined;
+        const fullName = typeof u?.fullName === 'string' ? u.fullName : undefined;
+
         return {
           id: (u?.id ?? '').toString(),
           email: (u?.email ?? creds.email) as string,
-          name: name || undefined,
+          name: fullName || undefined,
           accessToken: token,
           refreshToken,
         };
@@ -50,20 +62,27 @@ const nextAuth = NextAuth({
         token.id = user.id;
       }
       if (account?.provider === 'google' && account.access_token && !token.accessToken) {
-        try {
-          const res = await postToAts('/api/auth/google', { accessToken: account.access_token });
-          const raw = (await res.json()) as Record<string, unknown>;
-          if (isAtsSuccess(raw)) {
-            const payload = getAtsData(raw);
-            const { token: appToken, refreshToken: appRefresh } = getAtsTokenPair(payload);
-            if (appToken) {
-              token.accessToken = appToken;
-              token.refreshToken = appRefresh;
-              const userData = (payload?.user ?? payload?.User) as { id?: string } | undefined;
-              token.id = userData?.id?.toString() ?? token.sub;
-            }
-          }
-        } catch { }
+        const res = await postToAts(KEYS.AUTH_GOOGLE, { accessToken: account.access_token });
+        const raw = (await res.json()) as Record<string, unknown>;
+
+        if (!res.ok || !isAtsSuccess(raw)) {
+          throw new Error(getApiMessage(raw, 'Đăng nhập Google thất bại.'));
+        }
+
+        const payload = getAtsData(raw);
+        const { token: appToken, refreshToken: appRefresh } = getAtsTokenPair(payload);
+
+        if (!appToken) {
+          throw new Error('Đăng nhập Google thất bại.');
+        }
+
+        token.accessToken = appToken;
+        token.refreshToken = appRefresh;
+
+        const userData = (payload?.user ?? payload?.User) as Record<string, unknown> | undefined;
+        token.id = userData?.id?.toString() ?? token.sub;
+        if (typeof userData?.email === 'string') token.email = userData.email;
+        if (typeof userData?.fullName === 'string') token.name = userData.fullName;
       }
       const at = token.accessToken as string | undefined;
       const rt = token.refreshToken as string | undefined;
