@@ -6,6 +6,7 @@ import {
   Headers,
   Patch,
   Post,
+  Put,
   Req,
   UnauthorizedException,
   UploadedFile,
@@ -28,10 +29,11 @@ import { UpdatePasswordDto } from './dtos/update-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
-
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+  ) { }
 
   private toProfileData(user: User, profile: UserProfile | null) {
     return {
