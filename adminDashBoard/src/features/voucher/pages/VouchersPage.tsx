@@ -3,8 +3,8 @@ import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
-import { Spinner } from '@/shared/components/ui/spinner';
 import { toast } from '@/shared/components/ui/toast';
+import { PageSkeleton } from '@/shared/components/common/PageSkeleton';
 import {
   Table,
   TableBody,
@@ -76,7 +76,7 @@ export default function VouchersPage() {
       </div>
 
       {vouchers.isLoading ? (
-        <Spinner />
+        <PageSkeleton filterCount={1} columnCount={7} rowCount={6} />
       ) : items.length === 0 ? (
         <div className="border rounded-lg p-12 text-center text-slate-500">
           Chưa có voucher nào

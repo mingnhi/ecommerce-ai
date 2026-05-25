@@ -1,4 +1,5 @@
 import { Permission } from '@entities/permissions.entity';
+import { RolePermission } from '@entities/rolePermission.entity';
 import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
@@ -88,9 +89,12 @@ export class PermissionsService {
   }
 
   async remove(id: string) {
-    const permission = await this.findOne(id);
+    await this.findOne(id);
 
-    await this.em.removeAndFlush(permission);
+    await this.em.transactional(async (em) => {
+      await em.nativeDelete(RolePermission, { permission: id });
+      await em.nativeDelete(Permission, { id });
+    });
 
     return {
       message: 'Delete permission success',

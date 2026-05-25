@@ -63,7 +63,7 @@ const nextAuth = NextAuth({
               token.id = userData?.id?.toString() ?? token.sub;
             }
           }
-        } catch {}
+        } catch { }
       }
       const at = token.accessToken as string | undefined;
       const rt = token.refreshToken as string | undefined;
