@@ -6,6 +6,6 @@ import {
 export class QueryCategoryRequest {
   @IsOptional()
   @IsIn(['tree', 'flat'])
-  type?: 'tree' | 'flat' = 'tree';
+  type?: 'tree' | 'flat' =
+    'tree';
 }
-
