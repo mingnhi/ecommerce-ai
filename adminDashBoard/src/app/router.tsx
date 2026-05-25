@@ -1,6 +1,15 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+
 import DashboardPage from "@/features/dashboard/pages/Dashboard";
-import ProductPage from "@/features/product/pages/ProductPage";
+
+import CategoriesPage from "@/features/categories/pages/categories-page";
+
+// Products
+import ProductsPage from "@/features/products/pages/products-page";
+import ProductDetailPage from "@/features/products/pages/product-detail-page";
+import CreateProductPage from "@/features/products/pages/create-product-page";
+import EditProductPage from "@/features/products/pages/edit-product-page";
+
 import { CartPage } from "@/features/cart/pages/CartPage";
 import OrdersPage from "@/features/order/pages/OrdersPage";
 import InventoryPage from "@/features/inventory/pages/InventoryPage";
@@ -46,13 +55,32 @@ export const privateRoutes = [
           </PermissionRoute>
         ),
       },
+
       {
-        path: "/products/:id",
-        element: (
-          <PermissionRoute permission={PERMISSIONS.PRODUCT.READ}>
-            <ProductPage />
-          </PermissionRoute>
-        ),
+        path: "/categories",
+        element: <CategoriesPage />,
+      },
+
+      {
+        path: "/products",
+        element: <ProductsPage />,
+      },
+      {
+        path: "/products/create",
+        element: <CreateProductPage />,
+      },
+      {
+        path: "/products/:slug/edit",     // ← Sửa thành slug cho đồng bộ
+        element: <EditProductPage />,
+      },
+      {
+        path: "/products/:slug",          // Detail
+        element: <ProductDetailPage />,
+      },
+
+      {
+        path: "/cart",
+        element: <CartPage />,
       },
       { path: "/cart", element: <CartPage /> },
       {
@@ -79,6 +107,8 @@ export const privateRoutes = [
           </PermissionRoute>
         ),
       },
+
+      // Catch all
       {
         path: "/roles",
         element: (
@@ -101,4 +131,8 @@ export const privateRoutes = [
   },
 ];
 
-export const router = createBrowserRouter([...publicRoutes, ...privateRoutes]);
+export const router = createBrowserRouter([
+  ...publicRoutes,
+  ...privateRoutes,
+]);
+

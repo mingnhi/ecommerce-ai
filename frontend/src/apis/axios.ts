@@ -18,7 +18,7 @@ const safeJsonParse = (data: string): unknown => {
 };
 
 const instance = axios.create({
-  baseURL: `${envConfig.API_URL}/api`,
+  baseURL: `${envConfig.API_URL}`,
   transformResponse: [(data) => (typeof data === 'string' ? safeJsonParse(data) : data)],
 });
 
