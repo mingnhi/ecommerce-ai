@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { isAxiosError } from "axios";
 import { getMe, login, logout as logoutApi } from "@/services/auth";
 import {
   clearAuthSession,
   getCachedAuthUser,
   hasAuthToken,
   isAdmin,
+  parseLoginErrorMessage,
   parseLoginPayload,
   parseMeUser,
   saveAuthSession,
@@ -74,11 +74,5 @@ export function useLogout() {
 }
 
 export function loginErrorMessage(err: unknown): string {
-  if (isAxiosError(err)) {
-    const data = err.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
-    if (err.response?.status === 401) return "Email hoặc mật khẩu không đúng.";
-  }
-  if (err instanceof Error) return err.message;
-  return "Đăng nhập thất bại. Vui lòng thử lại.";
+  return parseLoginErrorMessage(err);
 }

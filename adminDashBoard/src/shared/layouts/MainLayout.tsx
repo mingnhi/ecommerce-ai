@@ -20,12 +20,20 @@ const LABELS: Record<string, string> = {
   "/orders": "Đơn hàng",
   "/inventory": "Tồn kho",
   "/inventory/history": "Lịch sử kho",
+  "/categories": "Danh mục sản phẩm",
+  "/products": "Sản phẩm",
+  "/roles": "Vai trò",
+  "/permissions": "Quyền hạn",
+  "/users": "Người dùng",
+  "/account/profile": "Thông tin tài khoản",
+  "/account/password": "Đổi mật khẩu",
+  "/403": "Không có quyền truy cập",
 }
 
 function breadcrumbLabel(pathname: string) {
   if (LABELS[pathname]) return LABELS[pathname]
   if (pathname === "/") return "Tổng quan"
-  if (pathname.startsWith("/products/")) return "Sản phẩm"
+  if (pathname.startsWith("/products/")) return "Chi tiết sản phẩm"
   return "Không tìm thấy"
 }
 

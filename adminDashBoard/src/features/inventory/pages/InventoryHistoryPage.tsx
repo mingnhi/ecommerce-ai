@@ -51,7 +51,7 @@ export default function InventoryHistoryPage() {
   }), [inv])
 
   const toolbarConfig = React.useMemo(() => ({
-    title: "Bộ lọc",
+    title: "Bộ lọc lịch sử kho",
     description: "Tìm theo sản phẩm, SKU, loại biến động và khoảng thời gian",
     onReset: () => setFilters(defaultFilters),
     fields: [
