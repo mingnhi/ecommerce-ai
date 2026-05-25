@@ -1,6 +1,4 @@
-import {
-  Type,
-} from 'class-transformer';
+import { Type } from 'class-transformer';
 
 import {
   IsArray,
@@ -14,15 +12,10 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-class CreateProductPriceRequest {
+class ProductPriceRequest {
   @Type(() => Number)
   @IsNumber()
-  price: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  originalPrice?: number;
+  originalPrice: number;
 
   @IsOptional()
   @Type(() => Number)
@@ -32,9 +25,13 @@ class CreateProductPriceRequest {
   @IsOptional()
   @IsString()
   currency?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
 
-class CreateProductVariantRequest {
+class ProductVariantRequest {
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -58,6 +55,10 @@ class CreateProductVariantRequest {
   image?: string;
 
   @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
   @IsObject()
   attributes?: Record<
     string,
@@ -65,7 +66,7 @@ class CreateProductVariantRequest {
   >;
 }
 
-class CreateProductAttributeRequest {
+class ProductAttributeRequest {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -92,46 +93,34 @@ export class CreateProductRequest {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  thumbnail?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 
   @IsOptional()
   @IsArray()
-
   @ValidateNested({
     each: true,
   })
-
-  @Type(
-    () =>
-      CreateProductPriceRequest,
-  )
-  prices?: CreateProductPriceRequest[];
+  @Type(() => ProductPriceRequest)
+  prices?: ProductPriceRequest[];
 
   @IsOptional()
   @IsArray()
-
   @ValidateNested({
     each: true,
   })
-
-  @Type(
-    () =>
-      CreateProductVariantRequest,
-  )
-  variants?: CreateProductVariantRequest[];
+  @Type(() => ProductVariantRequest)
+  variants?: ProductVariantRequest[];
 
   @IsOptional()
   @IsArray()
-
   @ValidateNested({
     each: true,
   })
-
-  @Type(
-    () =>
-      CreateProductAttributeRequest,
-  )
-  attributes?: CreateProductAttributeRequest[];
+  @Type(() => ProductAttributeRequest)
+  attributes?: ProductAttributeRequest[];
 }
-

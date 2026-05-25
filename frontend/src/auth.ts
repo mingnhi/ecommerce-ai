@@ -61,7 +61,7 @@ const nextAuth = NextAuth({
         token.refreshToken = u.refreshToken;
         token.id = user.id;
       }
-      if (account?.provider === 'google' && account.access_token) {
+      if (account?.provider === 'google' && account.access_token && !token.accessToken) {
         const res = await postToAts(KEYS.AUTH_GOOGLE, { accessToken: account.access_token });
         const raw = (await res.json()) as Record<string, unknown>;
 

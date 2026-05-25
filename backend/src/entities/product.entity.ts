@@ -10,13 +10,7 @@ import { AuditableEntity } from './base/auditable_entity';
 
 import { CategoryEntity } from './category.entity';
 
-import { ProductVariantEntity } from './product-variant.entity';
-
-import { ProductPriceEntity } from './product-price.entity';
-
 import { ProductImageEntity } from './product-image.entity';
-
-import { ProductAttributeEntity } from './product-attribute.entity';
 
 import { ProductReviewEntity } from './product-review.entity';
 
@@ -24,12 +18,9 @@ import { ProductReviewEntity } from './product-review.entity';
   tableName: 'products',
 })
 export class ProductEntity extends AuditableEntity {
-  @ManyToOne(
-    () => CategoryEntity,
-    {
-      fieldName: 'category_id',
-    },
-  )
+  @ManyToOne(() => CategoryEntity, {
+    fieldName: 'category_id',
+  })
   category: CategoryEntity;
 
   @Property()
@@ -54,17 +45,67 @@ export class ProductEntity extends AuditableEntity {
   description?: string;
 
   @Property({
-    fieldName: 'seo_title',
     nullable: true,
   })
-  seoTitle?: string;
+  thumbnail?: string;
 
+  /**
+   * prices
+   */
   @Property({
-    fieldName: 'seo_description',
-    type: 'text',
+    type: 'json',
     nullable: true,
   })
-  seoDescription?: string;
+  prices?: {
+    price: number;
+
+    originalPrice: number;
+
+    discountPercent?: number;
+
+    currency?: string;
+
+    isActive?: boolean;
+  }[];
+
+  /**
+   * variants
+   */
+  @Property({
+    type: 'json',
+    nullable: true,
+  })
+  variants?: {
+    title: string;
+
+    sku: string;
+
+    stock?: number;
+
+    image?: string;
+
+    price?: number;
+
+    isActive?: boolean;
+
+    attributes?: Record<
+      string,
+      any
+    >;
+  }[];
+
+  /**
+   * attributes
+   */
+  @Property({
+    type: 'json',
+    nullable: true,
+  })
+  attributes?: {
+    name: string;
+
+    value: string;
+  }[];
 
   @Property({
     fieldName: 'view_count',
@@ -79,39 +120,11 @@ export class ProductEntity extends AuditableEntity {
   isActive: boolean = true;
 
   @OneToMany(
-    () => ProductVariantEntity,
-    variant => variant.product,
-  )
-  variants =
-    new Collection<ProductVariantEntity>(
-      this,
-    );
-
-  @OneToMany(
-    () => ProductPriceEntity,
-    price => price.product,
-  )
-  prices =
-    new Collection<ProductPriceEntity>(
-      this,
-    );
-
-  @OneToMany(
     () => ProductImageEntity,
     image => image.product,
   )
   images =
     new Collection<ProductImageEntity>(
-      this,
-    );
-
-  @OneToMany(
-    () => ProductAttributeEntity,
-    attribute =>
-      attribute.product,
-  )
-  attributes =
-    new Collection<ProductAttributeEntity>(
       this,
     );
 
@@ -124,4 +137,3 @@ export class ProductEntity extends AuditableEntity {
       this,
     );
 }
-
