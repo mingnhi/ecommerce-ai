@@ -12,7 +12,7 @@ import {
   EntityRepository,
   FilterQuery,
   QueryOrder,
-} from '@mikro-orm/mysql';
+} from '@mikro-orm/core';
 
 import slugify from 'slugify';
 
