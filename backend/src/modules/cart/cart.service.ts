@@ -1,294 +1,325 @@
-// import {
-//   BadRequestException,
-//   ConflictException,
-//   ForbiddenException,
-//   Injectable,
-//   NotFoundException,
-// } from '@nestjs/common';
-// import { InjectRepository } from '@mikro-orm/nestjs';
-// import { EntityRepository, QueryOrder } from '@mikro-orm/core';
-// import { EntityManager } from '@mikro-orm/mysql';
-// import { Cart } from '@entities/cart.entity';
-// import { CartItem } from '@entities/cart-item.entity';
-// import { Inventory } from '@entities/inventory.entity';
-// import { ProductVariant } from '@entities/product-variant.entity';
-// import { CartStatus } from './enums/cart-status.enum';
-// import { AddCartItemDto } from './dto/add-cart-item.dto';
-// import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-// import { MergeCartDto } from './dto/merge-cart.dto';
-// import { mergeCarts, CartLine } from './domain/merge-carts';
-// import { PriceService } from '@modules/price/price.service';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
-// const MAX_QTY = 999;
+import { QueryOrder } from '@mikro-orm/core';
+import { EntityManager } from '@mikro-orm/core';
 
-// @Injectable()
-// export class CartService {
-//   constructor(
-//     private readonly em: EntityManager,
-//     @InjectRepository(Cart)
-//     private readonly cartRepo: EntityRepository<Cart>,
-//     @InjectRepository(CartItem)
-//     private readonly itemRepo: EntityRepository<CartItem>,
-//     private readonly priceService: PriceService,
-//   ) {}
+import { CartEntity } from '@entities/cart.entity';
+import { CartItemEntity } from '@entities/cart-item.entity';
+import { ProductVariantEntity } from '@entities/product-variant.entity';
+import { ProductPriceEntity } from '@entities/product-price.entity';
 
-//   async getCart(userId: string) {
-//     const cart = await this.getOrCreateActiveCart(this.em, userId);
-//     await this.em.populate(cart, ['items']);
-//     return this.toDto(cart);
-//   }
+import { CartStatus } from './enums/cart-status.enum';
+import { AddCartItemDto } from './dto/add-cart-item.dto';
+import { UpdateCartItemDto } from './dto/update-cart-item.dto';
+import { MergeCartDto } from './dto/merge-cart.dto';
+import { InventoryService } from '@modules/inventory/inventory.service';
 
-//   async addItem(userId: string, dto: AddCartItemDto) {
-//     return this.em.transactional(async (em) => {
-//       const cart = await this.getOrCreateActiveCart(em, userId);
-//       await em.populate(cart, ['items']);
+const MAX_QTY = 999;
 
-//       const existing = cart.items
-//         .getItems()
-//         .find((i) => i.variantId === dto.variantId);
+interface CartLine {
+  variantId: string;
+  quantity: number;
+  priceAtTime?: number;
+}
 
-//       const targetQty = Math.min(
-//         (existing?.quantity ?? 0) + dto.quantity,
-//         MAX_QTY,
-//       );
+@Injectable()
+export class CartService {
+  constructor(
+    private readonly em: EntityManager,
+    private readonly inventoryService: InventoryService,
+  ) {}
 
-//       await this.assertStockAvailable(em, dto.variantId, targetQty);
+  async getCart(userId: string) {
+    const cart = await this.getOrCreateActiveCart(this.em, userId);
+    await this.em.populate(cart, ['items']);
+    return this.toDtoWithLivePrice(this.em, cart);
+  }
 
-//       const priceAtTime = await this.resolvePrice(em, dto.variantId);
+  async addItem(userId: string, dto: AddCartItemDto) {
+    return this.em.transactional(async (em) => {
+      const cart = await this.getOrCreateActiveCart(em, userId);
+      await em.populate(cart, ['items']);
 
-//       if (existing) {
-//         existing.quantity = targetQty;
-//         existing.priceAtTime = priceAtTime;
-//         em.persist(existing);
-//       } else {
-//         const item = em.create(CartItem, {
-//           cart,
-//           variantId: dto.variantId,
-//           quantity: targetQty,
-//           priceAtTime,
-//         });
-//         em.persist(item);
-//       }
-//       await em.flush();
+      const existing = cart.items
+        .getItems()
+        .find((i) => i.variantId === dto.variantId);
 
-//       await em.populate(cart, ['items']);
-//       return this.toDto(cart);
-//     });
-//   }
+      const targetQty = Math.min(
+        (existing?.quantity ?? 0) + dto.quantity,
+        MAX_QTY,
+      );
 
-//   async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
-//     return this.em.transactional(async (em) => {
-//       const item = await em.findOne(CartItem, { id: itemId }, { populate: ['cart'] });
-//       if (!item) throw new NotFoundException('Không tìm thấy cart item');
-//       if (item.cart.userId !== userId) {
-//         throw new ForbiddenException('Cart item không thuộc về user này');
-//       }
-//       if (item.cart.status !== CartStatus.ACTIVE) {
-//         throw new ConflictException('Cart đã checkout, không thể chỉnh sửa');
-//       }
+      await this.assertStockAvailable(em, dto.variantId, targetQty);
+      const priceAtTime = await this.resolveCurrentPrice(em, dto.variantId);
 
-//       await this.assertStockAvailable(em, item.variantId, dto.quantity);
+      if (existing) {
+        existing.quantity = targetQty;
+        existing.priceAtTime = priceAtTime;
+        em.persist(existing);
+      } else {
+        em.persist(
+          em.create(CartItemEntity, {
+            cart,
+            variantId: dto.variantId,
+            quantity: targetQty,
+            priceAtTime,
+          }),
+        );
+      }
+      await em.flush();
+      await em.populate(cart, ['items']);
+      return this.toDtoWithLivePrice(em, cart);
+    });
+  }
 
-//       item.quantity = dto.quantity;
-//       item.priceAtTime = await this.resolvePrice(em, item.variantId);
-//       em.persist(item);
-//       await em.flush();
+  async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
+    return this.em.transactional(async (em) => {
+      const item = await em.findOne(
+        CartItemEntity,
+        { id: itemId },
+        { populate: ['cart'] },
+      );
+      if (!item) throw new NotFoundException('Cart item not found');
+      if (item.cart.userId !== userId) {
+        throw new ForbiddenException('Cart item does not belong to this user');
+      }
+      if (item.cart.status !== CartStatus.ACTIVE) {
+        throw new ConflictException('Cart already checked out');
+      }
 
-//       await em.populate(item.cart, ['items']);
-//       return this.toDto(item.cart);
-//     });
-//   }
+      await this.assertStockAvailable(em, item.variantId, dto.quantity);
+      item.quantity = dto.quantity;
+      item.priceAtTime = await this.resolveCurrentPrice(em, item.variantId);
+      em.persist(item);
+      await em.flush();
+      await em.populate(item.cart, ['items']);
+      return this.toDtoWithLivePrice(em, item.cart);
+    });
+  }
 
-//   async removeItem(userId: string, itemId: string) {
-//     return this.em.transactional(async (em) => {
-//       const item = await em.findOne(CartItem, { id: itemId }, { populate: ['cart'] });
-//       if (!item) throw new NotFoundException('Không tìm thấy cart item');
-//       if (item.cart.userId !== userId) {
-//         throw new ForbiddenException('Cart item không thuộc về user này');
-//       }
-//       if (item.cart.status !== CartStatus.ACTIVE) {
-//         throw new ConflictException('Cart đã checkout, không thể chỉnh sửa');
-//       }
+  async removeItem(userId: string, itemId: string) {
+    return this.em.transactional(async (em) => {
+      const item = await em.findOne(
+        CartItemEntity,
+        { id: itemId },
+        { populate: ['cart'] },
+      );
+      if (!item) throw new NotFoundException('Cart item not found');
+      if (item.cart.userId !== userId) {
+        throw new ForbiddenException('Cart item does not belong to this user');
+      }
+      if (item.cart.status !== CartStatus.ACTIVE) {
+        throw new ConflictException('Cart already checked out');
+      }
 
-//       const cart = item.cart;
-//       em.remove(item);
-//       await em.flush();
-//       await em.populate(cart, ['items']);
-//       return this.toDto(cart);
-//     });
-//   }
+      const cart = item.cart;
+      em.remove(item);
+      await em.flush();
+      await em.populate(cart, ['items']);
+      return this.toDtoWithLivePrice(em, cart);
+    });
+  }
 
-//   async merge(userId: string, dto: MergeCartDto) {
-//     return this.em.transactional(async (em) => {
-//       const cart = await this.getOrCreateActiveCart(em, userId);
-//       await em.populate(cart, ['items']);
+  async merge(userId: string, dto: MergeCartDto) {
+    return this.em.transactional(async (em) => {
+      const cart = await this.getOrCreateActiveCart(em, userId);
+      await em.populate(cart, ['items']);
 
-//       const serverLines: CartLine[] = cart.items.getItems().map((i) => ({
-//         variantId: i.variantId,
-//         quantity: i.quantity,
-//         priceAtTime: i.priceAtTime,
-//       }));
-//       const guestLines: CartLine[] = dto.items.map((g) => ({
-//         variantId: g.variantId,
-//         quantity: g.quantity,
-//       }));
+      const mergedMap = new Map<string, CartLine>();
+      for (const i of cart.items.getItems()) {
+        mergedMap.set(i.variantId, {
+          variantId: i.variantId,
+          quantity: i.quantity,
+          priceAtTime: i.priceAtTime,
+        });
+      }
+      for (const g of dto.items) {
+        if (g.quantity <= 0) continue;
+        const existing = mergedMap.get(g.variantId);
+        if (existing) {
+          mergedMap.set(g.variantId, {
+            ...existing,
+            quantity: Math.min(existing.quantity + g.quantity, MAX_QTY),
+          });
+        } else {
+          mergedMap.set(g.variantId, {
+            variantId: g.variantId,
+            quantity: Math.min(g.quantity, MAX_QTY),
+          });
+        }
+      }
+      const merged = Array.from(mergedMap.values());
 
-//       const merged = mergeCarts(serverLines, guestLines, { maxQuantity: MAX_QTY });
+      const validated: CartLine[] = [];
+      for (const line of merged) {
+        const available = await this.inventoryService.getAvailable(
+          em,
+          line.variantId,
+        );
+        const safe = Math.min(line.quantity, available);
+        if (safe > 0) {
+          validated.push({ ...line, quantity: safe });
+        }
+      }
 
-//       // Validate stock cho từng line đã merge — line nào fail thì cap về stock available
-//       const validated: CartLine[] = [];
-//       for (const line of merged) {
-//         const available = await this.getAvailableStock(em, line.variantId);
-//         const safeQty = Math.min(line.quantity, available);
-//         if (safeQty > 0) {
-//           validated.push({ ...line, quantity: safeQty });
-//         }
-//       }
+      const byVariant = new Map(
+        cart.items.getItems().map((i) => [i.variantId, i] as const),
+      );
 
-//       // Reconcile: existing items theo variantId
-//       const byVariant = new Map(
-//         cart.items.getItems().map((i) => [i.variantId, i]),
-//       );
+      for (const line of validated) {
+        const existing = byVariant.get(line.variantId);
+        const price =
+          line.priceAtTime ??
+          (await this.resolveCurrentPrice(em, line.variantId));
+        if (existing) {
+          existing.quantity = line.quantity;
+          existing.priceAtTime = price;
+          em.persist(existing);
+          byVariant.delete(line.variantId);
+        } else {
+          em.persist(
+            em.create(CartItemEntity, {
+              cart,
+              variantId: line.variantId,
+              quantity: line.quantity,
+              priceAtTime: price,
+            }),
+          );
+        }
+      }
 
-//       for (const line of validated) {
-//         const existing = byVariant.get(line.variantId);
-//         const price =
-//           line.priceAtTime ?? (await this.resolvePrice(em, line.variantId));
-//         if (existing) {
-//           existing.quantity = line.quantity;
-//           existing.priceAtTime = price;
-//           em.persist(existing);
-//           byVariant.delete(line.variantId);
-//         } else {
-//           em.persist(
-//             em.create(CartItem, {
-//               cart,
-//               variantId: line.variantId,
-//               quantity: line.quantity,
-//               priceAtTime: price,
-//             }),
-//           );
-//         }
-//       }
+      for (const stale of byVariant.values()) {
+        em.remove(stale);
+      }
 
-//       // Items còn lại trong byVariant = bị remove sau khi cap (qty=0 do hết stock)
-//       for (const stale of byVariant.values()) {
-//         em.remove(stale);
-//       }
+      await em.flush();
+      await em.populate(cart, ['items']);
+      return this.toDtoWithLivePrice(em, cart);
+    });
+  }
 
-//       await em.flush();
-//       await em.populate(cart, ['items']);
-//       return this.toDto(cart);
-//     });
-//   }
+  async getActiveCartForCheckout(em: EntityManager, userId: string) {
+    const cart = await em.findOne(
+      CartEntity,
+      { userId, status: CartStatus.ACTIVE },
+      { populate: ['items'] },
+    );
+    if (!cart || cart.items.length === 0) {
+      throw new ConflictException('Cart is empty');
+    }
+    return cart;
+  }
 
-//   // ---------- internal API cho OrderService ----------
+  markCheckedOut(cart: CartEntity) {
+    cart.status = CartStatus.CHECKED_OUT;
+  }
 
-//   /** Dùng trong S5-01 createOrder — lấy cart active của user, lock. */
-//   async getActiveCartForCheckout(em: EntityManager, userId: string) {
-//     const cart = await em.findOne(
-//       Cart,
-//       { userId, status: CartStatus.ACTIVE },
-//       { populate: ['items'] },
-//     );
-//     if (!cart || cart.items.length === 0) {
-//       throw new ConflictException('Cart rỗng — không thể checkout');
-//     }
-//     return cart;
-//   }
+  async resolveCurrentPriceFor(em: EntityManager, variantId: string) {
+    return this.resolveCurrentPrice(em, variantId);
+  }
 
-//   /** Đánh dấu cart đã checkout, lưu cùng transaction caller. */
-//   markCheckedOut(cart: Cart) {
-//     cart.status = CartStatus.CHECKED_OUT;
-//     cart.checkedOutAt = new Date();
-//   }
+  private async getOrCreateActiveCart(
+    em: EntityManager,
+    userId: string,
+  ): Promise<CartEntity> {
+    let cart = await em.findOne(
+      CartEntity,
+      { userId, status: CartStatus.ACTIVE },
+      { orderBy: { createdAt: QueryOrder.DESC } },
+    );
+    if (!cart) {
+      cart = em.create(CartEntity, {
+        userId,
+        status: CartStatus.ACTIVE,
+      });
+      em.persist(cart);
+      await em.flush();
+    }
+    return cart;
+  }
 
-//   // ---------- helpers ----------
+  private async assertStockAvailable(
+    em: EntityManager,
+    variantId: string,
+    requested: number,
+  ) {
+    const available = await this.inventoryService.getAvailable(em, variantId);
+    if (available < requested) {
+      throw new ConflictException(
+        `Insufficient stock for variant ${variantId}: need ${requested}, available ${available}`,
+      );
+    }
+  }
 
-//   private async getOrCreateActiveCart(
-//     em: EntityManager,
-//     userId: string,
-//   ): Promise<Cart> {
-//     let cart = await em.findOne(
-//       Cart,
-//       { userId, status: CartStatus.ACTIVE },
-//       { orderBy: { createdAt: QueryOrder.DESC } },
-//     );
-//     if (!cart) {
-//       cart = em.create(Cart, {
-//         userId,
-//         status: CartStatus.ACTIVE,
-//       });
-//       em.persist(cart);
-//       await em.flush();
-//     }
-//     return cart;
-//   }
+  private async resolveCurrentPrice(
+    em: EntityManager,
+    variantId: string,
+  ): Promise<number> {
+    const variant = await em.findOne(
+      ProductVariantEntity,
+      { id: variantId, isActive: true },
+      { populate: ['product'] },
+    );
+    if (!variant) {
+      throw new BadRequestException(`Variant ${variantId} not found`);
+    }
+    if (!variant.product?.isActive) {
+      throw new BadRequestException('Product is inactive');
+    }
 
-//   private async getAvailableStock(
-//     em: EntityManager,
-//     variantId: string,
-//   ): Promise<number> {
-//     const inv = await em.findOne(Inventory, { variantId });
-//     return inv?.available ?? 0;
-//   }
+    if (variant.price != null && variant.price > 0) {
+      return Number(variant.price);
+    }
 
-//   private async assertStockAvailable(
-//     em: EntityManager,
-//     variantId: string,
-//     requested: number,
-//   ) {
-//     const available = await this.getAvailableStock(em, variantId);
-//     if (available < requested) {
-//       throw new ConflictException(
-//         `Tồn kho không đủ cho variant ${variantId}: cần ${requested}, còn ${available}`,
-//       );
-//     }
-//   }
+    const price = await em.findOne(
+      ProductPriceEntity,
+      { product: variant.product.id, isActive: true },
+      { orderBy: { createdAt: QueryOrder.DESC } },
+    );
+    if (!price) {
+      throw new BadRequestException(
+        `Product ${variant.product.id} has no active price`,
+      );
+    }
+    return Number(price.price);
+  }
 
-//   private async resolvePrice(
-//     em: EntityManager,
-//     variantId: string,
-//   ): Promise<string> {
-//     const variant = await em.findOne(
-//       ProductVariant,
-//       { id: variantId, isDeleted: false },
-//       { populate: ['product'] },
-//     );
-//     if (!variant) {
-//       throw new BadRequestException(`Variant ${variantId} không tồn tại`);
-//     }
-//     if (variant.product.isDeleted) {
-//       throw new BadRequestException('Product đã bị xoá');
-//     }
-//     const price = await this.priceService.getCurrentPriceFor(variant.product.id);
-//     if (!price) {
-//       throw new BadRequestException(
-//         `Product ${variant.product.id} chưa có giá active`,
-//       );
-//     }
-//     return price;
-//   }
+  private async toDtoWithLivePrice(em: EntityManager, cart: CartEntity) {
+    const items = cart.items.getItems();
+    const livePrices = await Promise.all(
+      items.map((i) =>
+        this.resolveCurrentPrice(em, i.variantId).catch(() => null),
+      ),
+    );
 
-//   private toDto(cart: Cart) {
-//     const items = cart.items.getItems().map((i) => ({
-//       id: i.id,
-//       variantId: i.variantId,
-//       quantity: i.quantity,
-//       priceAtTime: i.priceAtTime,
-//       subtotal: (Number(i.priceAtTime) * i.quantity).toFixed(2),
-//     }));
-//     const total = items
-//       .reduce((sum, i) => sum + Number(i.subtotal), 0)
-//       .toFixed(2);
+    const itemsDto = items.map((item, idx) => {
+      const live = livePrices[idx] ?? Number(item.priceAtTime);
+      return {
+        id: item.id,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        priceAtTime: live,
+        subtotal: Number((live * item.quantity).toFixed(2)),
+      };
+    });
 
-//     return {
-//       id: cart.id,
-//       userId: cart.userId,
-//       status: cart.status,
-//       items,
-//       total,
-//       itemCount: items.reduce((n, i) => n + i.quantity, 0),
-//     };
-//   }
-// }
+    const total = Number(
+      itemsDto.reduce((sum, i) => sum + i.subtotal, 0).toFixed(2),
+    );
+
+    return {
+      id: cart.id,
+      userId: cart.userId,
+      status: cart.status,
+      items: itemsDto,
+      total,
+      itemCount: itemsDto.reduce((n, i) => n + i.quantity, 0),
+    };
+  }
+}

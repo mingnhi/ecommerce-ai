@@ -20,12 +20,14 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { MailService } from '../mail/mail.service';
 import { OtpModule } from '@modules/otp/otp.module';
 import { MailModule } from '@modules/mail/mail.module';
+import { PermissionsModule } from '@modules/permissions/permissions.module';
 
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
     RolesModule,
+    PermissionsModule,
     OtpModule,
     MailModule,
     UserRolesModule,
