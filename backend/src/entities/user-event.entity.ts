@@ -10,6 +10,12 @@ export class UserEvent extends AuditableEntity {
     @Property()
     productId!: string;
 
+    @Property()
+    categoryId!: string;
+
+    @Property({ type: 'decimal', precision: 12, scale: 2 })
+    price!: number;
+
     @Enum(() => UserEventType)
     eventType!: UserEventType;
 
