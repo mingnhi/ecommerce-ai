@@ -78,7 +78,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-4 transition-shadow",
+        "group flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-3 sm:p-4 transition-shadow",
         isDaily
           ? "border-sky-100/90 shadow-[0_10px_36px_-16px_rgba(14,165,233,0.22)] hover:border-sky-200 hover:shadow-[0_18px_44px_-14px_rgba(14,165,233,0.32)]"
           : "border-slate-100/90 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)] hover:border-sky-100 hover:shadow-[0_16px_40px_-14px_rgba(14,165,233,0.28)]",
@@ -100,16 +100,16 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
           src={product.image}
           alt={product.name}
           fill
-          sizes={isDaily ? "(max-width: 640px) 50vw, 20vw" : "176px"}
+          sizes={isDaily ? "(max-width: 640px) 50vw, 20vw" : "(max-width: 640px) 45vw, 176px"}
           className="object-contain p-2.5 transition-transform duration-300 group-hover:scale-105"
         />
       </div>
 
-      <div className={cn("flex flex-col", isDaily && "min-h-0 flex-1")}>
+      <div className={cn("flex flex-col flex-1", isDaily && "min-h-0")}>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-600/90">{product.category}</p>
         <h3
           className={cn(
-            "mt-1 line-clamp-2 text-sm font-semibold leading-snug text-slate-800",
+            "mt-1 line-clamp-2 text-xs sm:text-sm font-semibold leading-snug text-slate-800",
             isDaily ? "min-h-10" : "min-h-[2.5rem]",
           )}
         >
@@ -126,11 +126,11 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
         {isDaily ? (
           <>
             <div className="mt-3 flex min-h-[28px] flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className="text-base font-bold tracking-tight text-sky-700 sm:text-lg">
+              <span className="text-sm xs:text-base font-bold tracking-tight text-sky-700 sm:text-lg">
                 {formatVnd(product.price)}
               </span>
               {product.originalPrice && (
-                <span className="text-xs text-slate-400 line-through">{formatVnd(product.originalPrice)}</span>
+                <span className="text-[10px] sm:text-xs text-slate-400 line-through">{formatVnd(product.originalPrice)}</span>
               )}
             </div>
             <div className="mt-3 space-y-1.5">
@@ -142,29 +142,37 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
               </div>
             </div>
             <Button
-              className="mt-auto h-10 w-full rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600"
+              className="mt-auto h-9 sm:h-10 w-full rounded-xl bg-sky-500 text-xs sm:text-sm font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 gap-1.5"
               onClick={addToCart}
             >
-              <ShoppingCart className="h-4 w-4" />
-              Thêm vào giỏ
+              <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="inline sm:hidden">Thêm</span>
+              <span className="hidden sm:inline">Thêm vào giỏ</span>
             </Button>
           </>
         ) : (
           <div className="mt-auto flex items-end justify-between gap-2 pt-4">
-            <div>
-              <p className="text-lg font-bold tracking-tight text-sky-700">{formatVnd(product.price)}</p>
+            <div className="min-w-0">
+              <p className="text-sm xs:text-base font-bold tracking-tight text-sky-700 sm:text-lg">{formatVnd(product.price)}</p>
               {product.originalPrice && (
-                <p className="text-xs text-slate-400 line-through">{formatVnd(product.originalPrice)}</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 line-through truncate">{formatVnd(product.originalPrice)}</p>
               )}
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="rounded-xl border-sky-200 bg-sky-50/80 text-sky-700 hover:border-sky-500 hover:bg-sky-500 hover:text-white"
+              className="hidden sm:inline-flex rounded-xl border-sky-200 bg-sky-50/80 text-sky-700 hover:border-sky-500 hover:bg-sky-500 hover:text-white gap-1.5 font-medium"
               onClick={addToCart}
             >
               <ShoppingCart className="h-4 w-4" />
               Thêm
+            </Button>
+            <Button
+              size="icon"
+              className="inline-flex sm:hidden h-8 w-8 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/25 items-center justify-center shrink-0 border-0"
+              onClick={addToCart}
+            >
+              <ShoppingCart className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
