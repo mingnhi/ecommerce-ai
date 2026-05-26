@@ -69,11 +69,11 @@ export const privateRoutes = [
         element: <CreateProductPage />,
       },
       {
-        path: "/products/:slug/edit",     // ← Sửa thành slug cho đồng bộ
+        path: "/products/:slug/edit",
         element: <EditProductPage />,
       },
       {
-        path: "/products/:slug",          // Detail
+        path: "/products/:slug",
         element: <ProductDetailPage />,
       },
 
@@ -95,7 +95,7 @@ export const privateRoutes = [
         element: <InventoryHistoryPage />,
       },
 
-      // Catch all
+      // Catch all - Phải để cuối cùng
       {
         path: "*",
         element: <NotFoundPage />,
