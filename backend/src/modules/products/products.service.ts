@@ -654,43 +654,43 @@ export class ProductsService {
         request.isActive;
     }
 
-    if (request.prices) {
-      product.prices =
-        request.prices.map(
-          item => ({
-            originalPrice:
-              item.originalPrice,
+    // if (request.prices) {
+    //   product.prices =
+    //     request.prices.map(
+    //       item => ({
+    //         originalPrice:
+    //           item.originalPrice,
 
-            discountPercent:
-              item.discountPercent ||
-              0,
+    //         discountPercent:
+    //           item.discountPercent ||
+    //           0,
 
-            price:
-              this.calculateDiscountPrice(
-                item.originalPrice,
-                item.discountPercent,
-              ),
+    //         price:
+    //           this.calculateDiscountPrice(
+    //             item.originalPrice,
+    //             item.discountPercent,
+    //           ),
 
-            currency:
-              item.currency ||
-              'VND',
+    //         currency:
+    //           item.currency ||
+    //           'VND',
 
-            isActive:
-              item.isActive ??
-              true,
-          }),
-        );
-    }
+    //         isActive:
+    //           item.isActive ??
+    //           true,
+    //       }),
+    //     );
+    // }
 
-    if (request.variants) {
-      product.variants =
-        request.variants;
-    }
+    // if (request.variants) {
+    //   product.variants =
+    //     request.variants;
+    // }
 
-    if (request.attributes) {
-      product.attributes =
-        request.attributes;
-    }
+    // if (request.attributes) {
+    //   product.attributes =
+    //     request.attributes;
+    // }
 
     await this.em.flush();
 
