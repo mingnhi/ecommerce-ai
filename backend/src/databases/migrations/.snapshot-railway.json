@@ -308,6 +308,26 @@
           "length": null,
           "mappedType": "text"
         },
+        "seo_title": {
+          "name": "seo_title",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "seo_description": {
+          "name": "seo_description",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": null,
+          "mappedType": "text"
+        },
         "thumbnail": {
           "name": "thumbnail",
           "type": "varchar(255)",
@@ -317,36 +337,6 @@
           "nullable": true,
           "length": 255,
           "mappedType": "string"
-        },
-        "prices": {
-          "name": "prices",
-          "type": "json",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": null,
-          "mappedType": "json"
-        },
-        "variants": {
-          "name": "variants",
-          "type": "json",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": null,
-          "mappedType": "json"
-        },
-        "attributes": {
-          "name": "attributes",
-          "type": "json",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": null,
-          "mappedType": "json"
         },
         "view_count": {
           "name": "view_count",
@@ -416,6 +406,109 @@
             "id"
           ],
           "referencedTableName": "categories",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(36)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 36,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "varchar(36)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 36,
+          "mappedType": "string"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        }
+      },
+      "name": "product_attributes",
+      "indexes": [
+        {
+          "columnNames": [
+            "product_id"
+          ],
+          "composite": false,
+          "keyName": "product_attributes_product_id_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "PRIMARY",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "product_attributes_product_id_foreign": {
+          "constraintName": "product_attributes_product_id_foreign",
+          "columnNames": [
+            "product_id"
+          ],
+          "localTableName": "product_attributes",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "products",
           "updateRule": "cascade"
         }
       },
@@ -603,13 +696,24 @@
           "length": 36,
           "mappedType": "string"
         },
+        "price": {
+          "name": "price",
+          "type": "numeric(12,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "precision": 12,
+          "scale": 2,
+          "mappedType": "decimal"
+        },
         "original_price": {
           "name": "original_price",
           "type": "numeric(12,2)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "precision": 12,
           "scale": 2,
           "mappedType": "decimal"
@@ -623,17 +727,6 @@
           "nullable": true,
           "length": null,
           "mappedType": "integer"
-        },
-        "price": {
-          "name": "price",
-          "type": "numeric(12,2)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "precision": 12,
-          "scale": 2,
-          "mappedType": "decimal"
         },
         "currency": {
           "name": "currency",
@@ -656,6 +749,26 @@
           "length": 1,
           "default": "true",
           "mappedType": "boolean"
+        },
+        "start_at": {
+          "name": "start_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": null,
+          "mappedType": "datetime"
+        },
+        "end_at": {
+          "name": "end_at",
+          "type": "datetime",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": null,
+          "mappedType": "datetime"
         }
       },
       "name": "product_prices",
@@ -760,6 +873,16 @@
           "length": 255,
           "mappedType": "string"
         },
+        "attributes": {
+          "name": "attributes",
+          "type": "json",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": null,
+          "mappedType": "json"
+        },
         "stock": {
           "name": "stock",
           "type": "int",
@@ -770,6 +893,16 @@
           "length": null,
           "default": "0",
           "mappedType": "integer"
+        },
+        "image": {
+          "name": "image",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
         },
         "price": {
           "name": "price",
@@ -782,16 +915,6 @@
           "scale": 2,
           "mappedType": "decimal"
         },
-        "image": {
-          "name": "image",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": 255,
-          "mappedType": "string"
-        },
         "is_active": {
           "name": "is_active",
           "type": "tinyint(1)",
@@ -802,16 +925,6 @@
           "length": 1,
           "default": "true",
           "mappedType": "boolean"
-        },
-        "attributes": {
-          "name": "attributes",
-          "type": "json",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": null,
-          "mappedType": "json"
         }
       },
       "name": "product_variants",
