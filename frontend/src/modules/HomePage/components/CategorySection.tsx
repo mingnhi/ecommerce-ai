@@ -24,14 +24,14 @@ export function CategorySection() {
     <section className="mb-5 rounded-2xl border border-slate-100 bg-slate-50/40 px-1 py-6 sm:px-2">
       <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
         <h2 className="shrink-0 text-xl font-semibold text-sky-600 sm:text-2xl md:text-3xl">Danh mục nổi bật</h2>
-        <div className="flex gap-3 overflow-x-auto text-sm [-ms-overflow-style:none] [scrollbar-width:none] sm:ml-auto [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-3 overflow-x-auto text-sm [-ms-overflow-style:none] [scrollbar-width:none] sm:ml-auto [&::-webkit-scrollbar]:hidden pb-1 sm:pb-0">
           {CATEGORY_TAB_PREVIEW.map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600",
+                "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm",
                 activeTab === tab ? "font-semibold text-sky-600" : "text-slate-500",
               )}
             >
@@ -46,7 +46,7 @@ export function CategorySection() {
             {HOME_CATEGORIES.map((cat) => (
               <CarouselItem
                 key={cat.id}
-                className="basis-[46%] pl-4 sm:basis-[31%] md:basis-[21%] lg:basis-[15.5%]"
+                className="basis-[45%] xs:basis-[30%] sm:basis-[28%] md:basis-[21%] lg:basis-[15.5%] pl-4"
               >
                 <motion.button
                   type="button"
@@ -55,7 +55,7 @@ export function CategorySection() {
                     "group flex h-full min-h-[176px] w-full flex-col items-center rounded-xl border bg-white p-5 text-center transition-all duration-300 hover:cursor-pointer",
                     activeTab === cat.name
                       ? "border-sky-400 shadow-[0_14px_36px_-14px_rgba(14,165,233,0.45)] ring-1 ring-sky-200"
-                      : "border-sky-200 border-slate-200/90 shadow-[0_4px_24px_-10px_rgba(15,23,42,0.1)] hover:shadow-[0_14px_32px_-14px_rgba(14,165,233,0.28)]",
+                      : "border-slate-200/90 shadow-[0_4px_24px_-10px_rgba(15,23,42,0.1)] hover:border-sky-300 hover:shadow-[0_14px_32px_-14px_rgba(14,165,233,0.28)]",
                   )}
                 >
                   <div
@@ -76,15 +76,15 @@ export function CategorySection() {
                   </div>
                   <p
                     className={cn(
-                      "line-clamp-2 text-sm font-medium tracking-tight",
-                      activeTab === cat.name ? "text-sky-700" : "text-slate-800 text-sky-600",
+                      "line-clamp-2 text-xs sm:text-sm font-medium tracking-tight",
+                      activeTab === cat.name ? "text-sky-700" : "text-slate-700 group-hover:text-sky-600",
                     )}
                   >
                     {cat.name}
                   </p>
                   <span
                     className={cn(
-                      "mt-2.5 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wide",
+                      "mt-2.5 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] sm:text-[11px] font-medium uppercase tracking-wide",
                       activeTab === cat.name
                         ? "bg-sky-100 text-sky-700"
                         : "bg-slate-50 text-slate-500 group-hover:bg-sky-50 group-hover:text-sky-600",
