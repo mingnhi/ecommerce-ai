@@ -1,57 +1,56 @@
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 import { ProductForm } from "../components/product-form";
-import { useCreateProduct } from "../hooks/products";
+import { useCreateProduct, useUploadProductImage } from "../hooks/products";
 import { useCategories } from "@/features/categories/hooks/categories";
 
 import type { ProductFormValues } from "../types/product.type";
-import productService from "@/services/product";
 
 const CreateProductPage = () => {
   const navigate = useNavigate();
+
   const createMutation = useCreateProduct();
+  const uploadMutation = useUploadProductImage();
   const { data: categoriesData } = useCategories("flat");
 
   const categories = categoriesData?.categories || [];
 
+  /**
+   * Chỉ tạo product, trả về response.
+   * ProductForm tự upload ảnh sau, rồi gọi onSuccess.
+   * KHÔNG navigate ở đây.
+   */
   const handleSubmit = async (values: ProductFormValues) => {
-    try {
-      const response = await createMutation.mutateAsync(values);
-      const productId = response.data?.product?.id || response.data?.data?.product?.id;
+    const response = await createMutation.mutateAsync({
+      categoryId: values.categoryId,
+      name: values.name,
+      shortDescription: values.shortDescription,
+      description: values.description,
+      isActive: values.isActive,
+      prices: values.prices || [],
+      variants: values.variants || [],
+      attributes: values.attributes || [],
+    });
 
-      if (productId) {
-        if (values.thumbnailFile) {
-          await productService.uploadImage(productId, values.thumbnailFile, "THUMBNAIL", 0);
-        }
+    return response;
+  };
 
-        if (values.galleryFiles?.length) {
-          await Promise.all(
-            values.galleryFiles.map((file, index) =>
-              productService.uploadImage(productId, file, "GALLERY", index + 1)
-            )
-          );
-        }
-      }
-
-      toast.success("Tạo sản phẩm thành công");
-      navigate("/products");
-    } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra khi tạo sản phẩm");
-    }
+  const handleSuccess = (slug?: string) => {
+    navigate(slug ? `/products/${slug}` : "/products");
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Tạo sản phẩm mới</h1>
+        <p className="text-muted-foreground mt-1">Nhập thông tin sản phẩm</p>
       </div>
 
       <ProductForm
         categories={categories}
-        loading={createMutation.isPending}
+        loading={createMutation.isPending || uploadMutation.isPending}
         onSubmit={handleSubmit}
+        onSuccess={handleSuccess}
       />
     </div>
   );

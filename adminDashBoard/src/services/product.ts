@@ -1,162 +1,63 @@
-import { httpClient } from "./http";
+// src/services/product.ts
 
+import { httpClient } from "./http";
 import type {
   Product,
   ProductFormValues,
   ProductImage,
   ProductListItem,
+  ProductImageType,
 } from "../features/products/types/product.type";
 
 /**
  * NORMALIZE IMAGE
  */
-const normalizeImage = (
-  image: any
-): ProductImage => ({
+const normalizeImage = (image: any): ProductImage => ({
   id: String(image.id),
-
-  imageUrl:
-    image.imageUrl || "",
-
-  type:
-    image.type || "GALLERY",
-
-  sortOrder:
-    image.sortOrder || 0,
-
-  isPrimary:
-    image.isPrimary || false,
-
-  createdAt:
-    image.createdAt,
+  imageUrl: image.imageUrl || image.image_url || "",
+  publicId: image.publicId || image.public_id || "",
+  type: image.type || "GALLERY",
+  sortOrder: image.sortOrder ?? image.sort_order ?? 0,
+  isPrimary: Boolean(image.isPrimary ?? image.is_primary),
+  createdAt: image.createdAt || image.created_at,
 });
 
 /**
- * NORMALIZE PRODUCT DETAIL
+ * REMOVE UI-ONLY FIELDS BEFORE SEND TO BE
  */
-const normalizeProduct = (
-  product: any
-): Product => ({
-  id: String(product.id),
+const normalizePayload = (payload: Partial<ProductFormValues>) => ({
+  categoryId: payload.categoryId,
+  name: payload.name,
+  shortDescription: payload.shortDescription,
+  description: payload.description,
+  isActive: payload.isActive,
 
-  name: product.name,
+  prices: (payload.prices ?? []).map((p) => ({
+    originalPrice: Number(p.originalPrice),
+    discountPercent:
+      p.discountPercent !== undefined
+        ? Number(p.discountPercent)
+        : undefined,
+    currency: p.currency || "VND",
+    isActive: p.isActive ?? true,
+    startAt: p.startAt,
+    endAt: p.endAt,
+  })),
 
-  slug: product.slug,
+  variants: (payload.variants ?? []).map((v) => ({
+    title: v.title,
+    sku: v.sku,
+    stock: Number(v.stock ?? 0),
+    price: v.price !== undefined ? Number(v.price) : undefined,
+    image: v.image,
+    isActive: v.isActive ?? true,
+    attributes: v.attributes || {},
+  })),
 
-  shortDescription:
-    product.shortDescription ||
-    "",
-
-  description:
-    product.description || "",
-
-  thumbnail:
-    product.thumbnail ||
-    product.images?.find(
-      (img: any) =>
-        img.isPrimary
-    )?.imageUrl ||
-    "",
-
-  isActive:
-    product.isActive ??
-    true,
-
-  createdAt:
-    product.createdAt,
-
-  updatedAt:
-    product.updatedAt,
-
-  category: {
-    id: String(
-      product.category?.id ||
-        ""
-    ),
-
-    name:
-      product.category?.name ||
-      "",
-
-    slug:
-      product.category?.slug ||
-      "",
-  },
-
-  prices:
-    product.prices || [],
-
-  variants:
-    product.variants || [],
-
-  attributes:
-    product.attributes || [],
-
-  images:
-    product.images?.map(
-      normalizeImage
-    ) || [],
-
-  reviewSummary:
-    product.reviewSummary || {
-      averageRating: 0,
-      totalReviews: 0,
-    },
-});
-
-/**
- * NORMALIZE PRODUCT LIST
- */
-const normalizeProductList = (
-  product: any
-): ProductListItem => ({
-  id: String(product.id),
-
-  name: product.name,
-
-  slug: product.slug,
-
-  shortDescription:
-    product.shortDescription ||
-    "",
-
-  thumbnail:
-    product.thumbnail ||
-    product.images?.find(
-      (img: any) =>
-        img.isPrimary
-    )?.imageUrl ||
-    "",
-
-  isActive:
-    product.isActive ??
-    true,
-
-  createdAt:
-    product.createdAt,
-
-  category: {
-    id: String(
-      product.category?.id ||
-        ""
-    ),
-
-    name:
-      product.category?.name ||
-      "",
-
-    slug:
-      product.category?.slug ||
-      "",
-  },
-
-  price:
-    product.price ||
-    product.prices?.find(
-      (p: any) => p.isActive
-    ) ||
-    product.prices?.[0] ||
-    null,
+  attributes: (payload.attributes ?? []).map((a) => ({
+    name: a.name,
+    value: a.value,
+  })),
 });
 
 /**
@@ -166,112 +67,128 @@ export const productService = {
   /**
    * GET ALL PRODUCTS
    */
-  getAll: async (
-    params?: any
-  ) => {
-    const queryParams = {
-      page:
-        params?.page || 1,
+  getAll: async (params?: any) => {
+    const res = await httpClient.get("/products", { params });
+    console.log("res", res.data.data?.data?.products);
+    const products = (res.data.data?.data?.products || []).map((p: any) => ({
+      id: String(p.id),
+      name: p.name,
+      slug: p.slug,
+      shortDescription: p.shortDescription || "",
+      thumbnail: p.thumbnail || null,
+      isActive: Boolean(p.isActive),
+      createdAt: p.createdAt,
 
-      limit:
-        params?.limit || 10,
+      category: {
+        id: String(p.category?.id || ""),
+        name: p.category?.name || "",
+        slug: p.category?.slug || "",
+      },
 
-      search:
-        params?.search ||
-        undefined,
-
-      categoryId:
-        params?.categoryId ||
-        undefined,
-
-      sort:
-        params?.sort ||
-        "newest",
-    };
-
-    const res =
-      await httpClient.get(
-        "/products",
-        {
-          params: queryParams,
-        }
-      );
-
-    console.log(
-      "PRODUCTS API:",
-      res.data
-    );
+      /**
+       * BE returns single price object in list view
+       */
+      price: p.price
+        ? {
+            originalPrice: Number(p.price.originalPrice),
+            discountPercent:
+              p.price.discountPercent !== undefined
+                ? Number(p.price.discountPercent)
+                : undefined,
+            price: Number(p.price.price),
+            currency: p.price.currency || "VND",
+          }
+        : null,
+    })) as ProductListItem[];
+    console.log("pro",products);
 
     return {
-      products: (
-        res.data?.data?.data
-          ?.products || []
-      ).map(
-        normalizeProductList
-      ),
-
-      meta:
-        res.data?.data?.meta ||
-        {},
+      products,
+      meta: res.data?.meta || {},
     };
   },
 
   /**
-   * GET PRODUCT BY SLUG
+   * GET PRODUCT DETAIL BY SLUG
    */
-  getBySlug: async (
-    slug: string
-  ) => {
-    const res =
-      await httpClient.get(
-        `/products/${slug}`
-      );
+  getBySlug: async (slug: string) => {
+    const res = await httpClient.get(`/products/${slug}`);
+    const p = res.data?.data?.product;
 
     return {
-      product:
-        normalizeProduct(
-          res.data?.data
-            ?.data?.product
-        ),
+      product: {
+        id: String(p.id),
+        name: p.name,
+        slug: p.slug,
+
+        shortDescription: p.shortDescription || "",
+        description: p.description || "",
+
+        thumbnail: p.thumbnail || null,
+
+        isActive: Boolean(p.isActive),
+
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+
+        category: {
+          id: String(p.category?.id || ""),
+          name: p.category?.name || "",
+          slug: p.category?.slug || "",
+        },
+
+        prices: (p.prices || []).map((price: any) => ({
+          id: String(price.id),
+          originalPrice: Number(price.originalPrice),
+          discountPercent:
+            price.discountPercent !== undefined
+              ? Number(price.discountPercent)
+              : undefined,
+          price: Number(price.price),
+          currency: price.currency || "VND",
+          isActive: Boolean(price.isActive),
+          startAt: price.startAt,
+          endAt: price.endAt,
+        })),
+
+        variants: (p.variants || []).map((v: any) => ({
+          id: String(v.id),
+          title: v.title,
+          sku: v.sku,
+          stock: Number(v.stock ?? 0),
+          price: v.price !== undefined ? Number(v.price) : undefined,
+          image: v.image,
+          isActive: Boolean(v.isActive),
+          attributes: v.attributes || {},
+        })),
+
+        attributes: (p.attributes || []).map((a: any) => ({
+          id: String(a.id),
+          name: a.name,
+          value: a.value,
+        })),
+
+        images: (p.images || []).map(normalizeImage),
+
+        reviewSummary: p.reviewSummary
+          ? {
+              averageRating: Number(p.reviewSummary.averageRating),
+              totalReviews: Number(p.reviewSummary.totalReviews),
+            }
+          : null,
+      } as Product,
     };
   },
 
   /**
    * CREATE PRODUCT
    */
-  create: async (
-    payload: ProductFormValues
-  ) => {
-    const body = {
-      categoryId:
-        payload.categoryId,
-
-      name: payload.name,
-
-      shortDescription:
-        payload.shortDescription,
-
-      description:
-        payload.description,
-
-      isActive:
-        payload.isActive,
-
-      prices:
-        payload.prices,
-
-      variants:
-        payload.variants,
-
-      attributes:
-        payload.attributes,
-    };
-
-    const res =
-      await httpClient.post(
-        "/products",
-        body
-      );
+  create: async (payload: ProductFormValues) => {
+    console.log("payload", payload);
+    const res = await httpClient.post(
+      "/products",
+      normalizePayload(payload)
+    );
 
     return res.data;
   },
@@ -279,40 +196,11 @@ export const productService = {
   /**
    * UPDATE PRODUCT
    */
-  update: async (
-    id: string,
-    payload: Partial<ProductFormValues>
-  ) => {
-    const body = {
-      categoryId:
-        payload.categoryId,
-
-      name: payload.name,
-
-      shortDescription:
-        payload.shortDescription,
-
-      description:
-        payload.description,
-
-      isActive:
-        payload.isActive,
-
-      prices:
-        payload.prices,
-
-      variants:
-        payload.variants,
-
-      attributes:
-        payload.attributes,
-    };
-
-    const res =
-      await httpClient.put(
-        `/products/${id}`,
-        body
-      );
+  update: async (id: string, payload: Partial<ProductFormValues>) => {
+    const res = await httpClient.put(
+      `/products/${id}`,
+      normalizePayload(payload)
+    );
 
     return res.data;
   },
@@ -320,76 +208,64 @@ export const productService = {
   /**
    * DELETE PRODUCT
    */
-  delete: async (
-    id: string
-  ) =>
-    await httpClient.delete(
-      `/products/${id}`
-    ),
+  delete: async (id: string) => {
+    const res = await httpClient.delete(`/products/${id}`);
+    return res.data;
+  },
 
   /**
-   * UPLOAD IMAGE
+   * UPLOAD PRODUCT IMAGES
    */
   uploadImage: async (
     productId: string,
-    file: File,
-    type:
-      | "THUMBNAIL"
-      | "GALLERY" = "GALLERY",
+    files: File[],
+    type: ProductImageType = "GALLERY",
     sortOrder: number = 0
   ) => {
-    const formData =
-      new FormData();
+    const formData = new FormData();
 
-    formData.append(
-      "file",
-      file
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    formData.append("type", type);
+    formData.append("sortOrder", String(sortOrder));
+    console.log("formData", formData);
+
+    const res = await httpClient.post(
+      `/products/${productId}/images`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
-    formData.append(
-      "type",
-      type
-    );
+    return {
+      images: (res.data?.data?.images || []).map(normalizeImage),
+    };
+  },
 
-    formData.append(
-      "sortOrder",
-      String(sortOrder)
+  /**
+   * SET PRODUCT THUMBNAIL
+   */
+  setThumbnail: async (imageId: string) => {
+    const res = await httpClient.patch(
+      `/images/${imageId}/thumbnail`
     );
-
-    const res =
-      await httpClient.post(
-        `/products/${productId}/images`,
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
 
     return res.data;
   },
 
   /**
-   * SET THUMBNAIL
+   * DELETE PRODUCT IMAGE
    */
-  setThumbnail: async (
-    imageId: string
-  ) =>
-    await httpClient.patch(
-      `/images/${imageId}/thumbnail`
-    ),
+  deleteImage: async (imageId: string) => {
+    const res = await httpClient.delete(`/images/${imageId}`);
 
-  /**
-   * DELETE IMAGE
-   */
-  deleteImage: async (
-    imageId: string
-  ) =>
-    await httpClient.delete(
-      `/images/${imageId}`
-    ),
+    return res.data;
+  },
 };
 
 export default productService;

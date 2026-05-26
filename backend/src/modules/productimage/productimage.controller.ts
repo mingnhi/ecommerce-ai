@@ -4,22 +4,18 @@ import {
   Param,
   Patch,
   Post,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
   Body,
 } from '@nestjs/common';
 
-import {
-  FileInterceptor,
-} from '@nestjs/platform-express';
-
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-
 import { extname } from 'path';
 
 import { ProductImageService } from './productimage.service';
-
 import { UploadProductImageRequest } from './dtos/requests/upload-productimage.request';
+import { ProductImageResponse } from './dtos/responses/product-image.response';
 
 @Controller()
 export class ProductImageController {
@@ -28,85 +24,46 @@ export class ProductImageController {
   ) {}
 
   /**
-   * upload image
+   * Upload multiple images for a product
    */
-  @Post(
-    'products/:id/images',
-  )
+  @Post('products/:id/images')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('files', 10, {
       storage: diskStorage({
-        destination:
-          './temp',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const unique =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() *
-                1e9,
-            );
-
-          callback(
-            null,
-            unique +
-              extname(
-                file.originalname,
-              ),
-          );
+        destination: './temp',
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, uniqueSuffix + extname(file.originalname));
         },
       }),
     }),
   )
-  async upload(
-    @Param('id')
-    id: string,
-
-    @UploadedFile()
-    file: Express.Multer.File,
-
-    @Body()
-    request: UploadProductImageRequest,
+  async uploadMany(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() request: UploadProductImageRequest,
   ) {
-    return await this.productImageService.upload(
+    return await this.productImageService.uploadMany(
       id,
-      file,
+      files,
       request.type,
       request.sortOrder,
     );
   }
 
   /**
-   * set thumbnail
+   * Set an image as thumbnail
    */
-  @Patch(
-    'images/:id/thumbnail',
-  )
-  async setThumbnail(
-    @Param('id')
-    id: string,
-  ) {
-    return await this.productImageService.setThumbnail(
-      id,
-    );
+  @Patch('images/:id/thumbnail')
+  async setThumbnail(@Param('id') id: string) {
+    return await this.productImageService.setThumbnail(id);
   }
 
   /**
-   * delete image
+   * Delete an image
    */
   @Delete('images/:id')
-  async remove(
-    @Param('id')
-    id: string,
-  ) {
-    return await this.productImageService.remove(
-      id,
-    );
+  async remove(@Param('id') id: string) {
+    return await this.productImageService.remove(id);
   }
 }
-

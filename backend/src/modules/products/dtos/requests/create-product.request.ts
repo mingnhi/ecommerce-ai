@@ -1,5 +1,4 @@
 import { Type } from 'class-transformer';
-
 import {
   IsArray,
   IsBoolean,
@@ -13,22 +12,21 @@ import {
 } from 'class-validator';
 
 class ProductPriceRequest {
-  @Type(() => Number)
   @IsNumber()
+  @IsNotEmpty()
   originalPrice: number;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
   discountPercent?: number;
 
   @IsOptional()
   @IsString()
-  currency?: string;
+  currency?: string = 'VND';
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean = true;
 }
 
 class ProductVariantRequest {
@@ -41,12 +39,10 @@ class ProductVariantRequest {
   sku: string;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
-  stock?: number;
+  stock?: number = 0;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
   price?: number;
 
@@ -56,14 +52,11 @@ class ProductVariantRequest {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean = true;
 
   @IsOptional()
-  @IsObject()
-  attributes?: Record<
-    string,
-    any
-  >;
+  @IsObject()                    // ← Đã import đúng
+  attributes?: Record<string, any>;
 }
 
 class ProductAttributeRequest {
@@ -93,34 +86,24 @@ export class CreateProductRequest {
   description?: string;
 
   @IsOptional()
-  @IsString()
-  thumbnail?: string;
-
-  @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean = true;
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({
-    each: true,
-  })
+  @ValidateNested({ each: true })
   @Type(() => ProductPriceRequest)
   prices?: ProductPriceRequest[];
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({
-    each: true,
-  })
+  @ValidateNested({ each: true })
   @Type(() => ProductVariantRequest)
   variants?: ProductVariantRequest[];
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({
-    each: true,
-  })
+  @ValidateNested({ each: true })
   @Type(() => ProductAttributeRequest)
   attributes?: ProductAttributeRequest[];
 }
