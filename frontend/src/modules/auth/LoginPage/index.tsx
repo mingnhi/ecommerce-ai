@@ -24,10 +24,12 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     const error = searchParams.get('error');
-    if (error) {
-      toast.error(getSignInErrorMessage(error, 'Đăng nhập Google thất bại.'));
-    }
-  }, [searchParams]);
+    if (!error) return;
+    toast.error(getSignInErrorMessage(error, 'Đăng nhập thất bại. Vui lòng thử lại.'));
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    router.replace(`${url.pathname}${url.search}`);
+  }, [searchParams, router]);
 
   const {
     register,

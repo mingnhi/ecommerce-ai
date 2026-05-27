@@ -9,13 +9,15 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'Invalid request data': 'Dữ liệu không hợp lệ.',
   CredentialsSignin: 'Email hoặc mật khẩu không đúng.',
   AccessDenied: 'Bạn đã hủy đăng nhập Google.',
-  Configuration: 'Cấu hình Google OAuth chưa đúng.',
+  Configuration: 'Đăng nhập thất bại. Vui lòng thử lại.',
+  CallbackRouteError: 'Đăng nhập thất bại. Vui lòng thử lại.',
   OAuthAccountNotLinked: 'Tài khoản Google này chưa được liên kết.',
   GoogleAuthFailed: 'Đăng nhập Google thất bại.',
   'Current password is incorrect': 'Mật khẩu hiện tại không đúng.',
   'New password must be different from current password': 'Mật khẩu mới phải khác mật khẩu hiện tại.',
   'newPassword must be longer than or equal to 6 characters': 'Mật khẩu mới phải có ít nhất 6 ký tự.',
   'currentPassword should not be empty': 'Vui lòng nhập mật khẩu hiện tại.',
+  'Register successfully. Please verify OTP.': 'Đăng ký thành công! Vui lòng xác thực mã OTP.',
 };
 
 export function normalizeApiMessage(message: string | string[] | undefined): string | null {
