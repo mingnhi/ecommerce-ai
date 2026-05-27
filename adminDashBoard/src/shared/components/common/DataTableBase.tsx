@@ -89,6 +89,7 @@ type DataTableBaseProps<T> = {
   rowClassName?: (row: Row<T>) => string
   toolbarConfig?: ToolbarConfig
   deleteConfig?: DeleteConfig<T>
+  defaultExpandedAll?: boolean
 }
 
 export function DataTableBase<T>({
@@ -103,9 +104,12 @@ export function DataTableBase<T>({
   rowClassName,
   toolbarConfig,
   deleteConfig,
+  defaultExpandedAll = false,
 }: DataTableBaseProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [expanded, setExpanded] = React.useState<ExpandedState>({})
+  const [expanded, setExpanded] = React.useState<ExpandedState>(
+    defaultExpandedAll ? true : {}
+  )
   const [pageIndex, setPageIndex] = React.useState(0)
   const [pageSize, setPageSize] = React.useState<number>(10)
   const [deleteTarget, setDeleteTarget] = React.useState<T | null>(null)

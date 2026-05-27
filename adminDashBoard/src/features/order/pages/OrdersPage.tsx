@@ -103,7 +103,7 @@ export default function OrdersPage() {
 
   const toolbarConfig = React.useMemo(
     () => ({
-      title: "Bộ lọc",
+      title: "Bộ lọc đơn hàng",
       description: "Tìm theo tên khách hoặc mã đơn, trạng thái và khoảng thời gian",
       onReset: () => setFilters(defaultFilters),
       fields: [
@@ -164,6 +164,7 @@ export default function OrdersPage() {
           pageSizeLabel="nhóm khách / trang"
           toolbarConfig={toolbarConfig}
           deleteConfig={deleteConfig}
+          defaultExpandedAll={true}
         />
 
         <OrderDetailDialog

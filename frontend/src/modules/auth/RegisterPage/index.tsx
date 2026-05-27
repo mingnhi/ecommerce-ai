@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { ROUTES } from '@/lib/routes';
 import { registerSchema, type RegisterSchemaType } from '@/lib/validations/auth';
 import { useRegister } from '@/apis/auth/queries';
+import { isApiSuccess, getApiErrorMessage, getApiMessage } from '@/lib/api-response';
 import { PasswordStrengthIndicator } from '@/components/common/PasswordStrengthIndicator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,33 +48,17 @@ export default function RegisterPage() {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        role: 'user',
       });
 
-      if (
-        response &&
-        (response.succeeded === true || response.status === true) &&
-        response.data
-      ) {
-        toast.success('Đăng ký thành công!');
-        setTimeout(() => router.push(ROUTES.LOGIN), 1000);
+      if (isApiSuccess(response)) {
+        toast.success(getApiMessage(response, 'Đăng ký thành công! Vui lòng xác thực OTP.'));
+        router.push(`${ROUTES.REGISTER_VERIFY_OTP}?email=${encodeURIComponent(data.email)}`);
         return;
       }
 
-      const errorMessage =
-        response?.messages?.[0] || 'Đăng ký thất bại. Vui lòng thử lại.';
-      toast.error(errorMessage);
+      toast.error(getApiMessage(response, 'Đăng ký thất bại. Vui lòng thử lại.'));
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { messages?: string[]; message?: string } };
-        message?: string;
-      };
-      const errorMessage =
-        err?.response?.data?.messages?.[0] ||
-        err?.response?.data?.message ||
-        err?.message ||
-        'Đã có lỗi xảy ra khi đăng ký';
-      toast.error(errorMessage);
+      toast.error(getApiErrorMessage(error, 'Đã có lỗi xảy ra khi đăng ký'));
     }
   };
 

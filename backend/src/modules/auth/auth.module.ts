@@ -15,21 +15,24 @@ import { UserRolesModule } from '@modules/user-roles/user-roles.module';
 import { User } from '@entities/user.entity';
 import { Role } from '@entities/roles.entity';
 import { UserRole } from '@entities/userRoles.entity';
+import { UserProfile } from '@entities/userProfile.entity';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { MailService } from '../mail/mail.service';
 import { OtpModule } from '@modules/otp/otp.module';
 import { MailModule } from '@modules/mail/mail.module';
+import { PermissionsModule } from '@modules/permissions/permissions.module';
 
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
     RolesModule,
+    PermissionsModule,
     OtpModule,
     MailModule,
     UserRolesModule,
-    MikroOrmModule.forFeature([User, Role, UserRole]),
+    MikroOrmModule.forFeature([User, Role, UserRole, UserProfile]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

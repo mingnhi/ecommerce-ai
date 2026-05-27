@@ -11,7 +11,7 @@ import {
 import {
   EntityManager,
   EntityRepository,
-} from '@mikro-orm/mysql';
+} from '@mikro-orm/core';
 
 import slugify from 'slugify';
 

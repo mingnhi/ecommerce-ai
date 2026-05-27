@@ -1,88 +1,126 @@
-// import {
-//   Body,
-//   Controller,
-//   Get,
-//   Param,
-//   Post,
-//   Put,
-//   Query,
-// } from '@nestjs/common';
-// import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-// import { OrderService } from './order.service';
-// import { CreateOrderDto } from './dto/create-order.dto';
-// import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
-// import { BulkUpdateStatusDto } from './dto/bulk-status.dto';
-// import { OrderQueryDto } from './dto/order-query.dto';
-// import { CurrentUser } from '@modules/auth/decorators/current-user.decorator';
-// import { Roles } from '@modules/auth/decorators/roles.decorator';
-// import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-// @ApiTags('Order')
-// @ApiBearerAuth('JWT')
-// @Controller('orders')
-// export class OrderController {
-//   constructor(private readonly orderService: OrderService) {}
+import { OrderService } from './order.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { BulkUpdateStatusDto } from './dto/bulk-status.dto';
+import { OrderQueryDto } from './dto/order-query.dto';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
+import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
+import { UserRolesService } from '@modules/user-roles/user-roles.service';
+import { ApiResponse } from '@common/interfaces/api-response.interface';
 
-//   @Post()
-//   @ApiOperation({ summary: '[S5-01] Tạo đơn hàng (atomic transaction)' })
-//   create(@Body() dto: CreateOrderDto, @CurrentUser() user: AuthenticatedUser) {
-//     return this.orderService.create(user.id, dto);
-//   }
+@ApiTags('Order')
+@ApiBearerAuth('JWT')
+@UseGuards(JwtAuthGuard)
+@Controller('orders')
+export class OrderController {
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly userRolesService: UserRolesService,
+  ) {}
 
-//   @Get()
-//   @ApiOperation({
-//     summary: '[S5-02/03] Danh sách đơn hàng (auto-scope theo role)',
-//   })
-//   list(
-//     @Query() query: OrderQueryDto,
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.orderService.list(user.id, this.isAdmin(user), query);
-//   }
+  @Post()
+  async create(
+    @Body() dto: CreateOrderDto,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<OrderResponse>> {
+    const data = await this.orderService.create(user.sub, dto);
 
-//   @Get(':id')
-//   @ApiOperation({ summary: '[S5-02] Chi tiết đơn hàng' })
-//   getById(
-//     @Param('id') id: string,
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.orderService.getById(user.id, this.isAdmin(user), id);
-//   }
+    return {
+      status: 'success',
+      message: 'Create order successfully',
+      data,
+    };
+  }
 
-//   @Roles('admin')
-//   @Put(':id/status')
-//   @ApiOperation({ summary: '[S5-03] Cập nhật trạng thái đơn (Admin only)' })
-//   updateStatus(
-//     @Param('id') id: string,
-//     @Body() dto: UpdateOrderStatusDto,
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.orderService.updateStatus(user.id, true, id, dto);
-//   }
+  @Post('bulk-status')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async bulkUpdateStatus(
+    @Body() dto: BulkUpdateStatusDto,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<BulkUpdateStatusResponse>> {
+    const data = await this.orderService.bulkUpdateStatus(
+      user.sub,
+      dto.orderIds,
+      dto.status,
+      dto.note,
+    );
 
-//   @Roles('admin')
-//   @Post('bulk-status')
-//   @ApiOperation({
-//     summary: 'Bulk update status nhiều đơn (Admin only) — skip đơn invalid, trả {succeeded, failed}',
-//   })
-//   bulkUpdateStatus(
-//     @Body() dto: BulkUpdateStatusDto,
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.orderService.bulkUpdateStatus(user.id, dto.orderIds, dto.status, dto.note);
-//   }
+    return {
+      status: 'success',
+      message: 'Bulk update order status successfully',
+      data,
+    };
+  }
 
-//   @Post(':id/cancel')
-//   @ApiOperation({ summary: 'Customer tự huỷ đơn — chỉ khi status=PENDING' })
-//   cancel(
-//     @Param('id') id: string,
-//     @Body() body: { note?: string },
-//     @CurrentUser() user: AuthenticatedUser,
-//   ) {
-//     return this.orderService.cancelByUser(user.id, id, body?.note);
-//   }
+  @Get()
+  async list(
+    @Query() query: OrderQueryDto,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<OrderResponse[]>> {
+    const isAdmin = await this.isAdmin(user.sub);
+    const result = await this.orderService.list(user.sub, isAdmin, query);
 
-//   private isAdmin(user: AuthenticatedUser): boolean {
-//     return user.roles.includes('admin');
-//   }
-// }
+    return {
+      status: 'success',
+      message: 'Get orders successfully',
+      data: result.items,
+      meta: result.meta,
+    };
+  }
+
+  @Get(':id')
+  async getById(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<OrderResponse>> {
+    const isAdmin = await this.isAdmin(user.sub);
+    const data = await this.orderService.getById(user.sub, isAdmin, id);
+
+    return {
+      status: 'success',
+      message: 'Get order successfully',
+      data,
+    };
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusDto,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ApiResponse<OrderResponse>> {
+    const isAdmin = await this.isAdmin(user.sub);
+    const data = await this.orderService.updateStatus(user.sub, isAdmin, id, dto);
+
+    return {
+      status: 'success',
+      message: 'Update order status successfully',
+      data,
+    };
+  }
+
+  private async isAdmin(userId: string): Promise<boolean> {
+    const userRoles = await this.userRolesService.findByUser(userId);
+    return userRoles.some(
+      (ur) => ur.role?.name?.toUpperCase() === 'ADMIN',
+    );
+  }
+}

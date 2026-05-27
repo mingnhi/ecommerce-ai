@@ -15,6 +15,14 @@ import {CategoryModule} from "@modules/categories/categories.module";
 import {ProductImageModule} from "@modules/productimage/productimage.module";
 import {ProductReviewModule} from "@modules/productreview/productreview.module";
 
+import { PaymentModule } from './modules/payment/payment.module';
+import { UserProfileModule } from './modules/user-profile/user-profile.module';
+import { CloudinaryModule } from './modules/upload/upload.module';
+import { InventoryModule } from '@modules/inventory/inventory.module';
+import { CartModule } from '@modules/cart/cart.module';
+import { OrderModule } from '@modules/order/order.module';
+import { UserEventModule } from './modules/user-event/user-event.module';
+
 
 @Module({
   imports: [
@@ -38,8 +46,15 @@ import {ProductReviewModule} from "@modules/productreview/productreview.module";
     CategoryModule,
     ProductImageModule,
     ProductReviewModule,
+    PaymentModule,
+    UserProfileModule,
+    CloudinaryModule,
+    InventoryModule,
+    CartModule,
+    OrderModule,
+    UserEventModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

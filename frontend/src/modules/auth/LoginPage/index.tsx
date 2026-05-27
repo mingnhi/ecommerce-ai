@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 import { ArrowLeft, Eye, EyeOff, User, Lock } from 'lucide-react';
@@ -11,14 +11,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { ROUTES } from '@/lib/routes';
 import { loginSchema, type LoginSchemaType } from '@/lib/validations/auth';
+import { getSignInErrorMessage } from '@/lib/api-response';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      toast.error(getSignInErrorMessage(error, 'Đăng nhập Google thất bại.'));
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -37,13 +46,13 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (!result?.error) {
+      if (result?.ok && !result?.error) {
         toast.success('Đăng nhập thành công!');
-        setTimeout(() => router.push(ROUTES.HOME), 500);
+        router.push(ROUTES.HOME);
         return;
       }
 
-      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      toast.error(getSignInErrorMessage(result?.error, 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'));
     } catch {
       toast.error('Đã có lỗi xảy ra khi đăng nhập');
     } finally {

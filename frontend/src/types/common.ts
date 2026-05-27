@@ -1,3 +1,12 @@
+export interface ApiEnvelope<T = unknown> {
+    status: 'success' | 'error';
+    message: string | string[];
+    data?: T;
+    meta?: Record<string, unknown>;
+    succeeded?: boolean;
+    messages?: string[];
+}
+
 export interface IAxiosResponse<T = unknown> {
     succeeded?: boolean;
     status?: boolean;
