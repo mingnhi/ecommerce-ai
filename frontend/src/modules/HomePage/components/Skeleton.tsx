@@ -1,12 +1,22 @@
 export default function HomePageSkeleton() {
   return (
-    <section className="min-h-[calc(100vh-66px)] w-full flex flex-col items-center justify-center px-4 py-16 animate-pulse">
-      <div className="h-12 w-64 rounded-lg bg-gray-200" />
-      <div className="mt-4 h-6 w-96 max-w-full rounded bg-gray-100" />
-      <div className="mt-10 flex gap-4">
-        <div className="h-11 w-36 rounded-full bg-gray-200" />
-        <div className="h-11 w-36 rounded-full bg-gray-100" />
+    <div className="mx-auto w-full max-w-[1440px] animate-pulse space-y-10 px-4 py-8 md:space-y-12 md:px-6 md:p-8">
+      <div className="h-[300px] rounded-3xl bg-slate-100 md:h-[360px]" />
+      <div className="flex gap-4 overflow-hidden">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-36 w-28 shrink-0 rounded-2xl bg-slate-100" />
+        ))}
       </div>
-    </section>
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-44 rounded-2xl bg-slate-100" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="h-72 rounded-2xl bg-slate-100" />
+        ))}
+      </div>
+    </div>
   );
 }

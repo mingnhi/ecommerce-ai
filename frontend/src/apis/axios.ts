@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosResponse, AxiosInstance, AxiosRequestConfig, In
 import { signOut } from 'next-auth/react';
 import { IAxiosResponse } from '@/types/common';
 import { envConfig } from '@/lib/const';
+import { KEYS } from '@/apis/auth/keys';
 import { store } from '@/stores';
 import { clearUserAction, setAccessTokenAction, setRefreshTokenAction, setUserAction } from '@/stores/user/actions';
 import { clearAuthAction, setTokensAction } from '@/stores/auth/actions';
@@ -18,7 +19,7 @@ const safeJsonParse = (data: string): unknown => {
 };
 
 const instance = axios.create({
-  baseURL: `${envConfig.API_URL}/api`,
+  baseURL: envConfig.API_URL,
   transformResponse: [(data) => (typeof data === 'string' ? safeJsonParse(data) : data)],
 });
 
@@ -48,7 +49,7 @@ const refreshAccessToken = async (): Promise<string> => {
         throw new Error('No tokens available');
     }
 
-    const url = `${envConfig.API_URL}/api/token/refresh`;
+    const url = `${envConfig.API_URL}${KEYS.TOKEN_REFRESH}`;
     const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,7 +98,10 @@ const handleError = async (error: AxiosError) => {
     const originalError = error.response?.data as IAxiosResponse;
     const statusCode = error.response?.status;
 
-    if (statusCode === 401 && !originalRequest._retry) {
+    const url = originalRequest?.url ?? '';
+    const isPublicAuth = /\/(auth\/(login|register)|otp\/)/.test(url);
+
+    if (statusCode === 401 && !originalRequest._retry && !isPublicAuth) {
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
                 failedQueue.push({ resolve, reject });

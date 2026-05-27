@@ -4,6 +4,7 @@ export type AuthUser = {
   fullName: string;
   status: string;
   roles: string[];
+  permissions: string[];
 };
 
 export type LoginPayload = {

@@ -49,7 +49,10 @@ httpClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableAxiosRequestConfig;
 
-    if (error.response?.status === 401 && !originalRequest?._retry) {
+    const url = originalRequest?.url ?? "";
+    const isPublicAuth = /\/auth\/(login|register|refresh-token)/.test(url);
+
+    if (error.response?.status === 401 && !originalRequest?._retry && !isPublicAuth) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({

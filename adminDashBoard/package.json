@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@casl/ability": "^6.8.1",
+    "@casl/react": "^6.0.0",
     "@fontsource-variable/geist": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.2.4",
@@ -26,6 +28,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hook-form": "^7.76.0",
+    "react-is": "^19.2.6",
     "react-router-dom": "^7.14.2",
     "react-to-print": "^3.3.0",
     "recharts": "3.8.0",
