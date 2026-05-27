@@ -42,53 +42,53 @@ export function DailyBestSection() {
             ))}
           </div>
         </div>
-        <div className="mt-6 flex flex-col gap-5 lg:mt-8 lg:flex-row lg:items-stretch lg:gap-6">
-          <article className="relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-sky-100/90 sm:flex-row lg:w-[280px] lg:flex-col xl:w-[300px]">
-            <div className="relative flex-1 overflow-hidden bg-gradient-to-br from-sky-50 via-white to-sky-100/70 p-5 pb-0 lg:px-5 lg:pb-0 lg:pt-5">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-2xl"
-              />
-              <div className="flex h-full flex-col justify-between sm:justify-start lg:justify-start">
-                <div>
-                  <span className="relative inline-flex rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700 shadow-sm">
-                    Deal hôm nay
-                  </span>
-                  <h3 className="relative mt-3 lg:mt-4 text-lg lg:text-xl font-semibold leading-tight tracking-tight text-slate-900">
-                    Công nghệ
-                    <span className="block text-sky-600">trong tầm tay</span>
-                  </h3>
-                  <p className="relative mt-2 max-w-[220px] text-xs lg:text-sm leading-relaxed text-slate-600">
-                    Ưu đãi độc quyền, giao nhanh và bảo hành chính hãng toàn quốc.
-                  </p>
-                </div>
-                <div className="hidden sm:block lg:hidden mt-4">
-                  <Button
-                    asChild
-                    className="h-10 px-5 rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
-                  >
-                    <Link href="/">
-                      Khám phá ngay
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
+        <div className="mt-6 flex flex-col gap-5 lg:mt-8 xl:flex-row xl:items-stretch xl:gap-6">
+          <article className="relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-sky-100/90 sm:flex-row xl:w-[300px] xl:flex-col">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-2xl"
+            />
+            <div className="flex flex-1 flex-col justify-between p-5 xl:p-6 xl:pb-0">
+              <div>
+                <span className="relative inline-flex rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700 shadow-sm">
+                  Deal hôm nay
+                </span>
+                <h3 className="relative mt-3 lg:mt-4 text-lg lg:text-xl font-semibold leading-tight tracking-tight text-slate-900">
+                  Công nghệ
+                  <span className="block text-sky-600">trong tầm tay</span>
+                </h3>
+                <p className="relative mt-2 text-xs lg:text-sm leading-relaxed text-slate-500 max-w-[280px] sm:max-w-none">
+                  Ưu đãi độc quyền, giao nhanh và bảo hành chính hãng toàn quốc.
+                </p>
+              </div>
+              <div className="hidden sm:block xl:hidden mt-4">
+                <Button
+                  asChild
+                  className="h-10 px-5 rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
+                >
+                  <Link href="/">
+                    Khám phá ngay
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
             </div>
-            <div className="relative flex h-36 sm:h-auto sm:w-[180px] lg:h-44 lg:w-full items-end justify-center overflow-visible bg-gradient-to-br from-white via-white to-sky-50/50 p-4 lg:p-0">
-              <div
-                aria-hidden
-                className="absolute inset-x-6 bottom-2 h-20 sm:h-28 rounded-[2rem] bg-gradient-to-t from-sky-100/90 to-sky-50/40"
-              />
-              <Image
-                src="/images/phone.png"
-                alt="Smartphone nổi bật"
-                width={200}
-                height={200}
-                className="relative z-10 h-32 sm:h-36 lg:h-40 w-auto object-contain drop-shadow-[0_18px_32px_rgba(14,165,233,0.28)]"
-              />
+            <div className="relative flex items-center justify-center min-h-[140px] sm:min-h-0 sm:w-[200px] xl:w-full xl:flex-1 p-4 lg:p-6 bg-gradient-to-br from-white via-white to-sky-50/40 xl:bg-none">
+              <div className="relative w-full max-w-[140px] sm:max-w-[160px] xl:max-w-[180px] h-32 sm:h-36 xl:h-44 flex items-center justify-center">
+                <div
+                  aria-hidden
+                  className="absolute inset-x-2 -bottom-2 h-16 sm:h-20 xl:h-24 rounded-[2rem] bg-gradient-to-t from-sky-100/60 to-sky-50/20"
+                />
+                <Image
+                  src="/images/phone.png"
+                  alt="Smartphone nổi bật"
+                  fill
+                  sizes="(max-width: 640px) 140px, 160px"
+                  className="relative z-10 object-contain drop-shadow-[0_18px_32px_rgba(14,165,233,0.28)]"
+                />
+              </div>
             </div>
-            <div className="border-t border-sky-50 p-4 sm:hidden lg:block lg:p-5">
+            <div className="p-5 pt-0 sm:hidden xl:block xl:p-6 xl:pt-0">
               <Button
                 asChild
                 className="h-11 w-full rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
@@ -100,7 +100,7 @@ export function DailyBestSection() {
               </Button>
             </div>
           </article>
-          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard key={product.productId} product={product} variant="daily" />
             ))}
