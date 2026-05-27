@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 import { ProductForm } from "../components/product-form";
-import { useCreateProduct, useUploadProductImage } from "../hooks/products";
+import { useCreateProduct } from "../hooks/products";
 import { useCategories } from "@/features/categories/hooks/categories";
 
 import type { ProductFormValues } from "../types/product.type";
@@ -10,33 +10,18 @@ const CreateProductPage = () => {
   const navigate = useNavigate();
 
   const createMutation = useCreateProduct();
-  const uploadMutation = useUploadProductImage();
   const { data: categoriesData } = useCategories("flat");
 
   const categories = categoriesData?.categories || [];
 
-  /**
-   * Chỉ tạo product, trả về response.
-   * ProductForm tự upload ảnh sau, rồi gọi onSuccess.
-   * KHÔNG navigate ở đây.
-   */
   const handleSubmit = async (values: ProductFormValues) => {
-    const response = await createMutation.mutateAsync({
-      categoryId: values.categoryId,
-      name: values.name,
-      shortDescription: values.shortDescription,
-      description: values.description,
-      isActive: values.isActive,
-      prices: values.prices || [],
-      variants: values.variants || [],
-      attributes: values.attributes || [],
-    });
-
+    const response = await createMutation.mutateAsync(values); // Truyền trực tiếp values
     return response;
   };
 
-  const handleSuccess = (slug?: string) => {
-    navigate(slug ? `/products/${slug}` : "/products");
+  // Sau khi tạo thành công → Quay về trang danh sách
+  const handleSuccess = () => {
+    navigate("/products", { replace: true });
   };
 
   return (
@@ -48,7 +33,7 @@ const CreateProductPage = () => {
 
       <ProductForm
         categories={categories}
-        loading={createMutation.isPending || uploadMutation.isPending}
+        loading={createMutation.isPending}
         onSubmit={handleSubmit}
         onSuccess={handleSuccess}
       />

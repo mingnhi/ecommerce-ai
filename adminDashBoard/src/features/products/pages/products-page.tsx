@@ -1,110 +1,55 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
+import { Badge } from "@/shared/components/ui/badge";
 
-import { ProductDialog } from "../components/product-dialog";
-import { ProductTable } from "../components/product-table";
+import { DataTableBase } from "@/shared/components/common/DataTableBase";
 
 import {
   useProducts,
-  useCreateProduct,
-  useUpdateProduct,
   useDeleteProduct,
 } from "../hooks/products";
 
 import { useCategories } from "@/features/categories/hooks/categories";
 
-import type { ProductFormValues, ProductListItem } from "../types/product.type";
+import type { ProductListItem } from "../types/product.type";
 
 const ProductsPage = () => {
   const navigate = useNavigate();
-
-  const [open, setOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<
-    ProductListItem | undefined
-  >(undefined);
 
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [sort, setSort] = useState("newest");
 
-  const { data: productsData, isLoading: isProductsLoading, refetch } =
-    useProducts({
-      search,
-      limit: 50,
-      categoryId: categoryId === "all" ? undefined : categoryId,
-      sort,
-    });
+  const { data: productsData, isLoading: isProductsLoading, refetch } = useProducts({
+    search,
+    limit: 50,
+    categoryId: categoryId === "all" ? undefined : categoryId,
+    sort,
+  });
 
   const { data: categoriesData } = useCategories("flat");
-
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
 
   const products = productsData?.products || [];
-  console.log(productsData);
-  
   const categories = categoriesData?.categories || [];
 
-  /**
-   * Chỉ tạo/cập nhật product — trả về response để ProductForm lấy productId upload ảnh.
-   * KHÔNG đóng dialog, KHÔNG navigate — để ProductForm kiểm soát flow hoàn chỉnh.
-   */
-  const handleSubmit = async (values: ProductFormValues) => {
-    if (selectedProduct) {
-      const response = await updateMutation.mutateAsync({
-        id: selectedProduct.id,
-        payload: {
-          categoryId: values.categoryId,
-          name: values.name,
-          shortDescription: values.shortDescription,
-          description: values.description,
-          isActive: values.isActive,
-          prices: values.prices || [],
-          variants: values.variants || [],
-          attributes: values.attributes || [],
-        },
-      });
-      return response;
-    } else {
-      const response = await createMutation.mutateAsync({
-        categoryId: values.categoryId,
-        name: values.name,
-        shortDescription: values.shortDescription,
-        description: values.description,
-        isActive: values.isActive,
-        prices: values.prices || [],
-        variants: values.variants || [],
-        attributes: values.attributes || [],
-      });
-      return response;
-    }
-  };
-
-  /**
-   * Được gọi bởi ProductDialog sau khi ProductForm hoàn tất toàn bộ flow.
-   * Lúc này mới đóng dialog và refetch.
-   */
-  const handleSuccess = () => {
-    setSelectedProduct(undefined);
-    refetch();
+  // ==================== HANDLERS (Giữ nguyên y hệt) ====================
+  const handleCreate = () => {
+    navigate("/products/create");
   };
 
   const handleEdit = (product: ProductListItem) => {
-    setSelectedProduct(product);
-    setOpen(true);
+    navigate(`/products/${product.slug}/edit`);
+  };
+
+  const handleView = (slug: string) => {
+    navigate(`/products/${slug}`);
   };
 
   const handleDelete = (id: string) => {
@@ -119,94 +64,177 @@ const ProductsPage = () => {
     });
   };
 
+  // ==================== COLUMNS ====================
+  const columns = [
+    {
+      id: "image",
+      header: "Image",
+      cell: ({ row }: any) => {
+        const imageUrl = row.original.thumbnail || row.original.images?.[0]?.imageUrl;
+        return (
+          <Avatar className="h-12 w-12 rounded-md border border-border">
+            <AvatarImage src={imageUrl} className="object-cover" />
+            <AvatarFallback className="text-xs">
+              {row.original.name?.slice(0, 2).toUpperCase() || "SP"}
+            </AvatarFallback>
+          </Avatar>
+        );
+      },
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }: any) => (
+        <div>
+          <p className="font-medium">{row.original.name}</p>
+          {row.original.sku && (
+            <p className="text-xs text-muted-foreground">{row.original.sku}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }: any) => row.original.category?.name || "Chưa phân loại",
+    },
+    {
+      id: "price",
+      header: "Price",
+      cell: ({ row }: any) => {
+        const price = row.original.price.price;
+        return (
+          <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-500">
+            {Number(price).toLocaleString("vi-VN")} ₫
+          </span>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }: any) => {
+        const isActive = row.original.isActive !== false;
+        return (
+          <Badge variant={isActive ? "default" : "secondary"}>
+            {isActive ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Action",
+      cell: ({ row }: any) => (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleView(row.original.slug)}
+            className="h-8 w-8 p-0 hover:bg-sky-500/10 hover:text-sky-500"
+          >
+            👁️
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEdit(row.original)}
+            className="h-8 w-8 p-0 hover:bg-sky-500/10 hover:text-sky-500"
+          >
+            ✏️
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDelete(row.original.id)}
+            className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+          >
+            🗑️
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // ==================== TOOLBAR ====================
+  const toolbarConfig = {
+    title: "Bộ lọc sản phẩm",
+    description: "Tìm kiếm và lọc theo danh mục, sắp xếp",
+    onReset: () => {
+      setSearch("");
+      setCategoryId("all");
+      setSort("newest");
+    },
+    fields: [
+      {
+        type: "search" as const,
+        placeholder: "Tìm theo tên sản phẩm, SKU...",
+        value: search,
+        onChange: setSearch,
+      },
+      {
+        type: "select" as const,
+        placeholder: "Tất cả danh mục",
+        value: categoryId,
+        onChange: setCategoryId,
+        options: [
+          { value: "all", label: "Tất cả danh mục" },
+          ...categories.map((cat: any) => ({
+            value: cat.id,
+            label: cat.name,
+          })),
+        ],
+      },
+      {
+        type: "select" as const,
+        placeholder: "Sắp xếp",
+        value: sort,
+        onChange: setSort,
+        options: [
+          { value: "newest", label: "Mới nhất" },
+          { value: "oldest", label: "Cũ nhất" },
+          { value: "price_asc", label: "Giá thấp → cao" },
+          { value: "price_desc", label: "Giá cao → thấp" },
+        ],
+      },
+    ],
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Quản lý sản phẩm
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý sản phẩm</h1>
           <p className="mt-1 text-muted-foreground">
-            Tổng số: {products.length} sản phẩm
+            Tổng số: <span className="font-semibold text-foreground">{products.length}</span> sản phẩm
           </p>
         </div>
 
-        <Button
-          onClick={() => {
-            setSelectedProduct(undefined);
-            setOpen(true);
-          }}
-          className="h-11 px-5"
-        >
+        <Button onClick={handleCreate} className="h-11 px-5">
           <PlusIcon className="mr-2 size-4" />
           Thêm sản phẩm mới
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative w-full max-w-md">
-          <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm sản phẩm..."
-            className="h-11 pl-10"
-          />
-        </div>
-
-        <Select value={categoryId} onValueChange={setCategoryId}>
-          <SelectTrigger className="h-11 w-full md:w-[240px]">
-            <SelectValue placeholder="Tất cả danh mục" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả danh mục</SelectItem>
-            {categories.map((cat: any) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="h-11 w-full md:w-[240px]">
-            <SelectValue placeholder="Sắp xếp" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Mới nhất</SelectItem>
-            <SelectItem value="oldest">Cũ nhất</SelectItem>
-            <SelectItem value="price_asc">Giá thấp → cao</SelectItem>
-            <SelectItem value="price_desc">Giá cao → thấp</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {isProductsLoading ? (
-        <div className="rounded-2xl border bg-card py-20 text-center">
-          Đang tải danh sách...
-        </div>
-      ) : (
-        <ProductTable
-          products={products}
-          onView={(slug) => navigate(`/products/${slug}`)}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
-
-      <ProductDialog
-        open={open}
-        onOpenChange={(v) => {
-          setOpen(v);
-          if (!v) setSelectedProduct(undefined);
+      <DataTableBase
+        data={products}
+        columns={columns}
+        filterKey={`${search}|${categoryId}|${sort}`}
+        toolbarConfig={toolbarConfig}
+        emptyMessage="Không tìm thấy sản phẩm nào"
+        pageSizeLabel="sản phẩm / trang"
+        deleteConfig={{
+          title: "Xóa sản phẩm?",
+          getConfirmName: (row: ProductListItem) => row.name,
+          onConfirm: (row) => handleDelete(row.id),
         }}
-        initialData={selectedProduct as any}
-        categories={categories}
-        loading={createMutation.isPending || updateMutation.isPending}
-        onSubmit={handleSubmit}
-        onSuccess={handleSuccess}
       />
+
+      {isProductsLoading && (
+        <Card className="py-20 text-center border-sky-500/20">
+          <CardContent>Đang tải danh sách...</CardContent>
+        </Card>
+      )}
     </div>
   );
 };
