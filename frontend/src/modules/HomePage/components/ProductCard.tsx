@@ -78,7 +78,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-3 sm:p-4 transition-shadow",
+        "group flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-3 sm:p-4 transition-shadow cursor-pointer",
         isDaily
           ? "border-sky-100/90 shadow-[0_10px_36px_-16px_rgba(14,165,233,0.22)] hover:border-sky-200 hover:shadow-[0_18px_44px_-14px_rgba(14,165,233,0.32)]"
           : "border-slate-100/90 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)] hover:border-sky-100 hover:shadow-[0_16px_40px_-14px_rgba(14,165,233,0.28)]",
@@ -142,7 +142,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
               </div>
             </div>
             <Button
-              className="mt-auto h-9 sm:h-10 w-full rounded-xl bg-sky-500 text-xs sm:text-sm font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 gap-1.5"
+              className="mt-auto h-9 sm:h-10 w-full rounded-xl bg-sky-500 text-xs sm:text-sm font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 gap-1.5 cursor-pointer"
               onClick={addToCart}
             >
               <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -161,7 +161,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
             <Button
               size="sm"
               variant="outline"
-              className="hidden sm:inline-flex rounded-xl border-sky-200 bg-sky-50/80 text-sky-700 hover:border-sky-500 hover:bg-sky-500 hover:text-white gap-1.5 font-medium"
+              className="hidden sm:inline-flex rounded-xl border-sky-200 bg-sky-50/80 text-sky-700 hover:border-sky-500 hover:bg-sky-500 hover:text-white gap-1.5 font-medium cursor-pointer"
               onClick={addToCart}
             >
               <ShoppingCart className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
             </Button>
             <Button
               size="icon"
-              className="inline-flex sm:hidden h-8 w-8 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/25 items-center justify-center shrink-0 border-0"
+              className="inline-flex sm:hidden h-8 w-8 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/25 items-center justify-center shrink-0 border-0 cursor-pointer"
               onClick={addToCart}
             >
               <ShoppingCart className="h-3.5 w-3.5" />

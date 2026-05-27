@@ -28,7 +28,7 @@ function DealCard({ product, onAdd }: { product: HomeProduct; onAdd: () => void 
   return (
     <motion.article
       whileHover={{ y: -4 }}
-      className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_10px_32px_-14px_rgba(15,23,42,0.14)]"
+      className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_10px_32px_-14px_rgba(15,23,42,0.14)] cursor-pointer"
     >
       <div className="relative aspect-[3/4] min-h-[220px] sm:min-h-[300px] overflow-hidden bg-gradient-to-b from-sky-50 to-slate-100">
         <ProductPhoto
@@ -54,13 +54,13 @@ function DealCard({ product, onAdd }: { product: HomeProduct; onAdd: () => void 
                 <p className="text-[10px] sm:text-[11px] text-slate-400 line-through truncate">{formatVnd(product.originalPrice)}</p>
               )}
             </div>
-            <Button size="sm" className="hidden sm:flex shrink-0 rounded-xl bg-sky-500 px-3 hover:bg-sky-600 gap-1.5" onClick={onAdd}>
+            <Button size="sm" className="hidden sm:flex shrink-0 rounded-xl bg-sky-500 px-3 hover:bg-sky-600 gap-1.5 cursor-pointer" onClick={onAdd}>
               <ShoppingCart className="h-4 w-4" />
               Thêm
             </Button>
             <Button
               size="icon"
-              className="flex sm:hidden h-8 w-8 shrink-0 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/25 items-center justify-center shrink-0 border-0"
+              className="flex sm:hidden h-8 w-8 shrink-0 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/25 items-center justify-center shrink-0 border-0 cursor-pointer"
               onClick={onAdd}
             >
               <ShoppingCart className="h-3.5 w-3.5" />

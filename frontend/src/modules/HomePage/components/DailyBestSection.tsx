@@ -33,7 +33,7 @@ export function DailyBestSection() {
                 type="button"
                 onClick={() => setDailyTab(tab)}
                 className={cn(
-                  "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm",
+                  "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm cursor-pointer",
                   dailyTab === tab ? "font-semibold text-sky-600" : "text-slate-500",
                 )}
               >
@@ -65,7 +65,7 @@ export function DailyBestSection() {
                 <div className="hidden sm:block lg:hidden mt-4">
                   <Button
                     asChild
-                    className="h-10 px-5 rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600"
+                    className="h-10 px-5 rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
                   >
                     <Link href="/">
                       Khám phá ngay
@@ -91,7 +91,7 @@ export function DailyBestSection() {
             <div className="border-t border-sky-50 p-4 sm:hidden lg:block lg:p-5">
               <Button
                 asChild
-                className="h-11 w-full rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600"
+                className="h-11 w-full rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
               >
                 <Link href="/">
                   Khám phá ngay

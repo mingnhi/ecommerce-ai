@@ -58,7 +58,7 @@ export function CtaSection() {
             </div>
             <Button
               type="submit"
-              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 sm:h-12 sm:rounded-full"
+              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 sm:h-12 sm:rounded-full cursor-pointer"
             >
               Đăng ký
             </Button>

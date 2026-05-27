@@ -23,7 +23,7 @@ export function PopularProductSection() {
               type="button"
               onClick={() => setPopularTab(tab)}
               className={cn(
-                "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm",
+                "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm cursor-pointer",
                 popularTab === tab ? "font-semibold text-sky-600" : "text-slate-500",
               )}
             >
