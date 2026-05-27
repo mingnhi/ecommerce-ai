@@ -65,7 +65,7 @@ export function SlideSection() {
             </div>
             <Button
               type="submit"
-              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/30 hover:bg-sky-600 sm:h-12 sm:rounded-full"
+              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/30 hover:bg-sky-600 sm:h-12 sm:rounded-full hover:cursor-pointer"
             >
               Tìm kiếm
             </Button>
@@ -101,7 +101,7 @@ export function SlideSection() {
             type="button"
             onClick={() => setHeroIndex(idx)}
             className={cn(
-              "h-1.5 rounded-full transition-all duration-300",
+              "h-1.5 rounded-full transition-all duration-300 cursor-pointer",
               heroIndex === idx
                 ? "w-5 bg-sky-500 shadow-[0_0_6px_rgba(14,165,233,0.6)]"
                 : "w-1.5 bg-sky-300/60 hover:bg-sky-400",
