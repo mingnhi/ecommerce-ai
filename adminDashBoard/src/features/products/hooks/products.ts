@@ -1,64 +1,48 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import productService from "@/services/product";
-
-import type { ProductFormValues } from "../types/product.type";
+import type {
+  ProductFormValues,
+  ProductImageType,
+} from "../types/product.type";
 
 /**
- * GET ALL PRODUCTS
+ * GET ALL PRODUCTS (FIXED QUERY KEY)
  */
-export const useProducts = (params?: any) => {
-  return useQuery({
-    queryKey: ["products", params],
-
-    queryFn: () =>
-      productService.getAll(params),
-
-    staleTime: 1000 * 30,
-
-    gcTime: 1000 * 60 * 5,
-
-    refetchOnMount: true,
-
-    refetchOnWindowFocus: false,
+export const useProducts = (params?: any) =>
+  useQuery({
+    queryKey: [
+      "products",
+      params?.search ?? "",
+      params?.categoryId ?? "",
+      params?.sort ?? "",
+      params?.limit ?? 50,
+    ],
+    queryFn: () => productService.getAll(params),
   });
-};
 
 /**
- * GET PRODUCT BY SLUG
+ * GET PRODUCT DETAIL
  */
-export const useProductBySlug = (
-  slug: string
-) => {
-  return useQuery({
+export const useProductBySlug = (slug: string) =>
+  useQuery({
     queryKey: ["product", slug],
-
-    queryFn: () =>
-      productService.getBySlug(slug),
-
+    queryFn: () => productService.getBySlug(slug),
     enabled: !!slug,
   });
-};
 
 /**
  * CREATE PRODUCT
  */
 export const useCreateProduct = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      payload: ProductFormValues
-    ) => productService.create(payload),
+    mutationFn: (payload: ProductFormValues) =>
+      productService.create(payload),
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
-      });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
 };
@@ -67,7 +51,7 @@ export const useCreateProduct = () => {
  * UPDATE PRODUCT
  */
 export const useUpdateProduct = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: ({
@@ -76,13 +60,20 @@ export const useUpdateProduct = () => {
     }: {
       id: string;
       payload: Partial<ProductFormValues>;
-    }) =>
-      productService.update(id, payload),
+    }) => productService.update(id, payload),
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
-      });
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+
+      const slug = data?.data?.product?.slug;
+
+      if (slug) {
+        qc.invalidateQueries({ queryKey: ["product", slug] });
+      } else {
+        qc.invalidateQueries({
+          predicate: (q) => q.queryKey[0] === "product",
+        });
+      }
     },
   });
 };
@@ -91,15 +82,16 @@ export const useUpdateProduct = () => {
  * DELETE PRODUCT
  */
 export const useDeleteProduct = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      productService.delete(id),
+    mutationFn: (id: string) => productService.delete(id),
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+
+      qc.removeQueries({
+        predicate: (q) => q.queryKey[0] === "product",
       });
     },
   });
@@ -109,25 +101,27 @@ export const useDeleteProduct = () => {
  * UPLOAD IMAGE
  */
 export const useUploadProductImage = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: ({
       productId,
-      file,
+      files,
       type,
       sortOrder,
-    }: any) =>
-      productService.uploadImage(
-        productId,
-        file,
-        type,
-        sortOrder
-      ),
+    }: {
+      productId: string;
+      files: File[];
+      type?: ProductImageType;
+      sortOrder?: number;
+    }) =>
+      productService.uploadImage(productId, files, type, sortOrder),
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+
+      qc.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === "product",
       });
     },
   });
@@ -137,15 +131,17 @@ export const useUploadProductImage = () => {
  * DELETE IMAGE
  */
 export const useDeleteProductImage = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: (imageId: string) =>
       productService.deleteImage(imageId),
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+
+      qc.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === "product",
       });
     },
   });
@@ -155,15 +151,17 @@ export const useDeleteProductImage = () => {
  * SET THUMBNAIL
  */
 export const useSetProductThumbnail = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: (imageId: string) =>
       productService.setThumbnail(imageId),
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+
+      qc.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === "product",
       });
     },
   });
