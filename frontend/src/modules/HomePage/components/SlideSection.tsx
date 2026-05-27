@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import ColorBends from "@/components/ui/ColorBends";
 import { HERO_COLOR_BENDS, HERO_SLIDES } from "../lib";
 
+import { cn } from "@/lib/utils";
+
 const SLIDE_COUNT = HERO_SLIDES.length;
 
 export function SlideSection() {
@@ -21,13 +23,13 @@ export function SlideSection() {
   }, []);
 
   return (
-    <section className="relative isolate mb-3 min-h-[300px] overflow-hidden rounded-lg border border-sky-200 bg-sky-50 ring-1 ring-sky-100 lg:min-h-[400px]">
+    <section className="relative isolate mb-3 min-h-[420px] overflow-hidden rounded-2xl border border-sky-200 bg-sky-50 ring-1 ring-sky-100 sm:min-h-[460px] md:min-h-[480px] lg:min-h-[400px]">
       <div className="absolute inset-0 bg-sky-100/50">
         <ColorBends className="h-full w-full" {...HERO_COLOR_BENDS} />
       </div>
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-sky-50/90 via-white/75 to-sky-100/40" />
-      <div className="relative z-10 grid min-h-[300px] items-center lg:min-h-[400px] lg:grid-cols-2">
-        <div className="flex flex-col justify-center gap-5 p-5 sm:p-6 lg:p-8">
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-sky-50/90 via-white/80 to-sky-100/40 lg:bg-gradient-to-r lg:from-sky-50/90 lg:via-white/75 lg:to-sky-100/40" />
+      <div className="relative z-10 grid items-center gap-6 pb-12 pt-6 sm:pb-14 sm:pt-8 lg:grid-cols-2 lg:py-0 lg:min-h-[400px]">
+        <div className="flex flex-col justify-center gap-4 px-5 sm:px-6 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={slide.title}
@@ -63,13 +65,13 @@ export function SlideSection() {
             </div>
             <Button
               type="submit"
-              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/30 hover:bg-sky-600 sm:h-12 sm:rounded-full"
+              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/30 hover:bg-sky-600 sm:h-12 sm:rounded-full hover:cursor-pointer"
             >
               Tìm kiếm
             </Button>
           </form>
         </div>
-        <div className="relative flex min-h-[200px] items-center justify-center overflow-hidden px-4 pb-5 lg:min-h-[400px] lg:px-6 lg:pb-0">
+        <div className="relative flex min-h-[180px] items-center justify-center overflow-hidden px-4 pb-5 lg:min-h-[400px] lg:px-6 lg:pb-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={heroIndex}
@@ -85,11 +87,28 @@ export function SlideSection() {
                 width={720}
                 height={720}
                 priority
-                className="max-h-[min(100%,300px)] w-auto max-w-full origin-center scale-110 object-contain drop-shadow-xl sm:max-h-[340px] lg:max-h-[350px] lg:translate-x-16 lg:scale-125"
+                className="max-h-[180px] sm:max-h-[240px] md:max-h-[280px] w-auto max-w-full origin-center scale-110 object-contain drop-shadow-xl lg:max-h-[350px] lg:translate-x-16 lg:scale-125"
               />
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
+
+      <div className="absolute block lg:hidden bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
+        {Array.from({ length: SLIDE_COUNT }).map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => setHeroIndex(idx)}
+            className={cn(
+              "h-1.5 rounded-full transition-all duration-300 cursor-pointer",
+              heroIndex === idx
+                ? "w-5 bg-sky-500 shadow-[0_0_6px_rgba(14,165,233,0.6)]"
+                : "w-1.5 bg-sky-300/60 hover:bg-sky-400",
+            )}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
       </div>
     </section>
   );

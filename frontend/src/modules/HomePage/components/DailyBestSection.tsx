@@ -26,14 +26,14 @@ export function DailyBestSection() {
       <div className="relative p-5 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
           <h2 className="shrink-0 text-xl font-semibold text-sky-600 sm:text-2xl md:text-3xl">Bán chạy hôm nay</h2>
-          <div className="flex gap-3 overflow-x-auto text-sm [-ms-overflow-style:none] [scrollbar-width:none] sm:ml-auto [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-3 overflow-x-auto text-sm [-ms-overflow-style:none] [scrollbar-width:none] sm:ml-auto [&::-webkit-scrollbar]:hidden pb-1 sm:pb-0">
             {DAILY_TABS.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setDailyTab(tab)}
                 className={cn(
-                  "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600",
+                  "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm cursor-pointer",
                   dailyTab === tab ? "font-semibold text-sky-600" : "text-slate-500",
                 )}
               >
@@ -42,41 +42,56 @@ export function DailyBestSection() {
             ))}
           </div>
         </div>
-        <div className="mt-6 flex flex-col gap-5 lg:mt-8 lg:flex-row lg:items-stretch lg:gap-6">
-          <article className="relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-sky-100/90 lg:w-[280px] xl:w-[300px]">
-            <div className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-white to-sky-100/70 px-5 pb-0 pt-5">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-2xl"
-              />
-              <span className="relative inline-flex rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700 shadow-sm">
-                Deal hôm nay
-              </span>
-              <h3 className="relative mt-4 text-xl font-semibold leading-tight tracking-tight text-slate-900">
-                Công nghệ
-                <span className="block text-sky-600">trong tầm tay</span>
-              </h3>
-              <p className="relative mt-2 max-w-[220px] text-sm leading-relaxed text-slate-600">
-                Ưu đãi độc quyền, giao nhanh và bảo hành chính hãng toàn quốc.
-              </p>
-              <div className="relative mx-auto mt-5 flex h-40 w-full max-w-[220px] items-end justify-center sm:h-44">
+        <div className="mt-6 flex flex-col gap-5 lg:mt-8 xl:flex-row xl:items-stretch xl:gap-6">
+          <article className="relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-sky-100/90 sm:flex-row xl:w-[300px] xl:flex-col">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-sky-200/40 blur-2xl"
+            />
+            <div className="flex flex-1 flex-col justify-between p-5 xl:p-6 xl:pb-0">
+              <div>
+                <span className="relative inline-flex rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700 shadow-sm">
+                  Deal hôm nay
+                </span>
+                <h3 className="relative mt-3 lg:mt-4 text-lg lg:text-xl font-semibold leading-tight tracking-tight text-slate-900">
+                  Công nghệ
+                  <span className="block text-sky-600">trong tầm tay</span>
+                </h3>
+                <p className="relative mt-2 text-xs lg:text-sm leading-relaxed text-slate-500 max-w-[280px] sm:max-w-none">
+                  Ưu đãi độc quyền, giao nhanh và bảo hành chính hãng toàn quốc.
+                </p>
+              </div>
+              <div className="hidden sm:block xl:hidden mt-4">
+                <Button
+                  asChild
+                  className="h-10 px-5 rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
+                >
+                  <Link href="/">
+                    Khám phá ngay
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative flex items-center justify-center min-h-[140px] sm:min-h-0 sm:w-[200px] xl:w-full xl:flex-1 p-4 lg:p-6 bg-gradient-to-br from-white via-white to-sky-50/40 xl:bg-none">
+              <div className="relative w-full max-w-[140px] sm:max-w-[160px] xl:max-w-[180px] h-32 sm:h-36 xl:h-44 flex items-center justify-center">
                 <div
                   aria-hidden
-                  className="absolute inset-x-6 bottom-2 h-28 rounded-[2rem] bg-gradient-to-t from-sky-100/90 to-sky-50/40"
+                  className="absolute inset-x-2 -bottom-2 h-16 sm:h-20 xl:h-24 rounded-[2rem] bg-gradient-to-t from-sky-100/60 to-sky-50/20"
                 />
                 <Image
                   src="/images/phone.png"
                   alt="Smartphone nổi bật"
-                  width={220}
-                  height={220}
-                  className="relative z-10 h-full w-auto object-contain drop-shadow-[0_18px_32px_rgba(14,165,233,0.28)]"
+                  fill
+                  sizes="(max-width: 640px) 140px, 160px"
+                  className="relative z-10 object-contain drop-shadow-[0_18px_32px_rgba(14,165,233,0.28)]"
                 />
               </div>
             </div>
-            <div className="border-t border-sky-50 p-5">
+            <div className="p-5 pt-0 sm:hidden xl:block xl:p-6 xl:pt-0">
               <Button
                 asChild
-                className="h-11 w-full rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600"
+                className="h-11 w-full rounded-xl bg-sky-500 font-semibold shadow-md shadow-sky-500/20 transition-colors hover:bg-sky-600 cursor-pointer"
               >
                 <Link href="/">
                   Khám phá ngay
@@ -85,7 +100,7 @@ export function DailyBestSection() {
               </Button>
             </div>
           </article>
-          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-4">
+          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard key={product.productId} product={product} variant="daily" />
             ))}

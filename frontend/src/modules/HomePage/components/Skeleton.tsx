@@ -1,6 +1,6 @@
 export default function HomePageSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[1440px] animate-pulse space-y-10 px-4 py-8 md:space-y-12 md:px-6 md:py-10 lg:px-8">
+    <div className="mx-auto w-full max-w-[1440px] animate-pulse space-y-10 px-4 py-8 md:space-y-12 md:px-6 md:p-8">
       <div className="h-[300px] rounded-3xl bg-slate-100 md:h-[360px]" />
       <div className="flex gap-4 overflow-hidden">
         {Array.from({ length: 8 }).map((_, i) => (

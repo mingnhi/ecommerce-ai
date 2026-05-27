@@ -17,7 +17,7 @@ const LIST_COLUMNS = [
 
 function CompactRow({ product }: { product: HomeProduct }) {
   return (
-    <article className="group flex gap-3 rounded-lg border border-transparent px-2 py-3.5 transition-colors hover:border-sky-100 hover:bg-sky-50/40">
+    <article className="group flex gap-3 rounded-lg border border-transparent px-2 py-3.5 transition-colors hover:border-sky-100 hover:bg-sky-50/40 hover:cursor-pointer">
       <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-gradient-to-b from-sky-50 to-white ring-1 ring-sky-100/80">
         <ProductPhoto src={product.image} alt={product.name} fill className="object-contain p-1.5" sizes="72px" />
       </div>
