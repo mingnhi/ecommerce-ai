@@ -1,5 +1,3 @@
-// src/services/product.ts
-
 import { httpClient } from "./http";
 import type {
   Product,
@@ -9,22 +7,17 @@ import type {
   ProductImageType,
 } from "../features/products/types/product.type";
 
-/**
- * NORMALIZE IMAGE
- */
+/* ===================== NORMALIZE ===================== */
 const normalizeImage = (image: any): ProductImage => ({
   id: String(image.id),
-  imageUrl: image.imageUrl || image.image_url || "",
-  publicId: image.publicId || image.public_id || "",
+  imageUrl: image.imageUrl || "",
+  publicId: image.publicId || "",
   type: image.type || "GALLERY",
-  sortOrder: image.sortOrder ?? image.sort_order ?? 0,
-  isPrimary: Boolean(image.isPrimary ?? image.is_primary),
-  createdAt: image.createdAt || image.created_at,
+  sortOrder: image.sortOrder ?? 0,
+  isPrimary: Boolean(image.isPrimary),
+  createdAt: image.createdAt,
 });
 
-/**
- * REMOVE UI-ONLY FIELDS BEFORE SEND TO BE
- */
 const normalizePayload = (payload: Partial<ProductFormValues>) => ({
   categoryId: payload.categoryId,
   name: payload.name,
@@ -34,14 +27,9 @@ const normalizePayload = (payload: Partial<ProductFormValues>) => ({
 
   prices: (payload.prices ?? []).map((p) => ({
     originalPrice: Number(p.originalPrice),
-    discountPercent:
-      p.discountPercent !== undefined
-        ? Number(p.discountPercent)
-        : undefined,
+    discountPercent: p.discountPercent !== undefined ? Number(p.discountPercent) : undefined,
     currency: p.currency || "VND",
     isActive: p.isActive ?? true,
-    startAt: p.startAt,
-    endAt: p.endAt,
   })),
 
   variants: (payload.variants ?? []).map((v) => ({
@@ -60,17 +48,11 @@ const normalizePayload = (payload: Partial<ProductFormValues>) => ({
   })),
 });
 
-/**
- * PRODUCT SERVICE
- */
+/* ===================== SERVICE ===================== */
 export const productService = {
-  /**
-   * GET ALL PRODUCTS
-   */
   getAll: async (params?: any) => {
     const res = await httpClient.get("/products", { params });
-    console.log("res", res.data.data?.data?.products);
-    const products = (res.data.data?.data?.products || []).map((p: any) => ({
+    const products = (res.data?.data || []).map((p: any) => ({
       id: String(p.id),
       name: p.name,
       slug: p.slug,
@@ -78,79 +60,52 @@ export const productService = {
       thumbnail: p.thumbnail || null,
       isActive: Boolean(p.isActive),
       createdAt: p.createdAt,
-
       category: {
         id: String(p.category?.id || ""),
         name: p.category?.name || "",
         slug: p.category?.slug || "",
       },
-
-      /**
-       * BE returns single price object in list view
-       */
       price: p.price
         ? {
-            originalPrice: Number(p.price.originalPrice),
-            discountPercent:
-              p.price.discountPercent !== undefined
-                ? Number(p.price.discountPercent)
-                : undefined,
-            price: Number(p.price.price),
+            originalPrice: Number(p.price.originalPrice || 0),
+            discountPercent: p.price.discountPercent !== undefined ? Number(p.price.discountPercent) : undefined,
+            price: Number(p.price.price || 0),
             currency: p.price.currency || "VND",
           }
         : null,
     })) as ProductListItem[];
-    console.log("pro",products);
 
-    return {
-      products,
-      meta: res.data?.meta || {},
-    };
+    return { products, meta: res.data?.meta || {} };
   },
 
-  /**
-   * GET PRODUCT DETAIL BY SLUG
-   */
   getBySlug: async (slug: string) => {
     const res = await httpClient.get(`/products/${slug}`);
-    const p = res.data?.data?.product;
+    const p = res.data?.data;
 
     return {
       product: {
         id: String(p.id),
         name: p.name,
         slug: p.slug,
-
         shortDescription: p.shortDescription || "",
         description: p.description || "",
-
         thumbnail: p.thumbnail || null,
-
         isActive: Boolean(p.isActive),
-
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
-
         category: {
           id: String(p.category?.id || ""),
           name: p.category?.name || "",
           slug: p.category?.slug || "",
         },
-
         prices: (p.prices || []).map((price: any) => ({
           id: String(price.id),
           originalPrice: Number(price.originalPrice),
-          discountPercent:
-            price.discountPercent !== undefined
-              ? Number(price.discountPercent)
-              : undefined,
+          discountPercent: price.discountPercent !== undefined ? Number(price.discountPercent) : undefined,
           price: Number(price.price),
           currency: price.currency || "VND",
           isActive: Boolean(price.isActive),
-          startAt: price.startAt,
-          endAt: price.endAt,
         })),
-
         variants: (p.variants || []).map((v: any) => ({
           id: String(v.id),
           title: v.title,
@@ -161,61 +116,31 @@ export const productService = {
           isActive: Boolean(v.isActive),
           attributes: v.attributes || {},
         })),
-
         attributes: (p.attributes || []).map((a: any) => ({
           id: String(a.id),
           name: a.name,
           value: a.value,
         })),
-
         images: (p.images || []).map(normalizeImage),
-
-        reviewSummary: p.reviewSummary
-          ? {
-              averageRating: Number(p.reviewSummary.averageRating),
-              totalReviews: Number(p.reviewSummary.totalReviews),
-            }
-          : null,
       } as Product,
     };
   },
 
-  /**
-   * CREATE PRODUCT
-   */
   create: async (payload: ProductFormValues) => {
-    console.log("payload", payload);
-    const res = await httpClient.post(
-      "/products",
-      normalizePayload(payload)
-    );
-
+    const res = await httpClient.post("/products", normalizePayload(payload));
     return res.data;
   },
 
-  /**
-   * UPDATE PRODUCT
-   */
   update: async (id: string, payload: Partial<ProductFormValues>) => {
-    const res = await httpClient.put(
-      `/products/${id}`,
-      normalizePayload(payload)
-    );
-
+    const res = await httpClient.put(`/products/${id}`, normalizePayload(payload));
     return res.data;
   },
 
-  /**
-   * DELETE PRODUCT
-   */
   delete: async (id: string) => {
     const res = await httpClient.delete(`/products/${id}`);
     return res.data;
   },
 
-  /**
-   * UPLOAD PRODUCT IMAGES
-   */
   uploadImage: async (
     productId: string,
     files: File[],
@@ -223,47 +148,27 @@ export const productService = {
     sortOrder: number = 0
   ) => {
     const formData = new FormData();
-
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
-
+    files.forEach((file) => formData.append("files", file));
+    console.log("Uploading files:", files);
     formData.append("type", type);
     formData.append("sortOrder", String(sortOrder));
-    console.log("formData", formData);
 
-    const res = await httpClient.post(
-      `/products/${productId}/images`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    const res = await httpClient.post(`/products/${productId}/images`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
     return {
       images: (res.data?.data?.images || []).map(normalizeImage),
     };
   },
 
-  /**
-   * SET PRODUCT THUMBNAIL
-   */
   setThumbnail: async (imageId: string) => {
-    const res = await httpClient.patch(
-      `/images/${imageId}/thumbnail`
-    );
-
+    const res = await httpClient.patch(`/images/${imageId}/thumbnail`);
     return res.data;
   },
 
-  /**
-   * DELETE PRODUCT IMAGE
-   */
   deleteImage: async (imageId: string) => {
     const res = await httpClient.delete(`/images/${imageId}`);
-
     return res.data;
   },
 };
