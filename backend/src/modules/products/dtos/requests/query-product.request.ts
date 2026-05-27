@@ -1,12 +1,5 @@
 import { Type } from 'class-transformer';
-
-import {
-  IsBoolean,
-  IsIn,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class QueryProductRequest {
   @IsOptional()
@@ -17,41 +10,21 @@ export class QueryProductRequest {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  limit?: number = 10;
+  limit?: number = 20;
 
-  /**
-   * SEARCH
-   */
   @IsOptional()
   @IsString()
   search?: string;
 
-  /**
-   * FILTER CATEGORY
-   */
   @IsOptional()
   @IsString()
   categoryId?: string;
 
-  /**
-   * FILTER STATUS
-   */
   @IsOptional()
-  @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
 
-  /**
-   * SORT
-   */
   @IsOptional()
-  @IsIn([
-    'newest',
-    'oldest',
-    'name_asc',
-    'name_desc',
-    'price_asc',
-    'price_desc',
-  ])
+  @IsIn(['newest', 'oldest', 'name_asc', 'name_desc', 'price_asc', 'price_desc'])
   sort?: string = 'newest';
 }

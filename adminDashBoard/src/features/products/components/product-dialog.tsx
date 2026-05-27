@@ -16,6 +16,8 @@ interface Props {
   categories: { id: string; name: string }[];
   loading?: boolean;
   onSubmit: (values: ProductFormValues) => Promise<any>;
+  /** Được gọi sau khi ProductForm hoàn tất toàn bộ flow (kể cả upload ảnh) */
+  onSuccess?: (slug?: string) => void;
 }
 
 export const ProductDialog = ({
@@ -25,7 +27,13 @@ export const ProductDialog = ({
   categories,
   loading = false,
   onSubmit,
+  onSuccess,
 }: Props) => {
+  const handleSuccess = (slug?: string) => {
+    onOpenChange(false);
+    onSuccess?.(slug);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[1400px] h-[92vh] overflow-y-auto p-0">
@@ -46,6 +54,7 @@ export const ProductDialog = ({
             initialData={initialData}
             loading={loading}
             onSubmit={onSubmit}
+            onSuccess={handleSuccess}
           />
         </div>
       </DialogContent>

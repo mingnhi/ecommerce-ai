@@ -4,18 +4,16 @@ import {
   Param,
   Patch,
   Post,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
   Body,
 } from '@nestjs/common';
 
-import {
-  FileInterceptor,
-} from '@nestjs/platform-express';
-
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-
 import { extname } from 'path';
+
+import { ApiResponse } from '@common/interfaces/api-response.interface';
 
 import { ProductImageService } from './productimage.service';
 
@@ -28,33 +26,29 @@ export class ProductImageController {
   ) {}
 
   /**
-   * upload image
+   * Upload multiple images for product
    */
-  @Post(
-    'products/:id/images',
-  )
+  @Post('products/:id/images')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('files', 10, {
       storage: diskStorage({
-        destination:
-          './temp',
+        destination: './temp',
 
         filename: (
           req,
           file,
           callback,
         ) => {
-          const unique =
+          const uniqueSuffix =
             Date.now() +
             '-' +
             Math.round(
-              Math.random() *
-                1e9,
+              Math.random() * 1e9,
             );
 
           callback(
             null,
-            unique +
+            uniqueSuffix +
               extname(
                 file.originalname,
               ),
@@ -63,50 +57,72 @@ export class ProductImageController {
       }),
     }),
   )
-  async upload(
-    @Param('id')
-    id: string,
+  async uploadMany(
+    @Param('id') id: string,
 
-    @UploadedFile()
-    file: Express.Multer.File,
+    @UploadedFiles()
+    files: Express.Multer.File[],
 
     @Body()
     request: UploadProductImageRequest,
-  ) {
-    return await this.productImageService.upload(
-      id,
-      file,
-      request.type,
-      request.sortOrder,
-    );
+  ): Promise<ApiResponse<any>> {
+    const data =
+      await this.productImageService.uploadMany(
+        id,
+        files,
+        request.type,
+        request.sortOrder,
+      );
+
+    return {
+      status: 'success',
+      message:
+        'Upload images successfully',
+      data,
+      meta: {
+        count:
+          data.images.length,
+      },
+    };
   }
 
   /**
-   * set thumbnail
+   * Set thumbnail
    */
-  @Patch(
-    'images/:id/thumbnail',
-  )
+  @Patch('images/:id/thumbnail')
   async setThumbnail(
-    @Param('id')
-    id: string,
-  ) {
-    return await this.productImageService.setThumbnail(
-      id,
-    );
+    @Param('id') id: string,
+  ): Promise<ApiResponse<any>> {
+    const data =
+      await this.productImageService.setThumbnail(
+        id,
+      );
+
+    return {
+      status: 'success',
+      message:
+        'Thumbnail updated successfully',
+      data,
+    };
   }
 
   /**
-   * delete image
+   * Delete image
    */
   @Delete('images/:id')
   async remove(
-    @Param('id')
-    id: string,
-  ) {
-    return await this.productImageService.remove(
-      id,
-    );
+    @Param('id') id: string,
+  ): Promise<ApiResponse<any>> {
+    const data =
+      await this.productImageService.remove(
+        id,
+      );
+
+    return {
+      status: 'success',
+      message:
+        'Image deleted successfully',
+      data,
+    };
   }
 }
-

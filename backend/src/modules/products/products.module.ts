@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
-
-import {
-  MikroOrmModule,
-} from '@mikro-orm/nestjs';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 
 import { ProductEntity } from '@entities/product.entity';
-
 import { CategoryEntity } from '@entities/category.entity';
+import { ProductPriceEntity } from '@entities/product-price.entity';
+import { ProductVariantEntity } from '@entities/product-variant.entity';
+import { ProductAttributeEntity } from '@entities/product-attribute.entity';
 
 import { ProductsController } from './products.controller';
-
 import { ProductsService } from './products.service';
 
 @Module({
@@ -17,19 +15,13 @@ import { ProductsService } from './products.service';
     MikroOrmModule.forFeature([
       ProductEntity,
       CategoryEntity,
+      ProductPriceEntity,
+      ProductVariantEntity,
+      ProductAttributeEntity,
     ]),
   ],
-
-  controllers: [
-    ProductsController,
-  ],
-
-  providers: [
-    ProductsService,
-  ],
-
-  exports: [
-    ProductsService,
-  ],
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  exports: [ProductsService],
 })
 export class ProductsModule {}

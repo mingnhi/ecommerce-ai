@@ -12,6 +12,8 @@ import {
   EntityRepository,
 } from '@mikro-orm/core';
 
+import * as fs from 'fs';
+
 import cloudinary from '@config/cloudinary.config';
 
 import { ProductEntity } from '@entities/product.entity';
@@ -29,52 +31,180 @@ export class ProductImageService {
     @InjectRepository(ProductEntity)
     private readonly productRepository: EntityRepository<ProductEntity>,
 
-    @InjectRepository(ProductImageEntity)
+    @InjectRepository(
+      ProductImageEntity,
+    )
     private readonly imageRepository: EntityRepository<ProductImageEntity>,
   ) {}
 
   /**
-   * upload image
+   * Upload multiple images
    */
-  async upload(
+  async uploadMany(
     productId: string,
-    file: Express.Multer.File,
-    type: ProductImageType,
-    sortOrder: number,
+    files: Express.Multer.File[],
+
+    type: ProductImageType =
+      ProductImageType.GALLERY,
+
+    sortOrder: number = 0,
   ) {
-    const product =
-      await this.productRepository.findOne({
-        id: productId,
-      });
+    try {
+      const product =
+        await this.productRepository.findOne({
+          id: productId,
+        });
 
-    if (!product) {
-      throw new NotFoundException(
-        'Product not found',
+      if (!product) {
+        throw new NotFoundException(
+          'Product not found',
+        );
+      }
+
+      if (!files?.length) {
+        throw new NotFoundException(
+          'No files uploaded',
+        );
+      }
+
+      const uploadedImages = [];
+
+      for (
+        let i = 0;
+        i < files.length;
+        i++
+      ) {
+        const file = files[i];
+
+        try {
+          // Upload to cloudinary
+          const uploaded =
+            await cloudinary.uploader.upload(
+              file.path,
+              {
+                folder: 'products',
+              },
+            );
+
+          const isThumbnail =
+            type ===
+              ProductImageType.THUMBNAIL &&
+            i === 0;
+
+          // Reset old thumbnail
+          if (isThumbnail) {
+            await this.em.nativeUpdate(
+              ProductImageEntity,
+              {
+                product:
+                  product.id,
+
+                isPrimary: true,
+              },
+              {
+                isPrimary: false,
+              },
+            );
+
+            product.thumbnail =
+              uploaded.secure_url;
+          }
+
+          // Create image entity
+          const image = this.em.create(
+            ProductImageEntity,
+            {
+              product,
+
+              imageUrl:
+                uploaded.secure_url,
+
+              publicId:
+                uploaded.public_id,
+
+              type,
+
+              sortOrder:
+                sortOrder + i,
+
+              isPrimary:
+                isThumbnail,
+            },
+          );
+
+          this.em.persist(image);
+
+          uploadedImages.push({
+            id: image.id,
+
+            imageUrl:
+              image.imageUrl,
+
+            type: image.type,
+
+            sortOrder:
+              image.sortOrder,
+
+            isPrimary:
+              image.isPrimary,
+
+            createdAt:
+              image.createdAt,
+          });
+        } finally {
+          // Remove temp file
+          if (
+            fs.existsSync(file.path)
+          ) {
+            fs.unlinkSync(file.path);
+          }
+        }
+      }
+
+      // Flush once
+      await this.em.flush();
+
+      return {
+        images: uploadedImages,
+      };
+    } catch (error) {
+      console.error(
+        'UPLOAD IMAGE ERROR:',
+        error,
       );
+
+      throw error;
     }
+  }
 
-    /**
-     * upload cloudinary
-     */
-    const uploaded =
-      await cloudinary.uploader.upload(
-        file.path,
-        {
-          folder: 'products',
-        },
-      );
+  /**
+   * Set image as thumbnail
+   */
+  async setThumbnail(
+    imageId: string,
+  ) {
+    try {
+      const image =
+        await this.imageRepository.findOne(
+          { id: imageId },
+          {
+            populate: ['product'],
+          },
+        );
 
-    /**
-     * old thumbnail false
-     */
-    if (
-      type ===
-      ProductImageType.THUMBNAIL
-    ) {
+      if (!image) {
+        throw new NotFoundException(
+          'Image not found',
+        );
+      }
+
+      // Reset old thumbnails
       await this.em.nativeUpdate(
         ProductImageEntity,
         {
-          product: product.id,
+          product:
+            image.product.id,
+
           isPrimary: true,
         },
         {
@@ -82,195 +212,116 @@ export class ProductImageService {
         },
       );
 
-      /**
-       * update product thumbnail
-       */
-      product.thumbnail =
-        uploaded.secure_url;
+      // Set new thumbnail
+      image.isPrimary = true;
+
+      image.type =
+        ProductImageType.THUMBNAIL;
+
+      image.product.thumbnail =
+        image.imageUrl;
 
       await this.em.flush();
-    }
 
-    /**
-     * create image
-     */
-    const image =
-      this.em.create(
-        ProductImageEntity,
-        {
-          product,
-
-          imageUrl:
-            uploaded.secure_url,
-
-          publicId:
-            uploaded.public_id,
-
-          type,
-
-          sortOrder,
-
-          isPrimary:
-            type ===
-            ProductImageType.THUMBNAIL,
-        },
-      );
-
-    await this.em.persistAndFlush(
-      image,
-    );
-
-    return {
-      message:
-        'Upload image successfully',
-
-      data: {
+      return {
         image: {
           id: image.id,
 
           imageUrl:
             image.imageUrl,
-
-          type:
-            image.type,
-
-          sortOrder:
-            image.sortOrder,
-
-          isPrimary:
-            image.isPrimary,
-
-          createdAt:
-            image.createdAt,
-        },
-      },
-
-      meta: {},
-    };
-  }
-
-  /**
-   * set thumbnail
-   */
-  async setThumbnail(
-    imageId: string,
-  ) {
-    const image =
-      await this.imageRepository.findOne(
-        {
-          id: imageId,
-        },
-        {
-          populate: ['product'],
-        },
-      );
-
-    if (!image) {
-      throw new NotFoundException(
-        'Image not found',
-      );
-    }
-
-    /**
-     * old thumbnail false
-     */
-    await this.em.nativeUpdate(
-      ProductImageEntity,
-      {
-        product:
-          image.product.id,
-
-        isPrimary: true,
-      },
-      {
-        isPrimary: false,
-      },
-    );
-
-    /**
-     * set new thumbnail
-     */
-    image.isPrimary = true;
-
-    image.type =
-      ProductImageType.THUMBNAIL;
-
-    /**
-     * update product thumbnail
-     */
-    image.product.thumbnail =
-      image.imageUrl;
-
-    await this.em.flush();
-
-    return {
-      message:
-        'Thumbnail updated successfully',
-
-      data: {
-        image: {
-          id: image.id,
 
           isPrimary: true,
-
-          imageUrl:
-            image.imageUrl,
         },
-      },
+      };
+    } catch (error) {
+      console.error(
+        'SET THUMBNAIL ERROR:',
+        error,
+      );
 
-      meta: {},
-    };
+      throw error;
+    }
   }
 
   /**
-   * delete image
+   * Delete image
    */
   async remove(imageId: string) {
-    const image =
-      await this.imageRepository.findOne(
-        {
-          id: imageId,
-        },
-        {
-          populate: ['product'],
-        },
+    try {
+      const image =
+        await this.imageRepository.findOne(
+          { id: imageId },
+          {
+            populate: ['product'],
+          },
+        );
+
+      if (!image) {
+        throw new NotFoundException(
+          'Image not found',
+        );
+      }
+
+      // Delete cloudinary image
+      try {
+        await cloudinary.uploader.destroy(
+          image.publicId,
+        );
+      } catch (error) {
+        console.warn(
+          'Cloudinary delete failed:',
+          error,
+        );
+      }
+
+      // If deleting thumbnail
+      if (image.isPrimary) {
+        const anotherImage =
+          await this.imageRepository.findOne(
+            {
+              product:
+                image.product.id,
+
+              id: {
+                $ne: image.id,
+              },
+            },
+            {
+              orderBy: {
+                createdAt: 'ASC',
+              },
+            },
+          );
+
+        if (anotherImage) {
+          anotherImage.isPrimary = true;
+
+          anotherImage.type =
+            ProductImageType.THUMBNAIL;
+
+          image.product.thumbnail =
+            anotherImage.imageUrl;
+        } else {
+          image.product.thumbnail =
+            null;
+        }
+      }
+
+      await this.em.removeAndFlush(
+        image,
       );
 
-    if (!image) {
-      throw new NotFoundException(
-        'Image not found',
+      return {
+        message:
+          'Image deleted successfully',
+      };
+    } catch (error) {
+      console.error(
+        'DELETE IMAGE ERROR:',
+        error,
       );
+
+      throw error;
     }
-
-    /**
-     * delete cloudinary
-     */
-    await cloudinary.uploader.destroy(
-      image.publicId,
-    );
-
-    /**
-     * reset thumbnail
-     */
-    if (image.isPrimary) {
-      image.product.thumbnail =
-        null;
-    }
-
-    /**
-     * delete db
-     */
-    await this.em.removeAndFlush(
-      image,
-    );
-
-    return {
-      message:
-        'Image deleted successfully',
-
-      data: null,
-
-      meta: {},
-    };
   }
 }
