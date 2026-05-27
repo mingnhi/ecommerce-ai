@@ -1,0 +1,1 @@
+from app.schemas.recommend import RecommendRequest, RecommendResult

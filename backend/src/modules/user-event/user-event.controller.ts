@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { UserEventService } from './user-event.service';
 import { CreateUserEventDto } from './dto/user-event.dto';
+import { RecommendRequestDto } from './dto/recommendRequest.dto';
 
 @Controller('user-events')
 export class UserEventController {
@@ -13,6 +14,17 @@ export class UserEventController {
     return {
       status: 'success',
       message: 'User event saved successfully',
+      data,
+    };
+  }
+
+  @Post('recommend')
+  async recommend(@Req() req: any, @Body() dto: RecommendRequestDto) {
+    const data = await this.userEventService.recommend(req.user.id, dto);
+
+    return {
+      status: 'success',
+      message: 'Recommend products successfully',
       data,
     };
   }
