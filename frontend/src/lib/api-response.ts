@@ -18,6 +18,14 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'newPassword must be longer than or equal to 6 characters': 'Mật khẩu mới phải có ít nhất 6 ký tự.',
   'currentPassword should not be empty': 'Vui lòng nhập mật khẩu hiện tại.',
   'Register successfully. Please verify OTP.': 'Đăng ký thành công! Vui lòng xác thực mã OTP.',
+  'Invalid OTP': 'Mã OTP không hợp lệ.',
+  'OTP expired': 'Mã OTP đã hết hạn.',
+  'OTP not found or already used': 'Mã OTP không hợp lệ hoặc đã được sử dụng.',
+  'User not found': 'Không tìm thấy tài khoản.',
+  'If this email exists, OTP has been sent': 'Nếu email tồn tại, mã OTP đã được gửi.',
+  'Forgot password OTP sent successfully': 'Nếu email tồn tại, mã OTP đã được gửi.',
+  'Reset password successfully': 'Đặt lại mật khẩu thành công!',
+  'Resend OTP successfully': 'Đã gửi lại mã OTP.',
 };
 
 export function normalizeApiMessage(message: string | string[] | undefined): string | null {

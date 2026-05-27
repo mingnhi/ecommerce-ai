@@ -165,6 +165,15 @@ export default function LoginPage() {
                 )}
               </div>
 
+              <div className="flex justify-end">
+                <Link
+                  href={ROUTES.FORGOT_PASSWORD}
+                  className="text-xs font-semibold text-sky-500 hover:text-sky-600 hover:underline transition-colors"
+                >
+                  Quên mật khẩu?
+                </Link>
+              </div>
+
               <Button
                 type="submit"
                 disabled={isLoading}

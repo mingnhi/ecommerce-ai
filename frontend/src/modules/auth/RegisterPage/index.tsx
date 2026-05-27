@@ -9,7 +9,7 @@ import { ArrowLeft, Eye, EyeOff, User, Lock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, verifyOtpRoute } from '@/lib/routes';
 import { registerSchema, type RegisterSchemaType } from '@/lib/validations/auth';
 import { useRegister } from '@/apis/auth/queries';
 import { isApiSuccess, getApiErrorMessage, getApiMessage } from '@/lib/api-response';
@@ -52,7 +52,7 @@ export default function RegisterPage() {
 
       if (isApiSuccess(response)) {
         toast.success(getApiMessage(response, 'Đăng ký thành công! Vui lòng xác thực OTP.'));
-        router.push(`${ROUTES.REGISTER_VERIFY_OTP}?email=${encodeURIComponent(data.email)}`);
+        router.push(`${ROUTES.VERIFY_OTP}?email=${encodeURIComponent(data.email)}&type=REGISTER`);
         return;
       }
 
