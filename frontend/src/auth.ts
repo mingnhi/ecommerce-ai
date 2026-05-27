@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth';
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { KEYS } from '@/apis/auth/keys';
@@ -11,6 +11,13 @@ import {
   getAtsTokenPair,
   refreshAtsTokens,
 } from '@/lib/auth/nextauth-ats';
+
+class CredentialsAuthError extends CredentialsSignin {
+  constructor(message: string) {
+    super(message);
+    this.code = message;
+  }
+}
 
 const nextAuth = NextAuth({
   pages: { signIn: '/dang-nhap', signOut: '/' },
@@ -31,7 +38,7 @@ const nextAuth = NextAuth({
         const raw = (await res.json()) as Record<string, unknown>;
 
         if (!res.ok || !isAtsSuccess(raw)) {
-          throw new Error(getApiMessage(raw, 'Email hoặc mật khẩu không đúng.'));
+          throw new CredentialsAuthError(getApiMessage(raw, 'Email hoặc mật khẩu không đúng.'));
         }
 
         const d = getAtsData(raw);
@@ -66,14 +73,14 @@ const nextAuth = NextAuth({
         const raw = (await res.json()) as Record<string, unknown>;
 
         if (!res.ok || !isAtsSuccess(raw)) {
-          throw new Error(getApiMessage(raw, 'Đăng nhập Google thất bại.'));
+          throw new CredentialsAuthError(getApiMessage(raw, 'Đăng nhập Google thất bại.'));
         }
 
         const payload = getAtsData(raw);
         const { token: appToken, refreshToken: appRefresh } = getAtsTokenPair(payload);
 
         if (!appToken) {
-          throw new Error('Đăng nhập Google thất bại.');
+          throw new CredentialsAuthError('Đăng nhập Google thất bại.');
         }
 
         token.accessToken = appToken;

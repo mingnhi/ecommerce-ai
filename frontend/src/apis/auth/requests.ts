@@ -2,6 +2,8 @@ import { request } from '../axios';
 import { KEYS } from './keys';
 import type {
   ApiEnvelope,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
   UpdatePasswordRequest,
   LoginRequest,
   RegisterRequest,
@@ -37,6 +39,19 @@ export const AuthService = {
   resendRegisterOtp: async (email: string) => {
     const body: ResendOtpRequest = { email, type: 'REGISTER' };
     return request.post<ApiEnvelope>(KEYS.OTP_RESEND, body);
+  },
+
+  forgotPassword: async (data: ForgotPasswordRequest) => {
+    return request.post<ApiEnvelope<{ message: string }>>(KEYS.OTP_FORGOT_PASSWORD, data);
+  },
+
+  resendForgotPasswordOtp: async (email: string) => {
+    const body: ResendOtpRequest = { email, type: 'FORGOT_PASSWORD' };
+    return request.post<ApiEnvelope>(KEYS.OTP_RESEND, body);
+  },
+
+  resetPassword: async (data: ResetPasswordRequest) => {
+    return request.post<ApiEnvelope<{ reset: boolean }>>(KEYS.AUTH_RESET_PASSWORD, data);
   },
 
   me: async () => {

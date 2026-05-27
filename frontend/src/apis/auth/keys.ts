@@ -8,7 +8,9 @@ export const KEYS = {
   AUTH_PASSWORD: '/auth/password',
   AUTH_LOGOUT: '/auth/logout',
   OTP_VERIFY_REGISTER: '/otp/verify-register',
+  OTP_FORGOT_PASSWORD: '/otp/forgot-password',
   OTP_RESEND: '/otp/resend',
+  AUTH_RESET_PASSWORD: '/auth/reset-password',
   TOKEN_REFRESH: '/token/refresh',
   TOKEN_REVOKE: '/token/revoke',
 } as const;

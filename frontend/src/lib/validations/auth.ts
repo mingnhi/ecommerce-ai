@@ -30,6 +30,20 @@ export const otpSchema = z.object({
     .regex(/^\d+$/, 'Chỉ nhập số'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().min(1, 'Email không được để trống').email('Email không hợp lệ'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: passwordRule,
+    confirmPassword: z.string().nonempty('Vui lòng xác nhận lại mật khẩu'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
+  });
+
 export const updatePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Vui lòng nhập mật khẩu hiện tại'),
@@ -48,4 +62,6 @@ export const updatePasswordSchema = z
 export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
 export type OtpSchemaType = z.infer<typeof otpSchema>;
+export type ForgotPasswordSchemaType = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
 export type UpdatePasswordSchemaType = z.infer<typeof updatePasswordSchema>;

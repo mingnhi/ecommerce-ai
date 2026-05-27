@@ -24,10 +24,12 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     const error = searchParams.get('error');
-    if (error) {
-      toast.error(getSignInErrorMessage(error, 'Đăng nhập Google thất bại.'));
-    }
-  }, [searchParams]);
+    if (!error) return;
+    toast.error(getSignInErrorMessage(error, 'Đăng nhập thất bại. Vui lòng thử lại.'));
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    router.replace(`${url.pathname}${url.search}`);
+  }, [searchParams, router]);
 
   const {
     register,
@@ -161,6 +163,15 @@ export default function LoginPage() {
                 {errors.password && (
                   <p className="text-red-500 text-xs mt-1 pl-1 font-medium">{errors.password.message}</p>
                 )}
+              </div>
+
+              <div className="flex justify-end">
+                <Link
+                  href={ROUTES.FORGOT_PASSWORD}
+                  className="text-xs font-semibold text-sky-500 hover:text-sky-600 hover:underline transition-colors"
+                >
+                  Quên mật khẩu?
+                </Link>
               </div>
 
               <Button

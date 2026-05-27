@@ -114,3 +114,13 @@ export interface UpdatePasswordRequest {
   newPassword: string;
   logoutAllSessions?: boolean;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: number;
+  newPassword: string;
+}
