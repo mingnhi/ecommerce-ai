@@ -1,27 +1,28 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function VerifyOtpPageSkeleton() {
   return (
-    <div className="min-h-screen bg-sky-100/50 dark:bg-neutral-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-[520px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-800 rounded-[2rem] shadow-[0_20px_50px_rgba(14,165,233,0.15)] overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center bg-sky-100/50 p-4 dark:bg-neutral-950 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[520px] overflow-hidden rounded-[2rem] border border-sky-500/60 bg-white shadow-[0_20px_50px_rgba(14,165,233,0.15)] dark:border-neutral-800 dark:bg-neutral-900">
         <Skeleton className="h-1.5 w-full rounded-none" />
-        <div className="p-8 sm:p-10 space-y-6">
-      <div className="w-full max-w-[520px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-800 rounded-4xl shadow-[0_20px_50px_rgba(14,165,233,0.15)] overflow-hidden">
-        <Skeleton className="h-1.5 w-full rounded-none" />
-        <div className="p-8 sm:p-10 space-y-6">
+
+        <div className="space-y-6 p-8 sm:p-10">
           <Skeleton className="h-4 w-36" />
+
           <div className="flex justify-center">
             <Skeleton className="size-16 rounded-2xl" />
           </div>
+
           <div className="space-y-2 text-center">
-            <Skeleton className="h-8 w-48 mx-auto" />
-            <Skeleton className="h-4 w-64 mx-auto" />
-            <Skeleton className="h-7 w-56 mx-auto rounded-full" />
+            <Skeleton className="mx-auto h-8 w-48" />
+            <Skeleton className="mx-auto h-4 w-64" />
+            <Skeleton className="mx-auto h-7 w-56 rounded-full" />
           </div>
+
           <Skeleton className="h-14 w-full rounded-xl" />
           <Skeleton className="h-12 w-full rounded-xl" />
-          <Skeleton className="h-4 w-36 mx-auto" />
-          <Skeleton className="h-4 w-44 mx-auto" />
+          <Skeleton className="mx-auto h-4 w-36" />
+          <Skeleton className="mx-auto h-4 w-44" />
         </div>
       </div>
     </div>

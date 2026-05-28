@@ -4,10 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useProducts } from "@/apis/product/queries";
 
-import { getDealEndOfDay } from "../lib";
+import { getDealEndOfDay, getDealProducts } from "../lib";
 
-import { DealCard } from "./DealCard";
 import type { Product } from "@/apis/product/types";
+import { ProductPhoto } from "./ProductCard";
+import { ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { useCart } from "@/hooks/use-cart";
+import { formatVnd } from "@/lib/format-currency";
+import { HomeProduct } from "@/types/catalog";
 
 function CountdownBox({
   label,

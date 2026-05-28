@@ -51,17 +51,12 @@ const CategoriesPage = () => {
   /**
    * flat categories
    */
-  const {
-    data: categoriesData,
-    isLoading,
-  } = useCategories("flat");
+  const { data: categoriesData, isLoading } = useCategories("flat");
 
   /**
    * tree categories
    */
-  const {
-    data: treeData,
-  } = useCategories("tree");
+  const { data: treeData } = useCategories("tree");
 
   /**
    * mutations
@@ -98,11 +93,10 @@ const CategoriesPage = () => {
         });
 
         toast.success("Cập nhật danh mục thành công");
-      }
+      } else {
       /**
        * create
        */
-      else {
         await createMutation.mutateAsync(values);
         toast.success("Tạo danh mục thành công");
       }
@@ -140,15 +134,17 @@ const CategoriesPage = () => {
     {
       accessorKey: "name",
       header: "Tên danh mục",
-      cell: ({ row }: any) => (
+      cell: ({ row }: unknown) => (
         <div className="font-medium">{row.original.name}</div>
       ),
     },
     {
       id: "parent",
       header: "Danh mục cha",
-      cell: ({ row }: any) => {
-        const parent = categories.find((c: ProductCategory) => c.id === row.original.parentId);
+      cell: ({ row }: unknown) => {
+        const parent = categories.find(
+          (c: ProductCategory) => c.id === row.original.parentId,
+        );
         return parent ? (
           <span className="text-sm text-muted-foreground">{parent.name}</span>
         ) : (
@@ -159,7 +155,7 @@ const CategoriesPage = () => {
     {
       accessorKey: "slug",
       header: "Slug",
-      cell: ({ row }: any) => (
+      cell: ({ row }: unknown) => (
         <span className="font-mono text-xs text-muted-foreground">
           {row.original.slug}
         </span>
@@ -168,7 +164,7 @@ const CategoriesPage = () => {
     {
       id: "actions",
       header: "Thao tác",
-      cell: ({ row }: any) => (
+      cell: ({ row }: unknown) => (
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -235,9 +231,7 @@ const CategoriesPage = () => {
               <DialogTitle>
                 {selected ? "Cập nhật danh mục" : "Tạo danh mục"}
               </DialogTitle>
-              <DialogDescription>
-                Quản lý danh mục sản phẩm
-              </DialogDescription>
+              <DialogDescription>Quản lý danh mục sản phẩm</DialogDescription>
             </DialogHeader>
 
             <CategoryForm

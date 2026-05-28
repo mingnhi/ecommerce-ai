@@ -9,7 +9,7 @@ import { ArrowLeft, Eye, EyeOff, User, Lock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { ROUTES, verifyOtpRoute } from '@/lib/routes';
+import { ROUTES } from '@/lib/routes';
 import { registerSchema, type RegisterSchemaType } from '@/lib/validations/auth';
 import { useRegister } from '@/apis/auth/queries';
 import { isApiSuccess, getApiErrorMessage, getApiMessage } from '@/lib/api-response';

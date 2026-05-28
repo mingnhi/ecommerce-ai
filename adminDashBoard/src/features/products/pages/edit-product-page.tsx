@@ -1,9 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 
-import {
-  useProductBySlug,
-  useUpdateProduct,
-} from "../hooks/products";
+import { useProductBySlug, useUpdateProduct } from "../hooks/products";
 
 import { ProductForm } from "../components/product-form";
 import { useCategories } from "@/features/categories/hooks/categories";
@@ -29,8 +26,8 @@ const EditProductPage = () => {
         ...product,
         // Đảm bảo các mảng không bị undefined
         prices: product.prices?.length ? product.prices : [],
-        variants: product.variants?.length 
-          ? product.variants.map((v: any) => ({
+        variants: product.variants?.length
+          ? product.variants.map((v: unknown) => ({
               ...v,
               price: v.price ?? undefined,
               stock: v.stock ?? 0,
@@ -63,9 +60,7 @@ const EditProductPage = () => {
 
   if (isLoading) {
     return (
-      <div className="py-20 text-center">
-        Đang tải thông tin sản phẩm...
-      </div>
+      <div className="py-20 text-center">Đang tải thông tin sản phẩm...</div>
     );
   }
 
@@ -86,7 +81,7 @@ const EditProductPage = () => {
 
       <ProductForm
         categories={categories}
-        initialData={initialDataForForm}     // ← Truyền data đã transform
+        initialData={initialDataForForm} // ← Truyền data đã transform
         loading={updateMutation.isPending}
         onSubmit={handleSubmit}
         onSuccess={handleSuccess}

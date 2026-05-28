@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useCallback, useMemo } from "react";
 
-export function useUrlState<T extends Record<string, { type: "string" | "number"; default: any }>>(
+export function useUrlState<T extends Record<string, { type: "string" | "number"; default: unknown }>>(
   schema: T
 ) {
   const [searchParams, setSearchParams] = useSearchParams();

@@ -13,7 +13,7 @@ export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) { }
 
   @Get('me')
-  async findMe(@Req() req: any): Promise<ApiResponse<UserProfile>> {
+  async findMe(@Req() req: unknown): Promise<ApiResponse<UserProfile>> {
     const data = await this.userProfileService.findByUserId(req.user.sub);
 
     return {
@@ -27,7 +27,7 @@ export class UserProfileController {
   @Roles('USER')
   @Put('me')
   async updateMe(
-    @Req() req: any,
+    @Req() req: unknown,
     @Body() dto: UpdateUserProfileDto,
   ): Promise<ApiResponse<UserProfile>> {
     const data = await this.userProfileService.updateMe(req.user.sub, dto);

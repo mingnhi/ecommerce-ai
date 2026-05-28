@@ -7,7 +7,7 @@ export class UserEventController {
   constructor(private readonly userEventService: UserEventService) { }
 
   @Post()
-  async create(@Req() req: any, @Body() dto: CreateUserEventDto) {
+  async create(@Req() req: unknown, @Body() dto: CreateUserEventDto) {
     const data = await this.userEventService.create(req.user.id, dto);
 
     return {

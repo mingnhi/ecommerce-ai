@@ -8,10 +8,10 @@ export class JwtService {
     private readonly configService: ConfigService
   ) { }
 
-  async generateAccessToken(payload: any): Promise<string> {
+  async generateAccessToken(payload: unknown): Promise<string> {
     return this.nestJwtService.signAsync({ ...payload, type: 'access' });
   }
-  async generateRefreshToken(payload: any): Promise<string> {
+  async generateRefreshToken(payload: unknown): Promise<string> {
     return this.nestJwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: (this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME') || '7d') as any,

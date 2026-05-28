@@ -40,34 +40,6 @@ export const HERO_COLOR_BENDS = {
   autoRotate: 0,
 };
 
-export const HERO_SLIDES = [
-  {
-    badge: "Bộ sưu tập smartphone",
-    title: "Smartphone chính hãng — công nghệ trong tầm tay bạn",
-    subtitle: "Giảm đến 50% cho đơn hàng đầu tiên · Giao nhanh trong ngày tại TP.HCM & Hà Nội",
-    description:
-      "iPhone, Samsung, Xiaomi và hàng trăm mẫu máy mới nhất với giá niêm yết minh bạch. Trả góp 0% qua thẻ tín dụng, bảo hành chính hãng toàn quốc và đổi trả trong 7 ngày nếu lỗi từ nhà sản xuất.",
-    image: "/images/phone.png",
-  },
-  {
-    badge: "Âm thanh & phụ kiện",
-    title: "Âm thanh sống động — tai nghe & loa không dây chính hãng",
-    subtitle: "Chống ồn chủ động · Pin lâu · Kết nối Bluetooth đa thiết bị",
-    description:
-      "Tai nghe, earbuds và loa Bluetooth từ các thương hiệu uy tín. Phù hợp nghe nhạc, họp trực tuyến hay tập luyện — kèm bảo hành chính hãng và hỗ trợ kỹ thuật nhanh chóng.",
-    image: "/images/earphone.png",
-  },
-  {
-    badge: "Laptop & thiết bị làm việc",
-    title: "Laptop hiệu năng cao — làm việc, học tập và sáng tạo không giới hạn",
-    subtitle: "Chip thế hệ mới · Pin cả ngày · Màn hình sắc nét, màu chuẩn cho thiết kế",
-    description:
-      "Từ ultrabook mỏng nhẹ đến máy trạm đồ họa: chọn đúng cấu hình với tư vấn miễn phí, khuyến mãi phụ kiện kèm theo và vệ sinh, kiểm tra máy định kỳ trong năm đầu sử dụng.",
-    image: "/images/laptop.png",
-  },
-
-] as const;
-
 
 
 export function getDealEndOfDay() {

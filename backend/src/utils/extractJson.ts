@@ -1,4 +1,4 @@
-export default function extractJson(raw: any[]): any {
+export default function extractJson(raw: unknown[]): unknown {
   if (!raw?.[0]) return null;
 
   // Lấy object dòng đầu tiên
@@ -9,7 +9,7 @@ export default function extractJson(raw: any[]): any {
 
   return jsonStr ? JSON.parse(jsonStr) : null;
 }
-export function extractJsonArray(raw: any[]): any[] {
+export function extractJsonArray(raw: unknown[]): unknown[] {
   if (!raw?.[0]) return [];
 
   const firstRow = raw[0];

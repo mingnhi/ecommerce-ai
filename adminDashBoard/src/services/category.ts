@@ -6,7 +6,7 @@ import type { Category } from "@/features/categories/types";
  * normalize category
  */
 const normalizeCategory = (
-  category: any
+  category: unknown
 ): Category => {
   return {
     id: String(category.id),
@@ -17,14 +17,14 @@ const normalizeCategory = (
 
     parentId:
       category.parentId === 0 ||
-      category.parentId === "0" ||
-      category.parentId === null
+        category.parentId === "0" ||
+        category.parentId === null
         ? "0"
         : String(
-            category.parentId ||
-              category.parent?.id ||
-              "0"
-          ),
+          category.parentId ||
+          category.parent?.id ||
+          "0"
+        ),
 
     children:
       category.children?.map(
