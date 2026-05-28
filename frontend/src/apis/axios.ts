@@ -99,7 +99,7 @@ const handleError = async (error: AxiosError) => {
     const statusCode = error.response?.status;
 
     const url = originalRequest?.url ?? '';
-    const isPublicAuth = /\/(auth\/(login|register)|otp\/)/.test(url);
+    const isPublicAuth = /\/(auth\/(login|register|reset-password)|otp\/)/.test(url);
 
     if (statusCode === 401 && !originalRequest._retry && !isPublicAuth) {
         if (isRefreshing) {

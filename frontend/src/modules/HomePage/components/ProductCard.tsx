@@ -46,75 +46,48 @@ export function ProductPhoto({
   );
 }
 
-export function ProductRating({
-  rating = 4.5,
-  className,
-}: {
-  rating?: number;
-  className?: string;
-}) {
+export function ProductRating({ rating, className }: { rating: number; className?: string }) {
   const filled = Math.round(rating);
-
   return (
-    <div
-      className={cn(
-        "flex items-center gap-0.5",
-        className
-      )}
-    >
-      {Array.from(
-        { length: 5 },
-        (_, i) => (
-          <Star
-            key={i}
-            className={cn(
-              "h-3.5 w-3.5",
-              i < filled
-                ? "fill-amber-400 text-amber-400"
-                : "fill-slate-100 text-slate-200"
-            )}
-          />
-        )
-      )}
+    <div className={cn("flex items-center gap-0.5", className)}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star
+          key={i}
+          className={cn(
+            "h-3.5 w-3.5",
+            i < filled ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-200",
+          )}
+        />
+      ))}
     </div>
   );
 }
 
+function badgeTone(badge?: string) {
+  if (badge === "Hot") return "bg-orange-500 hover:bg-orange-500";
+  if (badge === "New") return "bg-emerald-500 hover:bg-emerald-500";
+  return "bg-sky-500 hover:bg-sky-500";
+}
+
 type ProductCardProps = {
-  product: Product;
+  product: HomeProduct;
   variant?: "grid" | "daily";
+  className?: string;
 };
 
-export function ProductCard({
-  product,
-  variant = "grid",
-}: ProductCardProps) {
+export function ProductCard({ product, variant = "grid", className }: ProductCardProps) {
   const { addLine } = useCart();
-
   const isDaily = variant === "daily";
+  const soldPct = Math.round((product.sold / product.stock) * 100);
 
-  const currentPrice =
-    product.price?.price || 0;
-
-  const originalPrice =
-    product.price?.originalPrice || 0;
-
-  const discount =
-    product.price?.discountPercent || 0;
-
-  const addToCart = () => {
+  const addToCart = () =>
     addLine({
-      productId: product.id,
+      productId: product.productId,
       name: product.name,
-      price: currentPrice,
+      price: product.price,
       quantity: 1,
-      image:
-        product.thumbnail ||
-        product.images?.[0]
-          ?.imageUrl ||
-        "",
+      image: product.image,
     });
-  };
 
   return (
     <motion.article

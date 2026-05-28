@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { nanoid } from "nanoid";
 import { MessageCircle, Send, X } from "lucide-react";
+import { isNoChromeRoute } from "@/components/layouts/LayoutContainer";
 import { useAppSelector, useAppDispatch } from "@/stores";
 import { selectIsOpen, selectMessages } from "@/stores/chatbot/selectors";
 import { toggleOpen, addMessage } from "@/stores/chatbot/actions";
@@ -22,7 +23,7 @@ const BOT_RESPONSES = [
 ];
 
 export default function Chatbot() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector(selectIsOpen);
   const messages = useAppSelector(selectMessages);
@@ -33,9 +34,9 @@ export default function Chatbot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isHiddenRoute = HIDDEN_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isHiddenRoute =
+    isNoChromeRoute(pathname) ||
+    HIDDEN_ROUTES.some((route) => pathname.startsWith(route));
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

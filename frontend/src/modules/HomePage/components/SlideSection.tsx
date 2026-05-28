@@ -14,12 +14,10 @@ const SLIDE_COUNT = HERO_SLIDES.length;
 
 export function SlideSection() {
   const [heroIndex, setHeroIndex] = useState(0);
-  const slide = HERO_SLIDES[heroIndex] ?? HERO_SLIDES[0];
+  const slide = HERO_SLIDES[heroIndex] ?? HERO_SLIDES[0]!;
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroIndex((i) => (i + 1) % SLIDE_COUNT);
-    }, 6000);
+    const timer = setInterval(() => setHeroIndex((i) => (i + 1) % SLIDE_COUNT), 6000);
     return () => clearInterval(timer);
   }, []);
 
@@ -30,11 +28,12 @@ export function SlideSection() {
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-sky-50/90 via-white/80 to-sky-100/40 lg:bg-gradient-to-r lg:from-sky-50/90 lg:via-white/75 lg:to-sky-100/40" />
 
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-sky-50/90 via-white/80 to-sky-100/40 lg:bg-gradient-to-r lg:from-sky-50/90 lg:via-white/75 lg:to-sky-100/40" />
       <div className="relative z-10 grid items-center gap-6 pb-12 pt-6 sm:pb-14 sm:pt-8 lg:grid-cols-2 lg:py-0 lg:min-h-[400px]">
         <div className="flex flex-col justify-center gap-4 px-5 sm:px-6 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div
-              key={heroIndex}
+              key={slide.title}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
@@ -72,7 +71,6 @@ export function SlideSection() {
             </Button>
           </form>
         </div>
-
         <div className="relative flex min-h-[180px] items-center justify-center overflow-hidden px-4 pb-5 lg:min-h-[400px] lg:px-6 lg:pb-0">
           <AnimatePresence mode="wait">
             <motion.div
@@ -80,7 +78,7 @@ export function SlideSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.45 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
               className="flex w-full items-center justify-center"
             >
               <Image
@@ -96,18 +94,19 @@ export function SlideSection() {
         </div>
       </div>
 
-      {/* Dots indicator */}
-      <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-1.5 lg:hidden">
+      <div className="absolute block lg:hidden bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
         {Array.from({ length: SLIDE_COUNT }).map((_, idx) => (
           <button
             key={idx}
+            type="button"
             onClick={() => setHeroIndex(idx)}
             className={cn(
-              "h-1.5 rounded-full transition-all",
+              "h-1.5 rounded-full transition-all duration-300 cursor-pointer",
               heroIndex === idx
                 ? "w-5 bg-sky-500 shadow-[0_0_6px_rgba(14,165,233,0.6)]"
-                : "w-1.5 bg-sky-300/60 hover:bg-sky-400"
+                : "w-1.5 bg-sky-300/60 hover:bg-sky-400",
             )}
+            aria-label={`Go to slide ${idx + 1}`}
           />
         ))}
       </div>

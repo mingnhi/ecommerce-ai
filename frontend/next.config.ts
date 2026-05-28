@@ -58,10 +58,8 @@ const nextConfig: NextConfig = {
         aggregateTimeout: 300,
       };
     }
-
     return config;
   },
 };
 
 export default nextConfig;
-

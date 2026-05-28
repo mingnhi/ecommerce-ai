@@ -102,6 +102,26 @@ export const useResendRegisterOtp = () => {
     });
 };
 
+export const useForgotPassword = () => {
+    return useMutation({
+        mutationFn: (payload: import('./types').ForgotPasswordRequest) =>
+            AuthService.forgotPassword(payload),
+    });
+};
+
+export const useResendForgotPasswordOtp = () => {
+    return useMutation({
+        mutationFn: (email: string) => AuthService.resendForgotPasswordOtp(email),
+    });
+};
+
+export const useResetPassword = () => {
+    return useMutation({
+        mutationFn: (payload: import('./types').ResetPasswordRequest) =>
+            AuthService.resetPassword(payload),
+    });
+};
+
 export const useMe = (options?: { refetchProfile?: boolean; enabled?: boolean }) => {
     const dispatch = useAppDispatch();
     const accessToken = useAppSelector(selectAccessToken);
