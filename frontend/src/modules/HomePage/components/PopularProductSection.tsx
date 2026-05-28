@@ -1,40 +1,102 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATEGORY_TABS } from "@/faker/mock-categories";
+
+import { useProducts } from "@/apis/product/queries";
+import { useCategories } from "@/apis/category/queries";
+
 import { cn } from "@/lib/utils";
-import { getPopularProducts } from "../lib";
+
 import { ProductCard } from "./ProductCard";
 
-const POPULAR_TABS = ["Tất cả", ...CATEGORY_TABS.slice(1, 6)];
+import type { Product } from "@/apis/product/types";
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 export function PopularProductSection() {
-  const [popularTab, setPopularTab] = useState("Tất cả");
-  const products = useMemo(() => getPopularProducts(popularTab), [popularTab]);
+  const [activeCategory, setActiveCategory] =
+    useState<string>("");
+
+  const { data: categoryResponse } =
+    useCategories({
+      type: "flat",
+    });
+
+  const categories: Category[] =
+    categoryResponse?.data?.categories || [];
+
+  const query = useMemo(
+    () => ({
+      limit: 10,
+      sort: "newest" as const,
+
+      ...(activeCategory && {
+        categoryId: activeCategory,
+      }),
+    }),
+    [activeCategory]
+  );
+
+  const { data: response } =
+    useProducts(query);
+
+  const products: Product[] =
+    response?.data || [];
 
   return (
     <section>
       <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <h2 className="shrink-0 text-xl font-semibold text-sky-600 sm:text-2xl md:text-3xl">Sản phẩm phổ biến</h2>
-        <div className="flex gap-3 overflow-x-auto text-sm [-ms-overflow-style:none] [scrollbar-width:none] sm:ml-auto [&::-webkit-scrollbar]:hidden pb-1 sm:pb-0">
-          {POPULAR_TABS.map((tab) => (
+        <h2 className="shrink-0 text-xl font-semibold text-sky-600 sm:text-2xl md:text-3xl">
+          Sản phẩm phổ biến
+        </h2>
+
+        <div className="flex gap-3 overflow-x-auto pb-1 text-sm sm:pb-0">
+          <button
+            onClick={() =>
+              setActiveCategory("")
+            }
+            className={cn(
+              "shrink-0 whitespace-nowrap text-[13px] transition-colors hover:text-sky-600 sm:text-sm cursor-pointer",
+              activeCategory === ""
+                ? "font-semibold text-sky-600"
+                : "text-slate-500"
+            )}
+          >
+            Tất cả
+          </button>
+
+          {categories.map((category) => (
             <button
-              key={tab}
-              type="button"
-              onClick={() => setPopularTab(tab)}
+              key={category.id}
+              onClick={() =>
+                setActiveCategory(
+                  category.id
+                )
+              }
               className={cn(
-                "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm cursor-pointer",
-                popularTab === tab ? "font-semibold text-sky-600" : "text-slate-500",
+                "shrink-0 whitespace-nowrap text-[13px] transition-colors hover:text-sky-600 sm:text-sm cursor-pointer",
+                activeCategory ===
+                  category.id
+                  ? "font-semibold text-sky-600"
+                  : "text-slate-500"
               )}
             >
-              {tab}
+              {category.name}
             </button>
           ))}
         </div>
       </div>
+
       <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {products.map((product) => (
-          <ProductCard key={product.productId} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+          />
         ))}
       </div>
     </section>
