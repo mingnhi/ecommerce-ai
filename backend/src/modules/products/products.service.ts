@@ -300,7 +300,7 @@ export class ProductsService {
         query.isActive;
     }
 
-    let orderBy: unknown = {
+    let orderBy: any = {
       createdAt: QueryOrder.DESC,
     };
 
@@ -510,7 +510,7 @@ export class ProductsService {
 
       variants: product.variants
         .toArray()
-        .map((v: unknown) => ({
+        .map((v: any) => ({
           id: v.id,
           title: v.title,
           sku: v.sku,
@@ -646,7 +646,7 @@ export class ProductsService {
 
   private assignPrices(
     product: ProductEntity,
-    prices: unknown[],
+    prices: any[],
   ) {
     for (const p of prices) {
       const priceEntity =
@@ -678,7 +678,7 @@ export class ProductsService {
 
   private assignVariants(
     product: ProductEntity,
-    variants: unknown[],
+    variants: any[],
   ) {
     for (const v of variants) {
       const variantEntity =
@@ -706,7 +706,7 @@ export class ProductsService {
 
   private assignAttributes(
     product: ProductEntity,
-    attributes: unknown[],
+    attributes: any[],
   ) {
     for (const a of attributes) {
       const attrEntity =

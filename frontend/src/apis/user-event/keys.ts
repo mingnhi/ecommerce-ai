@@ -1,3 +1,3 @@
 export const USER_EVENT_KEYS = {
-    RECOMMEND_PRODUCTS: ['recommend-products'],
+    RECOMMENDATIONS_ME: ['user-events', 'recommendations', 'me'],
 };

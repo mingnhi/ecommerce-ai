@@ -1,28 +1,19 @@
-import {
-    useMutation,
-    useQuery,
-} from '@tanstack/react-query';
-import { recommendProductsRequest, saveUserEventRequest } from './requests';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { USER_EVENT_KEYS } from './keys';
+import {
+    getMyRecommendationsRequest,
+    saveUserEventRequest,
+} from './requests';
 
+export const useSaveUserEvent = () => {
+    return useMutation({
+        mutationFn: saveUserEventRequest,
+    });
+};
 
-
-export const useSaveUserEvent =
-    () => {
-        return useMutation({
-            mutationFn: saveUserEventRequest,
-        });
-    };
-
-export const useRecommendProducts =
-    (topK: number = 10) => {
-        return useQuery({
-            queryKey: [
-                ...USER_EVENT_KEYS.RECOMMEND_PRODUCTS,
-                topK,
-            ],
-
-            queryFn: () =>
-                recommendProductsRequest(topK),
-        });
-    };
+export const useMyRecommendations = (limit = 10) => {
+    return useQuery({
+        queryKey: [...USER_EVENT_KEYS.RECOMMENDATIONS_ME, limit],
+        queryFn: () => getMyRecommendationsRequest(limit),
+    });
+};

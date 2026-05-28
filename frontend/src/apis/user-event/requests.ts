@@ -1,27 +1,21 @@
 import { request } from '../axios';
-import { RecommendResponse, SaveUserEventPayload } from './types';
-
-
+import {
+    RecommendationData,
+    SaveUserEventPayload,
+} from './types';
 
 export const saveUserEventRequest = async (
     payload: SaveUserEventPayload,
 ) => {
-    return request.post(
-        '/user-events',
-        payload,
-    );
+    return request.post('/user-events', payload);
 };
 
-export const recommendProductsRequest =
-    async (
-        topK: number = 10,
-    ): Promise<RecommendResponse> => {
-        const response = await request.post(
-            '/user-events/recommend',
-            {
-                top_k: topK,
-            },
-        );
+export const getMyRecommendationsRequest = async (
+    limit = 10,
+): Promise<RecommendationData> => {
+    const response = await request.get(
+        `/user-events/recommendations/me?limit=${limit}`,
+    );
 
-        return response.data;
-    };
+    return response.data;
+};

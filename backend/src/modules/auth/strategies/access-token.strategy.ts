@@ -22,7 +22,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     // );
   }
 
-  async validate(payload: unknown) {
+  async validate(payload: any) {
     if (payload.type !== 'access') {
       throw new UnauthorizedException('Token không phải là access token');
     }
