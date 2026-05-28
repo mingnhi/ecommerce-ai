@@ -38,7 +38,7 @@ export class ProductsService {
 
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
-  ) {}
+  ) { }
 
   /** ====================== HELPERS ====================== */
 
@@ -300,7 +300,7 @@ export class ProductsService {
         query.isActive;
     }
 
-    let orderBy: any = {
+    let orderBy: unknown = {
       createdAt: QueryOrder.DESC,
     };
 
@@ -384,15 +384,15 @@ export class ProductsService {
 
           price: activePrice
             ? {
-                price:
-                  activePrice.price,
-                originalPrice:
-                  activePrice.originalPrice,
-                discountPercent:
-                  activePrice.discountPercent,
-                currency:
-                  activePrice.currency,
-              }
+              price:
+                activePrice.price,
+              originalPrice:
+                activePrice.originalPrice,
+              discountPercent:
+                activePrice.discountPercent,
+              currency:
+                activePrice.currency,
+            }
             : null,
 
           createdAt:
@@ -510,7 +510,7 @@ export class ProductsService {
 
       variants: product.variants
         .toArray()
-        .map((v: any) => ({
+        .map((v: unknown) => ({
           id: v.id,
           title: v.title,
           sku: v.sku,
@@ -646,7 +646,7 @@ export class ProductsService {
 
   private assignPrices(
     product: ProductEntity,
-    prices: any[],
+    prices: unknown[],
   ) {
     for (const p of prices) {
       const priceEntity =
@@ -678,7 +678,7 @@ export class ProductsService {
 
   private assignVariants(
     product: ProductEntity,
-    variants: any[],
+    variants: unknown[],
   ) {
     for (const v of variants) {
       const variantEntity =
@@ -706,7 +706,7 @@ export class ProductsService {
 
   private assignAttributes(
     product: ProductEntity,
-    attributes: any[],
+    attributes: unknown[],
   ) {
     for (const a of attributes) {
       const attrEntity =

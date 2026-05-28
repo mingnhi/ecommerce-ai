@@ -1,40 +1,83 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { CATEGORY_TABS } from "@/faker/mock-categories";
-import { getDailyBestProducts } from "../lib";
-import { ProductCard } from "./ProductCard";
 
-const DAILY_TABS = ["Tất cả", "Ưu đãi hôm nay", ...CATEGORY_TABS.slice(1, 5)];
+import { ArrowRight } from "lucide-react";
+
+import { useProducts } from "@/apis/product/queries";
+
+import { Button } from "@/components/ui/button";
+
+import { cn } from "@/lib/utils";
+
+import { ProductCard } from "./ProductCard";
+import type { Product } from "@/apis/product/types";
+
+const DAILY_TABS = [
+  "Tất cả",
+  "Ưu đãi hôm nay",
+  "Điện thoại",
+  "Laptop",
+  "Tai nghe",
+];
 
 export function DailyBestSection() {
   const [dailyTab, setDailyTab] = useState("Tất cả");
-  const products = useMemo(() => getDailyBestProducts(dailyTab), [dailyTab]);
+
+  const sort: "price_desc" | "newest" =
+    dailyTab === "Ưu đãi hôm nay"
+      ? "price_desc"
+      : "newest";
+
+  const query = useMemo(
+    () => ({
+      limit: 8,
+      sort,
+      ...(dailyTab !== "Tất cả" &&
+        dailyTab !== "Ưu đãi hôm nay" && {
+          search: dailyTab,
+        }),
+    }),
+    [dailyTab, sort]
+  );
+
+  const { data: response } = useProducts(query);
+
+  const products: Product[] =
+  response?.data || [];
 
   return (
     <section className="relative mb-5 overflow-hidden rounded-lg border border-sky-100/80">
-      <Image src="/images/bg-slide.png" alt="" fill sizes="100vw" className="object-cover" aria-hidden />
-      <div
+      <Image
+        src="/images/bg-slide.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-br from-white/92 via-white/88 to-sky-50/75"
       />
+
+      <div className="absolute inset-0 bg-gradient-to-br from-white/92 via-white/88 to-sky-50/75" />
+
       <div className="relative p-5 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <h2 className="shrink-0 text-xl font-semibold text-sky-600 sm:text-2xl md:text-3xl">Bán chạy hôm nay</h2>
-          <div className="flex gap-3 overflow-x-auto text-sm [-ms-overflow-style:none] [scrollbar-width:none] sm:ml-auto [&::-webkit-scrollbar]:hidden pb-1 sm:pb-0">
+          <h2 className="shrink-0 text-xl font-semibold text-sky-600 sm:text-2xl md:text-3xl">
+            Bán chạy hôm nay
+          </h2>
+
+          <div className="flex gap-3 overflow-x-auto pb-1 text-sm sm:pb-0">
             {DAILY_TABS.map((tab) => (
               <button
                 key={tab}
-                type="button"
                 onClick={() => setDailyTab(tab)}
                 className={cn(
-                  "shrink-0 whitespace-nowrap transition-colors hover:text-sky-600 text-[13px] sm:text-sm cursor-pointer",
-                  dailyTab === tab ? "font-semibold text-sky-600" : "text-slate-500",
+                  "shrink-0 whitespace-nowrap text-[13px] transition-colors hover:text-sky-600 sm:text-sm cursor-pointer",
+                  dailyTab === tab
+                    ? "font-semibold text-sky-600"
+                    : "text-slate-500"
                 )}
               >
                 {tab}
@@ -100,9 +143,14 @@ export function DailyBestSection() {
               </Button>
             </div>
           </article>
+
           <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
-              <ProductCard key={product.productId} product={product} variant="daily" />
+              <ProductCard
+                key={product.id}
+                product={product}
+                variant="daily"
+              />
             ))}
           </div>
         </div>

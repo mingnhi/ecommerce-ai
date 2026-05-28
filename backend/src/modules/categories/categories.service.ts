@@ -30,7 +30,7 @@ export class CategoryService {
 
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
-  ) {}
+  ) { }
 
   private async generateSlug(
     name: string,
@@ -138,7 +138,7 @@ export class CategoryService {
 
     const buildTree = (
       parentId?: string,
-    ): any[] => {
+    ): unknown[] => {
       return categories
         .filter(category => {
           if (!parentId) {
@@ -199,9 +199,9 @@ export class CategoryService {
 
     if (
       request.parentId !==
-        undefined &&
+      undefined &&
       request.parentId !==
-        null
+      null
     ) {
       if (
         request.parentId ===

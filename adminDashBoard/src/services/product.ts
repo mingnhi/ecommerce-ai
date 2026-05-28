@@ -8,7 +8,7 @@ import type {
 } from "../features/products/types/product.type";
 
 /* ===================== NORMALIZE ===================== */
-const normalizeImage = (image: any): ProductImage => ({
+const normalizeImage = (image: unknown): ProductImage => ({
   id: String(image.id),
   imageUrl: image.imageUrl || "",
   publicId: image.publicId || "",
@@ -50,9 +50,9 @@ const normalizePayload = (payload: Partial<ProductFormValues>) => ({
 
 /* ===================== SERVICE ===================== */
 export const productService = {
-  getAll: async (params?: any) => {
+  getAll: async (params?: unknown) => {
     const res = await httpClient.get("/products", { params });
-    const products = (res.data?.data || []).map((p: any) => ({
+    const products = (res.data?.data || []).map((p: unknown) => ({
       id: String(p.id),
       name: p.name,
       slug: p.slug,
@@ -67,11 +67,11 @@ export const productService = {
       },
       price: p.price
         ? {
-            originalPrice: Number(p.price.originalPrice || 0),
-            discountPercent: p.price.discountPercent !== undefined ? Number(p.price.discountPercent) : undefined,
-            price: Number(p.price.price || 0),
-            currency: p.price.currency || "VND",
-          }
+          originalPrice: Number(p.price.originalPrice || 0),
+          discountPercent: p.price.discountPercent !== undefined ? Number(p.price.discountPercent) : undefined,
+          price: Number(p.price.price || 0),
+          currency: p.price.currency || "VND",
+        }
         : null,
     })) as ProductListItem[];
 
@@ -98,7 +98,7 @@ export const productService = {
           name: p.category?.name || "",
           slug: p.category?.slug || "",
         },
-        prices: (p.prices || []).map((price: any) => ({
+        prices: (p.prices || []).map((price: unknown) => ({
           id: String(price.id),
           originalPrice: Number(price.originalPrice),
           discountPercent: price.discountPercent !== undefined ? Number(price.discountPercent) : undefined,
@@ -106,7 +106,7 @@ export const productService = {
           currency: price.currency || "VND",
           isActive: Boolean(price.isActive),
         })),
-        variants: (p.variants || []).map((v: any) => ({
+        variants: (p.variants || []).map((v: unknown) => ({
           id: String(v.id),
           title: v.title,
           sku: v.sku,
@@ -116,7 +116,7 @@ export const productService = {
           isActive: Boolean(v.isActive),
           attributes: v.attributes || {},
         })),
-        attributes: (p.attributes || []).map((a: any) => ({
+        attributes: (p.attributes || []).map((a: unknown) => ({
           id: String(a.id),
           name: a.name,
           value: a.value,

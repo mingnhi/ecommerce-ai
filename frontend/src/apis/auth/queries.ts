@@ -13,14 +13,14 @@ import { IUser } from '@/types/user';
 import { getApiErrorMessage, getEnvelopeData, isApiSuccess } from '@/lib/api-response';
 
 function applyProfileToStore(profile: UserProfileResponse) {
-  const current = store.getState().user.user;
-  if (!current) return;
+    const current = store.getState().user.user;
+    if (!current) return;
 
-  store.dispatch(setUserAction({
-    ...current,
-    ...(profile.fullName !== undefined && { fullName: profile.fullName }),
-    ...(profile.avatarUrl && { image: profile.avatarUrl }),
-  }));
+    store.dispatch(setUserAction({
+        ...current,
+        ...(profile.fullName !== undefined && { fullName: profile.fullName }),
+        ...(profile.avatarUrl && { image: profile.avatarUrl }),
+    }));
 }
 
 export const useLogin = () => {
@@ -76,7 +76,7 @@ export const useLogin = () => {
                 dispatch(loginFailureAction(error));
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             const errorMessages = error.response?.data?.messages || ['Đăng nhập thất bại'];
             dispatch(loginFailureAction({ messages: errorMessages }));
         },
@@ -158,64 +158,64 @@ export const useMe = (options?: { refetchProfile?: boolean; enabled?: boolean })
 };
 
 export const useGetProfile = () => {
-  return useQuery({
-    queryKey: [KEYS.AUTH_PROFILE],
-    queryFn: () => AuthService.getProfile(),
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
+    return useQuery({
+        queryKey: [KEYS.AUTH_PROFILE],
+        queryFn: () => AuthService.getProfile(),
+        retry: 1,
+        refetchOnWindowFocus: false,
+    });
 };
 
 export const useSyncProfileToStore = () => {
-  const { data } = useGetProfile();
+    const { data } = useGetProfile();
 
-  useEffect(() => {
-    const profile = getEnvelopeData<UserProfileResponse>(data);
-    if (profile?.avatarUrl || profile?.fullName) applyProfileToStore(profile);
-  }, [data]);
+    useEffect(() => {
+        const profile = getEnvelopeData<UserProfileResponse>(data);
+        if (profile?.avatarUrl || profile?.fullName) applyProfileToStore(profile);
+    }, [data]);
 };
 
 export const useUpdateProfile = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: UpdateProfileRequest) => AuthService.updateProfile(data),
-    onSuccess: (response) => {
-      const profile = getEnvelopeData<UserProfileResponse>(response);
-      if (profile) {
-        applyProfileToStore(profile);
-        queryClient.setQueryData([KEYS.AUTH_PROFILE], response);
-      }
-    },
-  });
+    return useMutation({
+        mutationFn: (data: UpdateProfileRequest) => AuthService.updateProfile(data),
+        onSuccess: (response) => {
+            const profile = getEnvelopeData<UserProfileResponse>(response);
+            if (profile) {
+                applyProfileToStore(profile);
+                queryClient.setQueryData([KEYS.AUTH_PROFILE], response);
+            }
+        },
+    });
 };
 
 export const useUpdateAvatar = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (file: File) => AuthService.updateAvatar(file),
-    onSuccess: (response) => {
-      const profile = getEnvelopeData<UserProfileResponse>(response);
-      if (!profile?.avatarUrl) {
-        toast.error('Cập nhật avatar thất bại.');
-        return;
-      }
+    return useMutation({
+        mutationFn: (file: File) => AuthService.updateAvatar(file),
+        onSuccess: (response) => {
+            const profile = getEnvelopeData<UserProfileResponse>(response);
+            if (!profile?.avatarUrl) {
+                toast.error('Cập nhật avatar thất bại.');
+                return;
+            }
 
-      applyProfileToStore(profile);
-      queryClient.setQueryData([KEYS.AUTH_PROFILE], response);
-      toast.success('Cập nhật avatar thành công!');
-    },
-    onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Cập nhật avatar thất bại.'));
-    },
-  });
+            applyProfileToStore(profile);
+            queryClient.setQueryData([KEYS.AUTH_PROFILE], response);
+            toast.success('Cập nhật avatar thành công!');
+        },
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error, 'Cập nhật avatar thất bại.'));
+        },
+    });
 };
 
 export const useUpdatePassword = () => {
-  return useMutation({
-    mutationFn: (data: UpdatePasswordRequest) => AuthService.updatePassword(data),
-  });
+    return useMutation({
+        mutationFn: (data: UpdatePasswordRequest) => AuthService.updatePassword(data),
+    });
 };
 
 export const useLogout = () => {

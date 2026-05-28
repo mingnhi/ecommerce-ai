@@ -5,15 +5,16 @@ import { toast } from "sonner";
 
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 
 import { DataTableBase } from "@/shared/components/common/DataTableBase";
 
-import {
-  useProducts,
-  useDeleteProduct,
-} from "../hooks/products";
+import { useProducts, useDeleteProduct } from "../hooks/products";
 
 import { useCategories } from "@/features/categories/hooks/categories";
 
@@ -26,7 +27,11 @@ const ProductsPage = () => {
   const [categoryId, setCategoryId] = useState("all");
   const [sort, setSort] = useState("newest");
 
-  const { data: productsData, isLoading: isProductsLoading, refetch } = useProducts({
+  const {
+    data: productsData,
+    isLoading: isProductsLoading,
+    refetch,
+  } = useProducts({
     search,
     limit: 50,
     categoryId: categoryId === "all" ? undefined : categoryId,
@@ -69,8 +74,9 @@ const ProductsPage = () => {
     {
       id: "image",
       header: "Image",
-      cell: ({ row }: any) => {
-        const imageUrl = row.original.thumbnail || row.original.images?.[0]?.imageUrl;
+      cell: ({ row }: unknown) => {
+        const imageUrl =
+          row.original.thumbnail || row.original.images?.[0]?.imageUrl;
         return (
           <Avatar className="h-12 w-12 rounded-md border border-border">
             <AvatarImage src={imageUrl} className="object-cover" />
@@ -84,7 +90,7 @@ const ProductsPage = () => {
     {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }: any) => (
+      cell: ({ row }: unknown) => (
         <div>
           <p className="font-medium">{row.original.name}</p>
           {row.original.sku && (
@@ -96,12 +102,13 @@ const ProductsPage = () => {
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }: any) => row.original.category?.name || "Chưa phân loại",
+      cell: ({ row }: unknown) =>
+        row.original.category?.name || "Chưa phân loại",
     },
     {
       id: "price",
       header: "Price",
-      cell: ({ row }: any) => {
+      cell: ({ row }: unknown) => {
         const price = row.original.price.price;
         return (
           <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-500">
@@ -113,7 +120,7 @@ const ProductsPage = () => {
     {
       id: "status",
       header: "Status",
-      cell: ({ row }: any) => {
+      cell: ({ row }: unknown) => {
         const isActive = row.original.isActive !== false;
         return (
           <Badge variant={isActive ? "default" : "secondary"}>
@@ -125,7 +132,7 @@ const ProductsPage = () => {
     {
       id: "actions",
       header: "Action",
-      cell: ({ row }: any) => (
+      cell: ({ row }: unknown) => (
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -179,7 +186,7 @@ const ProductsPage = () => {
         onChange: setCategoryId,
         options: [
           { value: "all", label: "Tất cả danh mục" },
-          ...categories.map((cat: any) => ({
+          ...categories.map((cat: unknown) => ({
             value: cat.id,
             label: cat.name,
           })),
@@ -204,9 +211,15 @@ const ProductsPage = () => {
     <div className="mx-auto flex w-full flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý sản phẩm</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Quản lý sản phẩm
+          </h1>
           <p className="mt-1 text-muted-foreground">
-            Tổng số: <span className="font-semibold text-foreground">{products.length}</span> sản phẩm
+            Tổng số:{" "}
+            <span className="font-semibold text-foreground">
+              {products.length}
+            </span>{" "}
+            sản phẩm
           </p>
         </div>
 

@@ -34,6 +34,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^10.0.0",
     "@nestjs/jwt": "^11.0.0",
+    "@nestjs/mapped-types": "^2.1.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^10.4.22",
     "@nestjs/swagger": "^7.0.0",
@@ -114,5 +115,6 @@
       "./src/config/mikro-orm.config.ts",
       "./dist/config/mikro-orm.config.js"
     ]
-  }
+  },
+  "packageManager": "pnpm@11.3.0+sha512.2c403d6594527287672b1f7056343a1f7c3634036a67ffabfcc2b3d7595d843768f8787148d1b57cf7956c90606bbd192857c363af19e96d2d0ec9ec5741d215"
 }

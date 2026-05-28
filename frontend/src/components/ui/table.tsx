@@ -44,13 +44,13 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         type={type}
         className={cn(
           "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
+          className,
         )}
         ref={ref}
         {...props}
       />
     );
-  }
+  },
 );
 Input.displayName = "Input";
 
@@ -62,7 +62,7 @@ const Select = React.forwardRef<
     <select
       className={cn(
         "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
+        className,
       )}
       ref={ref}
       {...props}
@@ -112,7 +112,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
       data-slot="table-footer"
       className={cn(
         "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
-        className
+        className,
       )}
       {...props}
     />
@@ -125,7 +125,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
       data-slot="table-row"
       className={cn(
         "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
-        className
+        className,
       )}
       {...props}
     />
@@ -138,7 +138,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
       data-slot="table-head"
       className={cn(
         "text-foreground h-10 px-2 text-left align-middle font-medium  [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        className
+        className,
       )}
       {...props}
     />
@@ -151,7 +151,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
       data-slot="table-cell"
       className={cn(
         "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        className
+        className,
       )}
       {...props}
     />
@@ -267,25 +267,28 @@ function DataTable<TData, TValue>({
     }
   }, [initialPagination?.pageIndex, initialPagination?.pageSize]);
 
-  const handlePaginationChange = (updater: any) => {
-    const newState = typeof updater === 'function' 
-      ? updater(paginationState) 
-      : updater;
-    
+  const handlePaginationChange = (updater: unknown) => {
+    const newState =
+      typeof updater === "function" ? updater(paginationState) : updater;
+
     const pageSizeChanged = newState.pageSize !== paginationState.pageSize;
-    
+
     if (pageSizeChanged && onPageSizeChange) {
       onPageSizeChange(newState.pageSize);
-    } else if (onPageChange && newState.pageIndex !== paginationState.pageIndex) {
+    } else if (
+      onPageChange &&
+      newState.pageIndex !== paginationState.pageIndex
+    ) {
       onPageChange(newState.pageIndex + 1);
     }
-    
+
     setPaginationState(newState);
   };
 
-  const pageCount = isServerSidePagination && totalCount
-    ? Math.ceil(totalCount / paginationState.pageSize)
-    : undefined;
+  const pageCount =
+    isServerSidePagination && totalCount
+      ? Math.ceil(totalCount / paginationState.pageSize)
+      : undefined;
 
   const table = useReactTable({
     data,
@@ -420,7 +423,7 @@ function DataTable<TData, TValue>({
                       <ChevronDown
                         className={cn(
                           "h-4 w-4 transition-transform",
-                          showFiltersPanel && "rotate-180"
+                          showFiltersPanel && "rotate-180",
                         )}
                       />
                     </Button>
@@ -538,7 +541,7 @@ function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   ))}
@@ -554,7 +557,7 @@ function DataTable<TData, TValue>({
                       <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}
@@ -644,7 +647,7 @@ function DataTable<TData, TValue>({
 
 const createSortableHeader = <TData, TValue = unknown>(
   title: string,
-  enableAnimations: boolean = true
+  enableAnimations: boolean = true,
 ) => {
   const SortableHeader: React.FC<{ column: Column<TData, TValue> }> = ({
     column,
@@ -694,7 +697,7 @@ interface AnimatedCellProps {
 const createAnimatedCell = (
   enableAnimations: boolean = true,
   delay: number = 0,
-  className?: string
+  className?: string,
 ) => {
   const AnimatedCell: React.FC<AnimatedCellProps> = ({ row, getValue }) => {
     const CellWrapper = enableAnimations ? motion.div : "div";

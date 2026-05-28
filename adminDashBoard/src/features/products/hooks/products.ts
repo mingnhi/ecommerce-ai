@@ -9,7 +9,7 @@ import type {
 /**
  * GET ALL PRODUCTS (FIXED QUERY KEY)
  */
-export const useProducts = (params?: any) =>
+export const useProducts = (params?: unknown) =>
   useQuery({
     queryKey: [
       "products",

@@ -1,32 +1,53 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Mail, ShieldCheck } from 'lucide-react';
-import { toast } from 'sonner';
-import { ROUTES } from '@/lib/routes';
-import { FORGOT_PASSWORD_OTP_KEY } from '@/lib/const';
-import { otpSchema, type OtpSchemaType } from '@/lib/validations/auth';
-import { useVerifyRegisterOtp, useResendRegisterOtp, useResendForgotPasswordOtp } from '@/apis/auth/queries';
-import { getApiErrorMessage } from '@/lib/api-response';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import type { OtpType } from '@/apis/auth/types';
+import React from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
+
+import { toast } from "sonner";
+
+import { ROUTES } from "@/lib/routes";
+import { FORGOT_PASSWORD_OTP_KEY } from "@/lib/const";
+
+import { otpSchema, type OtpSchemaType } from "@/lib/validations/auth";
+
+import {
+  useVerifyRegisterOtp,
+  useResendRegisterOtp,
+  useResendForgotPasswordOtp,
+} from "@/apis/auth/queries";
+
+import { getApiErrorMessage } from "@/lib/api-response";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const RESEND_COOLDOWN = 60;
 
 export default function VerifyOtpPage() {
   const router = useRouter();
+
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') ?? '';
-  const type = (searchParams.get('type') ?? 'REGISTER') as OtpType;
+
+  const email = searchParams.get("email") ?? "";
+
+  const type = searchParams.get("type") ?? "register";
+
+  const isRegister = type === "register";
+
+  const isForgotPassword = type === "forgot-password";
 
   const verifyRegisterMutation = useVerifyRegisterOtp();
+
   const resendRegisterMutation = useResendRegisterOtp();
+
   const resendForgotPasswordMutation = useResendForgotPasswordOtp();
+
   const [cooldown, setCooldown] = React.useState(0);
 
   const {
@@ -37,23 +58,26 @@ export default function VerifyOtpPage() {
     formState: { errors },
   } = useForm<OtpSchemaType>({
     resolver: zodResolver(otpSchema),
-    defaultValues: { otp: '' },
+    defaultValues: {
+      otp: "",
+    },
   });
 
-  const otpValue = watch('otp');
-
-  const isRegister = type === 'REGISTER';
-  const isForgotPassword = type === 'FORGOT_PASSWORD';
+  const otpValue = watch("otp");
 
   React.useEffect(() => {
     if (!email) {
-      router.replace(isRegister ? ROUTES.REGISTER : ROUTES.FORGOT_PASSWORD);
+      router.replace(ROUTES.REGISTER);
     }
-  }, [email, isRegister, router]);
+  }, [email, router]);
 
   React.useEffect(() => {
     if (cooldown <= 0) return;
-    const timer = setInterval(() => setCooldown((s) => s - 1), 1000);
+
+    const timer = setInterval(() => {
+      setCooldown((s) => s - 1);
+    }, 1000);
+
     return () => clearInterval(timer);
   }, [cooldown]);
 
@@ -63,110 +87,148 @@ export default function VerifyOtpPage() {
         await verifyRegisterMutation.mutateAsync({
           email,
           otp: Number(data.otp),
-          type: 'REGISTER',
+          type: "REGISTER",
         });
-        toast.success('Xác thực thành công! Vui lòng đăng nhập.');
+
+        toast.success("Xác thực thành công! Vui lòng đăng nhập.");
+
         router.push(ROUTES.LOGIN);
       } catch (err) {
-        toast.error(getApiErrorMessage(err, 'Mã OTP không hợp lệ hoặc đã hết hạn.'));
+        toast.error(
+          getApiErrorMessage(err, "Mã OTP không hợp lệ hoặc đã hết hạn."),
+        );
       }
     } else if (isForgotPassword) {
       sessionStorage.setItem(FORGOT_PASSWORD_OTP_KEY, data.otp);
-      router.push(`${ROUTES.RESET_PASSWORD}?email=${encodeURIComponent(email)}`);
+
+      router.push(
+        `${ROUTES.RESET_PASSWORD}?email=${encodeURIComponent(email)}`,
+      );
     }
   };
 
   const handleResend = async () => {
     if (cooldown > 0) return;
+
     try {
       if (isRegister) {
         await resendRegisterMutation.mutateAsync(email);
       } else if (isForgotPassword) {
         await resendForgotPasswordMutation.mutateAsync(email);
       }
-      toast.success('Đã gửi lại mã OTP.');
+
+      toast.success("Đã gửi lại mã OTP.");
+
       setCooldown(RESEND_COOLDOWN);
     } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Không thể gửi lại mã OTP.'));
+      toast.error(getApiErrorMessage(err, "Không thể gửi lại mã OTP."));
     }
   };
 
   if (!email) return null;
 
   const backUrl = isRegister ? ROUTES.REGISTER : ROUTES.FORGOT_PASSWORD;
-  const backText = isRegister ? 'Quay lại đăng ký' : 'Nhập lại email';
-  const title = isRegister ? 'Xác thực tài khoản' : 'Xác thực OTP';
+
+  const backText = isRegister ? "Quay lại đăng ký" : "Nhập lại email";
+
+  const title = isRegister ? "Xác thực tài khoản" : "Xác thực OTP";
 
   return (
-    <div className="min-h-screen bg-sky-100/50 dark:bg-neutral-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-[520px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-800 rounded-4xl shadow-[0_20px_50px_rgba(14,165,233,0.15)] overflow-hidden relative">
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-sky-400 via-sky-500 to-sky-600" />
+    <div className="flex min-h-screen items-center justify-center bg-sky-100/50 p-4 dark:bg-neutral-950 sm:p-6 lg:p-8">
+      <div className="relative w-full max-w-[520px] overflow-hidden rounded-[2rem] border border-sky-500/60 bg-white shadow-[0_20px_50px_rgba(14,165,233,0.15)] dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-sky-400 via-sky-500 to-sky-600" />
 
         <div className="p-8 sm:p-10">
           <Link
             href={backUrl}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-500 hover:text-sky-600 transition-colors mb-6"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-neutral-500 transition-colors hover:text-sky-600"
           >
             <ArrowLeft className="size-4" />
             {backText}
           </Link>
 
-          <div className="flex justify-center mb-6">
-            <div className="size-16 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-500">
+          <div className="mb-6 flex justify-center">
+            <div className="flex size-16 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-500">
               <ShieldCheck className="size-8" />
             </div>
           </div>
 
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{title}</h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 leading-relaxed">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {title}
+            </h1>
+
+            <p className="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
               Nhập mã 6 chữ số đã gửi tới email của bạn
             </p>
-            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 text-xs font-medium">
+
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
               <Mail className="size-3.5 shrink-0" />
-              <span className="truncate max-w-[240px]">{email}</span>
+
+              <span className="max-w-[240px] truncate">{email}</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <Input
-                {...register('otp')}
+                {...register("otp")}
                 value={otpValue}
                 inputMode="numeric"
                 maxLength={6}
                 placeholder="• • • • • •"
-                className="h-14 text-center text-2xl font-bold tracking-[0.5em] rounded-xl border-sky-200 dark:border-sky-900 focus-visible:ring-sky-500/20 bg-neutral-50 dark:bg-neutral-800/60"
+                className="h-14 rounded-xl border-sky-200 bg-neutral-50 text-center text-2xl font-bold tracking-[0.5em] dark:border-sky-900 dark:bg-neutral-800/60 focus-visible:ring-sky-500/20"
                 onChange={(e) =>
-                  setValue('otp', e.target.value.replace(/\D/g, '').slice(0, 6), { shouldValidate: true })
+                  setValue(
+                    "otp",
+                    e.target.value.replace(/\D/g, "").slice(0, 6),
+                    {
+                      shouldValidate: true,
+                    },
+                  )
                 }
               />
+
               {errors.otp && (
-                <p className="text-red-500 text-xs mt-2 text-center font-medium">{errors.otp.message}</p>
+                <p className="mt-2 text-center text-xs font-medium text-red-500">
+                  {errors.otp.message}
+                </p>
               )}
             </div>
 
             <Button
               type="submit"
               disabled={verifyRegisterMutation.isPending}
-              className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20"
+              className="h-12 w-full rounded-xl bg-sky-500 font-bold text-white shadow-lg shadow-sky-500/20 hover:bg-sky-600"
             >
-              {verifyRegisterMutation.isPending ? 'Đang xác thực...' : isForgotPassword ? 'Tiếp tục' : 'Xác nhận'}
+              {verifyRegisterMutation.isPending
+                ? "Đang xác thực..."
+                : isForgotPassword
+                  ? "Tiếp tục"
+                  : "Xác nhận"}
             </Button>
           </form>
 
-          <div className="mt-6 text-center space-y-3">
+          <div className="mt-6 space-y-3 text-center">
             <button
               type="button"
-              disabled={cooldown > 0 || resendRegisterMutation.isPending || resendForgotPasswordMutation.isPending}
+              disabled={
+                cooldown > 0 ||
+                resendRegisterMutation.isPending ||
+                resendForgotPasswordMutation.isPending
+              }
               onClick={handleResend}
-              className="text-sm font-semibold text-sky-600 hover:text-sky-700 disabled:text-neutral-400 disabled:cursor-not-allowed transition-colors"
+              className="text-sm font-semibold text-sky-600 transition-colors hover:text-sky-700 disabled:cursor-not-allowed disabled:text-neutral-400"
             >
-              {cooldown > 0 ? `Gửi lại sau ${cooldown}s` : 'Gửi lại mã OTP'}
+              {cooldown > 0 ? `Gửi lại sau ${cooldown}s` : "Gửi lại mã OTP"}
             </button>
+
             <p className="text-xs text-neutral-500">
-              {isRegister ? 'Đã có tài khoản?' : 'Nhớ mật khẩu?'}{' '}
-              <Link href={ROUTES.LOGIN} className="text-sky-500 font-bold hover:underline">
+              Đã có tài khoản?{" "}
+              <Link
+                href={ROUTES.LOGIN}
+                className="font-bold text-sky-500 hover:underline"
+              >
                 Đăng nhập
               </Link>
             </p>

@@ -28,7 +28,7 @@ export default function PermissionsPage() {
         (p) =>
           p.name.toLowerCase().includes(lower) ||
           p.description.toLowerCase().includes(lower) ||
-          p.action.toLowerCase().includes(lower)
+          p.action.toLowerCase().includes(lower),
       );
     }
 
@@ -38,7 +38,7 @@ export default function PermissionsPage() {
 
     // Now group by resource to create the nested subRows hierarchy
     const uniqueResources = Array.from(new Set(result.map((p) => p.resource)));
-    const finalRows: any[] = [];
+    const finalRows: unknown[] = [];
 
     uniqueResources.forEach((res) => {
       const children = result.filter((p) => p.resource === res);
@@ -71,11 +71,7 @@ export default function PermissionsPage() {
     ];
   }, [permissions]);
 
-  const columns = useMemo(
-    () =>
-      buildPermissionColumns(),
-    []
-  );
+  const columns = useMemo(() => buildPermissionColumns(), []);
 
   const toolbarConfig = useMemo(
     () => ({
@@ -101,7 +97,7 @@ export default function PermissionsPage() {
         setResourceFilter("");
       },
     }),
-    [searchTerm, resourceFilter, resourceOptions]
+    [searchTerm, resourceFilter, resourceOptions],
   );
 
   const deleteConfig = useMemo(
@@ -114,7 +110,7 @@ export default function PermissionsPage() {
       confirmText: "Xóa",
       messageSuffix: "sẽ bị xóa khỏi hệ thống. Thao tác không hoàn tác.",
     }),
-    [deleteMutation]
+    [deleteMutation],
   );
 
   if (isLoading) return <PageSkeleton filterCount={2} columnCount={4} />;
@@ -122,7 +118,6 @@ export default function PermissionsPage() {
   return (
     <div className="mx-auto flex w-full flex-col gap-6 md:gap-3">
       <div className="flex items-center justify-end">
-
         <PermissionButton
           permission={PERMISSIONS.PERMISSION.CREATE}
           fallbackBehavior="alert"
@@ -141,7 +136,7 @@ export default function PermissionsPage() {
         filterKey={searchTerm + resourceFilter}
         toolbarConfig={toolbarConfig}
         deleteConfig={deleteConfig}
-        getSubRows={(row: any) => (row.isParent ? row.subRows : undefined)}
+        getSubRows={(row: unknown) => (row.isParent ? row.subRows : undefined)}
         mainColumnId="name"
         defaultExpandedAll={true}
         rowClassName={(row) => {
@@ -150,7 +145,7 @@ export default function PermissionsPage() {
             "border-slate-100 dark:border-slate-900 transition-colors",
             original.isParent
               ? "bg-slate-50/70 dark:bg-slate-900/40 font-bold hover:bg-slate-50/70 dark:hover:bg-slate-900/40 border-l-2"
-              : "hover:bg-slate-50/20 dark:hover:bg-slate-900/10"
+              : "hover:bg-slate-50/20 dark:hover:bg-slate-900/10",
           );
         }}
       />

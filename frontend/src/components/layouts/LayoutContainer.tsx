@@ -12,6 +12,8 @@ const NO_CHROME_PREFIXES = [
   ROUTES.REGISTER,
   ROUTES.VERIFY_OTP,
   ROUTES.FORGOT_PASSWORD,
+  "/dang-nhap",
+  "/dang-ky",
   "/page403",
   "/page404",
 ] as const;
@@ -32,10 +34,12 @@ function LayoutContainerImpl({ children }: React.PropsWithChildren) {
   const kind = useMemo(() => resolveLayout(pathname), [pathname]);
 
   if (kind === "none") return <>{children}</>;
+
   return <DefaultLayout>{children}</DefaultLayout>;
 }
 
 const LayoutContainer = memo(LayoutContainerImpl);
+
 LayoutContainer.displayName = "LayoutContainer";
 
 export default LayoutContainer;

@@ -29,7 +29,7 @@ export const useCreatePayment = () => {
             toast.error('Không tạo được thanh toán');
         },
 
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             const errorMessage =
                 error?.response?.data?.message ||
                 error?.message ||

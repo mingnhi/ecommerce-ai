@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
     totalPages?: number;
     period?: string;
     groupBy?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   errors?: ValidationError[];
 }

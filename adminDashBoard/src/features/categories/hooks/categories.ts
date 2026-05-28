@@ -57,7 +57,7 @@ export const useUpdateCategory =
       mutationFn: ({
         id,
         payload,
-      }: any) =>
+      }: unknown) =>
         updateCategory(
           id,
           payload
