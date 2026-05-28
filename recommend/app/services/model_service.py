@@ -5,7 +5,7 @@ import torch
 
 from app.core.config import get_settings
 from app.core.logger import logger
-from app.models.hybrid_ncf import HybridNCF
+from app.model import HybridNCF
 
 settings = get_settings()
 

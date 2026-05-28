@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
 import { UserEventService } from './user-event.service';
 import { CreateUserEventDto } from './dto/user-event.dto';
 import { RecommendRequestDto } from './dto/recommendRequest.dto';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 
 @Controller('user-events')
 export class UserEventController {
@@ -18,9 +19,10 @@ export class UserEventController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('recommend')
   async recommend(@Req() req: any, @Body() dto: RecommendRequestDto) {
-    const data = await this.userEventService.recommend(req.user.id, dto);
+    const data = await this.userEventService.recommend(req.user.sub, dto);
 
     return {
       status: 'success',
