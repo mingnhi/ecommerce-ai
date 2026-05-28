@@ -1,58 +1,108 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
-import { useQuery } from '@tanstack/react-query';
-import { ProductService } from '@/apis/product/requests';
+import { useQuery } from "@tanstack/react-query";
+import { ProductService } from "@/apis/product/requests";
 
-import type { Product } from '@/apis/product/types';
+import type { Product } from "@/apis/product/types";
 
-import { ProductPhoto } from '@/modules/HomePage/components/ProductCard';
-import { Button } from '@/components/ui/button';
-import { useCart } from '@/hooks/use-cart';
-import { formatVnd } from '@/lib/format-currency';
+import { ProductPhoto } from "@/modules/HomePage/components/ProductCard";
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/hooks/use-cart";
+import { formatVnd } from "@/lib/format-currency";
 
-import { ProductDetailSkeleton } from './components/Skeleton';
+import { ProductDetailSkeleton } from "./components/Skeleton";
+import { useSaveUserEvent } from "@/apis/user-event";
 
 type Props = {
   slug: string;
 };
 
-export default function ProductDetailPage({
-  slug,
-}: Props) {
-  const [selectedImage, setSelectedImage] =
-    useState(0);
+export default function ProductDetailPage({ slug }: Props) {
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
 
-  const [quantity, setQuantity] =
-    useState(1);
-
-  const { data: response, isLoading } =
-    useQuery({
-      queryKey: ['product', slug],
-      queryFn: () =>
-        ProductService.getBySlug(slug),
-      enabled: !!slug,
-    });
-
-
-  const product =
-        response?.data as Product | undefined;
-
+  const { data: response, isLoading } = useQuery({
+    queryKey: ["product", slug],
+    queryFn: () => ProductService.getBySlug(slug),
+    enabled: !!slug,
+  });
 
   const { addLine } = useCart();
+  const saveEvent = useSaveUserEvent();
+
+  const product = response?.data as Product | undefined;
+
+  const currentPrice = product?.prices?.[0]?.price || 0;
+  const originalPrice = product?.prices?.[0]?.originalPrice || 0;
+  const discountPercent = product?.prices?.[0]?.discountPercent || 0;
+
+  const hasDiscount = discountPercent > 0 && originalPrice > currentPrice;
+
+  const categoryId =
+    (product as any)?.categoryId ??
+    (product as any)?.category_id ??
+    product?.category?.id;
+
+  const displayImages = product?.images?.length
+    ? product.images
+    : product?.thumbnail
+      ? [
+          {
+            id: "1",
+            imageUrl: product.thumbnail,
+            type: "THUMBNAIL" as const,
+            sortOrder: 0,
+            isPrimary: true,
+            createdAt: "",
+          },
+        ]
+      : [];
+
+  const selectedImageSrc =
+    displayImages[selectedImage]?.imageUrl || product?.thumbnail || "";
 
   useEffect(() => {
-    if (product) {
-      console.log('Product:', product);
-      console.log('Variants:', product.variants);
-      console.log(
-        'Attributes:',
-        product.attributes
-      );
-    }
+    if (!product) return;
+
+    console.log("Product:", product);
+    console.log("Variants:", product.variants);
+    console.log("Attributes:", product.attributes);
   }, [product]);
+
+  useEffect(() => {
+    if (!product?.id || !categoryId || !currentPrice) return;
+
+    saveEvent.mutate({
+      productId: product.id,
+      categoryId,
+      price: Number(currentPrice),
+      eventType: "VIEW",
+    });
+  }, [product?.id, categoryId, currentPrice]);
+
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    if (categoryId && currentPrice) {
+      saveEvent.mutate({
+        productId: product.id,
+        categoryId,
+        price: Number(currentPrice),
+        eventType: "ADD_TO_CART",
+      });
+    }
+
+    addLine({
+      productId: product.id,
+      name: product.name,
+      price: currentPrice,
+      quantity,
+      image: selectedImageSrc,
+    });
+  };
 
   if (isLoading) {
     return <ProductDetailSkeleton />;
@@ -66,53 +116,16 @@ export default function ProductDetailPage({
     );
   }
 
-  // ================= PRICE =================
-const currentPrice =
-  product.prices?.[0]?.price || 0;
-
-const originalPrice =
-  product.prices?.[0]?.originalPrice || 0;
-
-const discountPercent =
-  product.prices?.[0]?.discountPercent || 0;
-
-  const hasDiscount =
-    discountPercent > 0 &&
-    originalPrice > currentPrice;
-console.log(product.price);
-  // ================= IMAGES =================
-  const displayImages =
-    product.images?.length
-      ? product.images
-      : product.thumbnail
-        ? [
-            {
-              id: '1',
-              imageUrl: product.thumbnail,
-              type: 'THUMBNAIL' as const,
-              sortOrder: 0,
-              isPrimary: true,
-              createdAt: '',
-            },
-          ]
-        : [];
-
-  const selectedImageSrc =
-    displayImages[selectedImage]
-      ?.imageUrl ||
-    product.thumbnail ||
-    '';
-
   // ================= ADD TO CART =================
-  const handleAddToCart = () => {
-    addLine({
-      productId: product.id,
-      name: product.name,
-      price: currentPrice,
-      quantity,
-      image: selectedImageSrc,
-    });
-  };
+  // const handleAddToCart = () => {
+  //   addLine({
+  //     productId: product.id,
+  //     name: product.name,
+  //     price: currentPrice,
+  //     quantity,
+  //     image: selectedImageSrc,
+  //   });
+  // };
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -133,13 +146,11 @@ console.log(product.price);
               {displayImages.map((img, idx) => (
                 <button
                   key={img.id}
-                  onClick={() =>
-                    setSelectedImage(idx)
-                  }
+                  onClick={() => setSelectedImage(idx)}
                   className={`relative h-20 w-20 overflow-hidden rounded-2xl border-2 transition-all ${
                     selectedImage === idx
-                      ? 'scale-105 border-sky-600'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? "scale-105 border-sky-600"
+                      : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <Image
@@ -158,14 +169,11 @@ console.log(product.price);
         <div className="space-y-7">
           {/* Category */}
           <p className="text-lg font-medium text-sky-600">
-            {product.category?.name ||
-              'Sản phẩm'}
+            {product.category?.name || "Sản phẩm"}
           </p>
 
           {/* Name */}
-          <h1 className="text-3xl font-bold leading-tight">
-            {product.name}
-          </h1>
+          <h1 className="text-3xl font-bold leading-tight">{product.name}</h1>
 
           {/* ================= PRICE ================= */}
           <div className="space-y-2">
@@ -187,49 +195,35 @@ console.log(product.price);
           </div>
 
           {/* ================= VARIANTS ================= */}
-          {product.variants &&
-            product.variants.length > 0 && (
-              <div>
-                <h3 className="mb-3 font-semibold">
-                  Biến thể
-                </h3>
+          {product.variants && product.variants.length > 0 && (
+            <div>
+              <h3 className="mb-3 font-semibold">Biến thể</h3>
 
-                <div className="flex flex-wrap gap-3">
-                  {product.variants.map(
-                    (variant) => (
-                      <div
-                        key={variant.id}
-                        className="rounded-xl border px-4 py-2 text-sm"
-                      >
-                        <div className="font-medium">
-                          {variant.title}
-                        </div>
+              <div className="flex flex-wrap gap-3">
+                {product.variants.map((variant) => (
+                  <div
+                    key={variant.id}
+                    className="rounded-xl border px-4 py-2 text-sm"
+                  >
+                    <div className="font-medium">{variant.title}</div>
 
-                        {variant.sku && (
-                          <div className="text-xs text-slate-500">
-                            SKU: {variant.sku}
-                          </div>
-                        )}
+                    {variant.sku && (
+                      <div className="text-xs text-slate-500">
+                        SKU: {variant.sku}
                       </div>
-                    )
-                  )}
-                </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
           {/* ================= QUANTITY ================= */}
           <div className="flex items-center gap-4">
-            <span className="font-medium text-slate-700">
-              Số lượng:
-            </span>
-
+            <span className="font-medium text-slate-700">Số lượng: </span>
             <div className="flex items-center rounded-2xl border border-slate-300">
               <button
-                onClick={() =>
-                  setQuantity((q) =>
-                    Math.max(1, q - 1)
-                  )
-                }
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="rounded-l-2xl px-5 py-3 text-xl hover:bg-slate-100"
               >
                 −
@@ -240,9 +234,7 @@ console.log(product.price);
               </span>
 
               <button
-                onClick={() =>
-                  setQuantity((q) => q + 1)
-                }
+                onClick={() => setQuantity((q) => q + 1)}
                 className="rounded-r-2xl px-5 py-3 text-xl hover:bg-slate-100"
               >
                 +
@@ -260,51 +252,37 @@ console.log(product.price);
           </Button>
 
           {/* ================= DESCRIPTION ================= */}
-          {(product.description ||
-            product.shortDescription) && (
+          {(product.description || product.shortDescription) && (
             <div>
-              <h3 className="mb-3 text-lg font-semibold">
-                Mô tả
-              </h3>
+              <h3 className="mb-3 text-lg font-semibold">Mô tả</h3>
 
               <p className="whitespace-pre-line leading-relaxed text-slate-600">
-                {product.description ||
-                  product.shortDescription}
+                {product.description || product.shortDescription}
               </p>
             </div>
           )}
 
           {/* ================= ATTRIBUTES ================= */}
-          {product.attributes &&
-            product.attributes.length > 0 && (
-              <div>
-                <h3 className="mb-3 text-lg font-semibold">
-                  Thông số kỹ thuật
-                </h3>
+          {product.attributes && product.attributes.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-lg font-semibold">Thông số kỹ thuật</h3>
 
-                <div className="grid grid-cols-1 gap-y-3 rounded-2xl bg-slate-50 p-5 text-sm sm:grid-cols-2">
-                  {product.attributes.map(
-                    (attr, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start justify-between gap-4"
-                      >
-                        <span className="text-slate-500">
-                          {attr.name}
-                        </span>
+              <div className="grid grid-cols-1 gap-y-3 rounded-2xl bg-slate-50 p-5 text-sm sm:grid-cols-2">
+                {product.attributes.map((attr, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start justify-between gap-4"
+                  >
+                    <span className="text-slate-500">{attr.name}</span>
 
-                        <span className="text-right font-medium">
-                          {attr.value}
-                        </span>
-                      </div>
-                    )
-                  )}
-                </div>
+                    <span className="text-right font-medium">{attr.value}</span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
