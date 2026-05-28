@@ -22,11 +22,9 @@ export default function VerifyOtpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') ?? '';
-  const type = (searchParams.get('type') ?? 'REGISTER') as OtpType;
 
-  const verifyRegisterMutation = useVerifyRegisterOtp();
-  const resendRegisterMutation = useResendRegisterOtp();
-  const resendForgotPasswordMutation = useResendForgotPasswordOtp();
+  const verifyMutation = useVerifyRegisterOtp();
+  const resendMutation = useResendRegisterOtp();
   const [cooldown, setCooldown] = React.useState(0);
 
   const {
@@ -42,14 +40,9 @@ export default function VerifyOtpPage() {
 
   const otpValue = watch('otp');
 
-  const isRegister = type === 'REGISTER';
-  const isForgotPassword = type === 'FORGOT_PASSWORD';
-
   React.useEffect(() => {
-    if (!email) {
-      router.replace(isRegister ? ROUTES.REGISTER : ROUTES.FORGOT_PASSWORD);
-    }
-  }, [email, isRegister, router]);
+    if (!email) router.replace(ROUTES.REGISTER);
+  }, [email, router]);
 
   React.useEffect(() => {
     if (cooldown <= 0) return;
@@ -93,6 +86,12 @@ export default function VerifyOtpPage() {
 
   if (!email) return null;
 
+  return (
+    <div className="min-h-screen bg-sky-100/50 dark:bg-neutral-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[520px] bg-white dark:bg-neutral-900 border border-sky-500/60 dark:border-neutral-800 rounded-[2rem] shadow-[0_20px_50px_rgba(14,165,233,0.15)] overflow-hidden relative">
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-sky-400 via-sky-500 to-sky-600" />
+
+        <div className="p-8 sm:p-10">
   const backUrl = isRegister ? ROUTES.REGISTER : ROUTES.FORGOT_PASSWORD;
   const backText = isRegister ? 'Quay lại đăng ký' : 'Nhập lại email';
   const title = isRegister ? 'Xác thực tài khoản' : 'Xác thực OTP';
@@ -118,6 +117,7 @@ export default function VerifyOtpPage() {
           </div>
 
           <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Xác thực OTP</h1>
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{title}</h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 leading-relaxed">
               Nhập mã 6 chữ số đã gửi tới email của bạn
@@ -148,6 +148,10 @@ export default function VerifyOtpPage() {
 
             <Button
               type="submit"
+              disabled={verifyMutation.isPending}
+              className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20"
+            >
+              {verifyMutation.isPending ? 'Đang xác thực...' : 'Xác nhận'}
               disabled={verifyRegisterMutation.isPending}
               className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20"
             >
@@ -165,7 +169,7 @@ export default function VerifyOtpPage() {
               {cooldown > 0 ? `Gửi lại sau ${cooldown}s` : 'Gửi lại mã OTP'}
             </button>
             <p className="text-xs text-neutral-500">
-              {isRegister ? 'Đã có tài khoản?' : 'Nhớ mật khẩu?'}{' '}
+              Đã có tài khoản?{' '}
               <Link href={ROUTES.LOGIN} className="text-sky-500 font-bold hover:underline">
                 Đăng nhập
               </Link>
@@ -174,5 +178,5 @@ export default function VerifyOtpPage() {
         </div>
       </div>
     </div>
-  );
-}
+          );
+          }

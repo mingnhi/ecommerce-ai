@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollAreaPro } from "@/components/ui/scroll-areapro";
 
-const HIDDEN_ROUTES = ["/auth", "/redirect"];
+const HIDDEN_ROUTES = ["/dang-nhap", "/auth", "/dang-ky", "/redirect"];
 
 const BOT_RESPONSES = [
   "Tôi hiểu rồi. Bạn có thể cho tôi biết thêm chi tiết không?",

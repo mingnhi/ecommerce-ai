@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import HomePage from '@/modules/HomePage';
-import HomePageSkeleton from '@/modules/HomePage/components/Skeleton';
+import SearchPage from '@/modules/SearchPage';
+import { SearchPageSkeleton } from '@/modules/SearchPage/components/Skeleton';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -14,12 +14,11 @@ export default async function Page({
   const sp = (await searchParams) ?? {};
   const slow = typeof sp.slow === 'string' ? sp.slow : undefined;
   
-  // Dùng để test loading state (xóa sau khi dev xong)
-  if (slow === '1') await sleep(1500);
+  if (slow === '1') await sleep(800);
 
   return (
-    <Suspense fallback={<HomePageSkeleton />}>
-      <HomePage />
+    <Suspense fallback={<SearchPageSkeleton />}>
+      <SearchPage />
     </Suspense>
   );
 }

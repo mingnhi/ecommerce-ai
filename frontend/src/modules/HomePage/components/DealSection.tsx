@@ -1,20 +1,30 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingCart } from "lucide-react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { formatVnd } from "@/lib/format-currency";
-import { useCart } from "@/hooks/use-cart";
-import type { HomeProduct } from "@/types/catalog";
-import { getDealEndOfDay, getDealProducts } from "../lib";
-import { ProductPhoto } from "./ProductCard";
 
-function CountdownBox({ label, value }: { label: string; value: number }) {
+import { useProducts } from "@/apis/product/queries";
+
+import { getDealEndOfDay } from "../lib";
+
+import { DealCard } from "./DealCard";
+import type { Product } from "@/apis/product/types";
+
+function CountdownBox({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
   return (
-    <div className="flex min-w-[46px] xs:min-w-[52px] sm:min-w-[56px] flex-col items-center rounded-xl border border-sky-100 bg-white px-1.5 py-1 xs:px-2 py-1.5 sm:px-2.5 sm:py-2 shadow-sm">
-      <span className="text-sm xs:text-base sm:text-lg font-bold tabular-nums text-sky-700">{String(value).padStart(2, "0")}</span>
-      <span className="text-[9px] xs:text-[10px] font-medium uppercase tracking-wide text-slate-500">{label}</span>
+    <div className="flex min-w-[46px] flex-col items-center rounded-xl border border-sky-100 bg-white px-1.5 py-1 shadow-sm xs:min-w-[52px] xs:px-2 xs:py-1.5 sm:min-w-[56px] sm:px-2.5 sm:py-2">
+      <span className="text-sm font-bold tabular-nums text-sky-700 xs:text-base sm:text-lg">
+        {String(value).padStart(2, "0")}
+      </span>
+
+      <span className="text-[9px] font-medium uppercase tracking-wide text-slate-500 xs:text-[10px]">
+        {label}
+      </span>
     </div>
   );
 }

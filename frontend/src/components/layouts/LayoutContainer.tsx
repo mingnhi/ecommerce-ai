@@ -7,6 +7,13 @@ import { DefaultLayout } from "./DefaultLayout";
 
 type LayoutKind = "none" | "default";
 
+const startsWithAny = (pathname: string, prefixes: readonly string[]) =>
+  prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`) || pathname.startsWith(p));
+
+function resolveLayout(pathname: string): LayoutKind {
+  const noLayoutPrefixes = ["/dang-nhap", "/dang-ky", "/page403", "/page404"] as const;
+  if (startsWithAny(pathname, noLayoutPrefixes)) return "none";
+
 const NO_CHROME_PREFIXES = [
   ROUTES.LOGIN,
   ROUTES.REGISTER,

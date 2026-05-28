@@ -1,23 +1,30 @@
-import { PRODUCT_CATALOG } from "@/faker/mock-products";
-import { HOME_CATEGORIES } from "@/faker/mock-categories";
-import { productImage } from "@/lib/product-images";
-import type { HomeProduct } from "@/types/catalog";
-
-function hashId(id: string) {
-  return id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-}
-
-function enrich(product: (typeof PRODUCT_CATALOG)[number]): HomeProduct {
-  const seed = hashId(product.productId);
-  const stock = 40 + (seed % 120);
-  const sold = Math.min(stock - 1, 8 + (seed % 90));
-  return { ...product, stock, sold, reviewCount: seed % 120 };
-}
-
-const HOME_PRODUCTS = PRODUCT_CATALOG.map(enrich);
+// modules/home/HomePage/lib.ts
+export const HERO_SLIDES = [
+  {
+    badge: "Bộ sưu tập smartphone",
+    title: "Smartphone chính hãng — công nghệ trong tầm tay bạn",
+    subtitle: "Giảm đến 50% cho đơn hàng đầu tiên · Giao nhanh trong ngày tại TP.HCM & Hà Nội",
+    description: "iPhone, Samsung, Xiaomi và hàng trăm mẫu máy mới nhất với giá niêm yết minh bạch.",
+    image: "/images/phone.png",
+  },
+  {
+    badge: "Âm thanh & phụ kiện",
+    title: "Âm thanh sống động — tai nghe & loa không dây chính hãng",
+    subtitle: "Chống ồn chủ động · Pin lâu · Kết nối Bluetooth đa thiết bị",
+    description: "Tai nghe, earbuds và loa Bluetooth từ các thương hiệu uy tín.",
+    image: "/images/earphone.png",
+  },
+  {
+    badge: "Laptop & thiết bị làm việc",
+    title: "Laptop hiệu năng cao — làm việc, học tập và sáng tạo",
+    subtitle: "Chip thế hệ mới · Pin cả ngày · Màn hình sắc nét",
+    description: "Từ ultrabook mỏng nhẹ đến máy trạm đồ họa.",
+    image: "/images/laptop.png",
+  },
+] as const;
 
 export const HERO_COLOR_BENDS = {
-  colors: ["#0284c7", "#0ea5e9", "#38bdf8", "#bae6fd"] as string[],
+  colors: ["#0284c8", "#0ea5e9", "#38bdf8", "#bae6fd"] as string[],
   rotation: 90,
   speed: 0.2,
   scale: 1,

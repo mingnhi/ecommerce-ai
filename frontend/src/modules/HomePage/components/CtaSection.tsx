@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import Image from "next/image";
+import { useState, type FormEvent } from "react";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,9 @@ export function CtaSection() {
       return;
     }
 
+    // TODO: Gọi API đăng ký newsletter sau
     setEmail("");
-    toast.success("Đã đăng ký nhận tin", {
+    toast.success("Đã đăng ký nhận tin!", {
       description: `Chúng tôi sẽ gửi ưu đãi tới ${parsed.data.email}`,
     });
   };
@@ -29,6 +30,11 @@ export function CtaSection() {
     <section className="relative rounded-lg overflow-hidden">
       <div className="absolute inset-0 overflow-hidden rounded-lg">
         <Image src="/images/bg-slide.png" alt="" fill sizes="100vw" className="object-cover" aria-hidden />
+        <div className="absolute inset-0 bg-black/20" />
+      </div>
+
+      <div className="relative flex flex-col items-center gap-6 px-4 py-6 sm:px-8 sm:py-8 xl:flex-row md:gap-8 md:py-12">
+        <div className="space-y-4">
         <div aria-hidden className="absolute inset-0 " />
       </div>
       <div className="relative flex flex-col items-center gap-6 px-4 py-6 sm:px-8 sm:py-8 xl:flex-row md:gap-8 md:py-12">
@@ -58,7 +64,7 @@ export function CtaSection() {
             </div>
             <Button
               type="submit"
-              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 sm:h-12 sm:rounded-full cursor-pointer"
+              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/25 hover:bg-sky-600 sm:h-12 sm:rounded-full"
             >
               Đăng ký
             </Button>
