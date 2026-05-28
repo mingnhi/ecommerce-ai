@@ -107,7 +107,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('password')
   async patchPassword(
-    @Req() req: unknown,
+    @Req() req: any,
     @Body() dto: UpdatePasswordDto,
   ): Promise<ApiResponse<any>> {
     const data = await this.authService.updatePassword(req.user.sub, dto);
@@ -121,7 +121,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Req() req: unknown): Promise<ApiResponse<any>> {
+  async logout(@Req() req: any): Promise<ApiResponse<any>> {
     const data = await this.authService.logout(req.user.sub);
 
     return {
@@ -133,7 +133,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Req() req: unknown): Promise<ApiResponse<any>> {
+  async me(@Req() req: any): Promise<ApiResponse<any>> {
     const data = await this.authService.me(req.user.sub);
 
     return {
@@ -145,7 +145,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async getProfile(@Req() req: unknown): Promise<ApiResponse<any>> {
+  async getProfile(@Req() req: any): Promise<ApiResponse<any>> {
     const user = await this.authService.validateUser(req.user.sub);
     const profile = await this.authService.findProfileByUser(user);
 
@@ -160,7 +160,7 @@ export class AuthController {
   @Patch('profile/avatar')
   @UseInterceptors(FileInterceptor('avatar', { storage: memoryStorage() }))
   async patchProfileAvatar(
-    @Req() req: unknown,
+    @Req() req: any,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ApiResponse<any>> {
     if (!file) {
@@ -180,7 +180,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   async updateProfile(
-    @Req() req: unknown,
+    @Req() req: any,
     @Body() dto: UpdateProfileDto,
   ): Promise<ApiResponse<any>> {
     const user = await this.authService.validateUser(req.user.sub);

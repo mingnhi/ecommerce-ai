@@ -1,6 +1,10 @@
+// ProductCard.tsx
 "use client";
 
-import Image, { type ImageProps } from "next/image";
+import Image, {
+  type ImageProps,
+} from "next/image";
+
 import Link from "next/link";
 
 import {
@@ -13,9 +17,10 @@ import { motion } from "framer-motion";
 import { useCart } from "@/hooks/use-cart";
 
 import { formatVnd } from "@/lib/format-currency";
+
 import { cn } from "@/lib/utils";
 
-import { Product } from "@/apis/product/types";
+import type { Product } from "@/apis/product/types";
 
 type PhotoProps = Omit<
   ImageProps,
@@ -46,47 +51,77 @@ export function ProductPhoto({
   );
 }
 
-export function ProductRating({ rating, className }: { rating: number; className?: string }) {
+export function ProductRating({
+  rating,
+  className,
+}: {
+  rating: number;
+  className?: string;
+}) {
   const filled = Math.round(rating);
+
   return (
-    <div className={cn("flex items-center gap-0.5", className)}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          className={cn(
-            "h-3.5 w-3.5",
-            i < filled ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-200",
-          )}
-        />
-      ))}
+    <div
+      className={cn(
+        "flex items-center gap-0.5",
+        className,
+      )}
+    >
+      {Array.from(
+        { length: 5 },
+        (_, i) => (
+          <Star
+            key={i}
+            className={cn(
+              "h-3.5 w-3.5",
+              i < filled
+                ? "fill-amber-400 text-amber-400"
+                : "fill-slate-100 text-slate-200",
+            )}
+          />
+        ),
+      )}
     </div>
   );
 }
 
-function badgeTone(badge?: string) {
-  if (badge === "Hot") return "bg-orange-500 hover:bg-orange-500";
-  if (badge === "New") return "bg-emerald-500 hover:bg-emerald-500";
-  return "bg-sky-500 hover:bg-sky-500";
-}
-
 type ProductCardProps = {
-  product: HomeProduct;
+  product: Product;
   variant?: "grid" | "daily";
   className?: string;
 };
 
-export function ProductCard({ product, variant = "grid", className }: ProductCardProps) {
+export function ProductCard({
+  product,
+  variant = "grid",
+  className,
+}: ProductCardProps) {
   const { addLine } = useCart();
-  const isDaily = variant === "daily";
-  const soldPct = Math.round((product.sold / product.stock) * 100);
+
+  const isDaily =
+    variant === "daily";
+
+  const currentPrice =
+    product.price?.price || 0;
+
+  const originalPrice =
+    product.price?.originalPrice || 0;
+
+  const discount =
+    product.price
+      ?.discountPercent || 0;
 
   const addToCart = () =>
     addLine({
-      productId: product.productId,
+      productId: product.id,
       name: product.name,
-      price: product.price,
+      price: currentPrice,
       quantity: 1,
-      image: product.image,
+      image:
+        product.thumbnail ||
+        product.images?.[0]
+          ?.imageUrl ||
+        "",
     });
 
   return (
@@ -96,7 +131,8 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
         "group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border bg-white p-3 transition-shadow sm:p-4",
         isDaily
           ? "border-sky-100"
-          : "border-slate-100"
+          : "border-slate-100",
+        className,
       )}
     >
       <Link
@@ -124,7 +160,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
 
       <div className="flex flex-1 flex-col pt-3">
         <p className="text-xs font-medium text-sky-600">
-          {product.category.name}
+          {product.category?.name}
         </p>
 
         <Link
@@ -145,7 +181,7 @@ export function ProductCard({ product, variant = "grid", className }: ProductCar
             </p>
 
             {discount > 0 && (
-              <p className="text-xs line-through text-slate-400">
+              <p className="text-xs text-slate-400 line-through">
                 {formatVnd(originalPrice)}
               </p>
             )}
