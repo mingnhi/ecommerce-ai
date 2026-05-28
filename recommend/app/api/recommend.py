@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.core.security import verify_api_key
 from app.core.response import APIResponse, create_response
-from app.schemas import RecommendRequest, RecommendResult
+from app.schemas.recommend import RecommendRequest, RecommendResult
 from app.services.recommend_service import (
     RecommendService,
     get_recommend_service,

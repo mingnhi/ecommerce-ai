@@ -5,6 +5,7 @@ from typing import List, Optional
 
 class RecommendRequest(BaseModel):
     user_id: str
+    products: List[ProductInput]
     top_k: int = 10
 
 

@@ -34,7 +34,7 @@ app.include_router(
 async def root():
     return {
         "message": "Ecommerce Recommendation API",
-        "version": settings.VERSION,
+        "version": settings.APP_VERSION,
         "docs": "/docs",
         "health": f"{settings.API_PREFIX}/recommend/health"
     }
