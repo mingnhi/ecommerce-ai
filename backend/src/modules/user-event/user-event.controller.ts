@@ -23,12 +23,13 @@ export class UserEventController {
   @UseGuards(JwtAuthGuard)
   @Post('recommend')
   async recommend(@Req() req: any, @Body() dto: RecommendRequestDto) {
-    const data = await this.userEventService.recommend(req.user.sub, dto);
+    const userId =req.user.sub;
 
-    return {
-      status: 'success',
-      message: 'Recommend products successfully',
-      data,
-    };
+    const response = await this.userEventService.recommend(
+      userId,
+      dto,
+    );
+
+    return response.data;
   }
 }
