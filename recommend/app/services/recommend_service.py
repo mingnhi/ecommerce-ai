@@ -62,10 +62,6 @@ class RecommendService:
             results.append({
                 "product_id": product.id,
                 "score": score,
-                "name": product.name,
-                "image": product.image,
-                "price": product.price,
-                "category_id": product.category_id
             })
 
         results.sort(key=lambda item: item["score"], reverse=True)

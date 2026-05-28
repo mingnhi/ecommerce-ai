@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query } from '@nestjs/common';
 import { UserEventService } from './user-event.service';
 import { CreateUserEventDto } from './dto/user-event.dto';
 import { RecommendRequestDto } from './dto/recommendRequest.dto';
@@ -21,15 +21,30 @@ export class UserEventController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('recommendations/me')
+  async getMyRecommendations(
+    @Req() req: any,
+    @Query('limit') limit?: string,
+  ) {
+    const userId = req.user.sub;
+
+    const dto: RecommendRequestDto = {
+      top_k: Number(limit) || 10,
+    };
+
+    return this.userEventService.recommend(userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('recommend')
   async recommend(@Req() req: any, @Body() dto: RecommendRequestDto) {
     const userId =req.user.sub;
 
-    const response = await this.userEventService.recommend(
-      userId,
-      dto,
-    );
+    // const response = await this.userEventService.recommend(
+    //   userId,
+    //   dto,
+    // );
 
-    return response.data;
+    return this.userEventService.recommend(userId, dto);
   }
 }

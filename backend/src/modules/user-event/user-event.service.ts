@@ -42,13 +42,7 @@ export class UserEventService {
 
   private async getProductsForRecommend() {
     const products = await this.productRepo.findAll();
-    const productIds = products.map((product: any) => product.id);
     const variants = await this.productVariantRepo.findAll();
-
-    console.log('DB PRODUCTS:', products.length);
-    console.log('DB VARIANTS:', variants.length);
-    console.log('SAMPLE PRODUCT:', products[0]);
-    console.log('SAMPLE VARIANT:', variants[0]);
 
     const mappedProducts = products.map((product: any) => {
       const productVariants = variants.filter((variant: any) => {
@@ -66,9 +60,7 @@ export class UserEventService {
         .filter((price: number) => price > 0);
 
       const price =
-        prices.length > 0
-          ? Math.min(...prices)
-          : Number(product.price);
+        prices.length > 0 ? Math.min(...prices) : Number(product.price ?? 0);
 
       return {
         id: product.id,
@@ -83,16 +75,9 @@ export class UserEventService {
       };
     });
 
-    console.log('MAPPED PRODUCTS BEFORE FILTER:', mappedProducts.length);
-    console.log('SAMPLE MAPPED PRODUCT:', mappedProducts[0]);
-
-    const validProducts = mappedProducts.filter(
+    return mappedProducts.filter(
       (item) => item.id && item.category_id && Number(item.price) > 0,
     );
-
-    console.log('VALID PRODUCTS FOR FASTAPI:', validProducts.length);
-
-    return validProducts;
   }
   async create(userId: string, dto: CreateUserEventDto) {
     const event = this.em.create(UserEvent, {
@@ -108,19 +93,19 @@ export class UserEventService {
     return event;
   }
 
-  async recommend(
-    userId: string,
-    dto: RecommendRequestDto,
-  ) {
+  async recommend(userId: string, dto: RecommendRequestDto) {
     const products = await this.getProductsForRecommend();
+
     const payload = {
       user_id: userId,
       top_k: dto.top_k ?? 10,
-      products,
+      products: products.map((item) => ({
+        id: item.id,
+        category_id: item.category_id,
+        price: item.price,
+      })),
     };
 
-    console.log('FASTAPI PAYLOAD USER:', userId);
-    console.log('FASTAPI PAYLOAD TOTAL PRODUCTS:', products.length);
     const response = await firstValueFrom(
       this.httpService.post(
         'http://127.0.0.1:8000/api/v1/recommend/',
@@ -133,6 +118,33 @@ export class UserEventService {
       ),
     );
 
-    return response.data;
+    const fastApiData = response.data.data;
+    const recommendItems = fastApiData.recommendations ?? [];
+
+    const scoreMap = new Map(
+      recommendItems.map((item: any) => [item.product_id, item.score]),
+    );
+
+    const recommendIds = recommendItems.map((item: any) => item.product_id);
+
+    const fullProducts = recommendIds
+      .map((id: string) => {
+        const product = products.find((item) => item.id === id);
+
+        if (!product) return null;
+
+        return {
+          ...product,
+          recommendScore: scoreMap.get(id),
+        };
+      })
+      .filter(Boolean);
+
+    return {
+      user_id: fastApiData.user_id,
+      cold_start: fastApiData.cold_start,
+      total_products: fastApiData.total_products,
+      recommendations: fullProducts,
+    };
   }
 }
