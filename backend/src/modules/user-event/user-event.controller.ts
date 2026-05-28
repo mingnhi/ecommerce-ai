@@ -8,9 +8,10 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 export class UserEventController {
   constructor(private readonly userEventService: UserEventService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Req() req: any, @Body() dto: CreateUserEventDto) {
-    const data = await this.userEventService.create(req.user.id, dto);
+    const data = await this.userEventService.create(req.user.sub, dto);
 
     return {
       status: 'success',
