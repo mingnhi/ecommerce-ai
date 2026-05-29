@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
 import { siteConfig } from "@/configs/site";
-import { useCart } from "@/hooks/use-cart";
+import { useCartContext } from "@/contexts";
 import { CartVoucherPopover } from "./components/CartVoucherPopover";
 import { CartItem } from "./components/CartItem";
 import { CartSummarySidebar } from "./components/CartSummarySidebar";
@@ -42,7 +42,7 @@ function EmptyCart() {
 }
 
 export default function CartPage() {
-  const { items, removeLine, setLineQuantity } = useCart();
+  const { items, removeLine, setLineQuantity } = useCartContext();
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {

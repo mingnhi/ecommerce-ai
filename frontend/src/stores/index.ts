@@ -1,4 +1,5 @@
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
+import { persistStore } from 'redux-persist';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { userReducer } from './user/slice';
 import { authReducer } from './auth/slice';
@@ -6,19 +7,21 @@ import { chatbotReducer } from '@/stores/chatbot/slice';
 import { cartReducer } from '@/stores/cart/slice';
 
 export const makeStore = (): EnhancedStore => {
-    return configureStore({
-        reducer: {
-            user: userReducer,
-            auth: authReducer,
-            chatbot: chatbotReducer,
-            cart: cartReducer,
-        },
-        middleware: (getDefaultMiddleware) =>
-            getDefaultMiddleware({ serializableCheck: false }),
-    });
+  return configureStore({
+    reducer: {
+      user: userReducer,
+      auth: authReducer,
+      chatbot: chatbotReducer,
+      cart: cartReducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({ serializableCheck: false }),
+  });
 };
 
 export const store: EnhancedStore = makeStore();
+export const persistor = persistStore(store);
+
 export type AppStore = ReturnType<typeof makeStore>;
 export type RootState = ReturnType<AppStore['getState']>;
 export type AppDispatch = AppStore['dispatch'];

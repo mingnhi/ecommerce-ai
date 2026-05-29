@@ -83,7 +83,7 @@ export function DealSection() {
     <section className="mb-5 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
+          <h2 className="text-xl font-bold tracking-tight  sm:text-2xl md:text-3xl text-sky-600">
             Ưu đãi trong ngày
           </h2>
 

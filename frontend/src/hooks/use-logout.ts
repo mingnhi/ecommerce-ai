@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { signOut } from 'next-auth/react';
 import { useAppDispatch } from '@/stores';
 import { logoutSession } from '@/stores/auth/actions';
+import { resetServerCart } from '@/stores/cart/slice';
 import { ROUTES } from '@/lib/routes';
 
 export function useLogout() {
@@ -11,6 +12,7 @@ export function useLogout() {
 
   const handleLogout = useCallback(() => {
     logoutSession(dispatch);
+    dispatch(resetServerCart());
     queryClient.clear();
     signOut({ callbackUrl: ROUTES.LOGIN });
   }, [dispatch, queryClient]);

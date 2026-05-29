@@ -1,4 +1,4 @@
-import type { ICartLineInput } from "@/types/cart";
+import type { CartLineInput } from "@/apis/cart/types";
 import type { ProductCatalogItem } from "@/types/catalog";
 import { productImage } from "@/lib/product-images";
 
@@ -235,7 +235,7 @@ export const PRODUCT_CATALOG: ProductCatalogItem[] = [
   },
 ];
 
-export const MOCK_PRODUCTS: ICartLineInput[] = PRODUCT_CATALOG.map((p) => ({
+export const MOCK_PRODUCTS: CartLineInput[] = PRODUCT_CATALOG.map((p) => ({
   productId: p.productId,
   name: p.name,
   price: p.price,

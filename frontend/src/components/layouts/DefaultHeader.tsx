@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Bell, Key, LogOut, Minus, Package, Plus, ShoppingBag, Ticket, Trash2, User } from "lucide-react";
+import { ProductPhoto } from "@/modules/HomePage/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
-import { useAppDispatch, useAppSelector } from "@/stores";
-import { store } from "@/stores";
+import { useAppSelector } from "@/stores";
 import { selectUser, selectAccessToken } from "@/stores/user/selectors";
 import { useLogout } from "@/hooks/use-logout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,14 +23,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatVnd } from "@/lib/format-currency";
-import { useCart } from "@/hooks/use-cart";
-import { cartSlice } from "@/stores/cart/slice";
-import { MOCK_PRODUCTS } from "@/faker/mock-products";
+import { useCartContext } from "@/contexts";
 import { MOCK_NOTIFICATIONS } from "@/faker/mock-notifications";
 import { cn } from "@/lib/utils";
-import type { ICartLine } from "@/types/cart";
+import type { CartLine } from "@/apis/cart/types";
+
+const headerDropdownScroll22 = cn(
+  "h-auto max-h-[min(22rem,calc(100vh-12rem))]",
+  "[&_[data-slot=scroll-area-viewport]]:h-auto",
+  "[&_[data-slot=scroll-area-viewport]]:max-h-[min(22rem,calc(100vh-12rem))]",
+);
+
+const headerDropdownScroll24 = cn(
+  "h-auto max-h-[min(24rem,calc(100vh-12rem))]",
+  "[&_[data-slot=scroll-area-viewport]]:h-auto",
+  "[&_[data-slot=scroll-area-viewport]]:max-h-[min(24rem,calc(100vh-12rem))]",
+);
+
 function HeaderCartDropdown() {
-  const { items, totalQuantity, subtotal, setLineQuantity, removeLine } = useCart();
+  const { items, totalQuantity, subtotal, setLineQuantity, removeLine } = useCartContext();
   const badge =
     totalQuantity > 99 ? "99+" : totalQuantity > 0 ? String(totalQuantity) : null;
 
@@ -88,10 +98,9 @@ function HeaderCartDropdown() {
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[min(22rem,calc(100vh-12rem))]">
+            <ScrollArea className={headerDropdownScroll22}>
               <ul className="space-y-0 p-2">
-                {items.map((line: ICartLine) => {
-                  const src = getImageUrl(line.image) ?? line.image ?? undefined;
+                {items.map((line: CartLine) => {
                   const lineTotal = line.price * line.quantity;
                   return (
                     <li
@@ -100,20 +109,13 @@ function HeaderCartDropdown() {
                     >
                       <div className="flex gap-3">
                         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-200/60 dark:bg-neutral-800 dark:ring-neutral-700">
-                          {src ? (
-                            <Image
-                              src={src}
-                              alt={line.name}
-                              width={64}
-                              height={64}
-                              className="h-full w-full object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-gray-400">
-                              <ShoppingBag className="h-6 w-6 opacity-40" strokeWidth={1.25} />
-                            </div>
-                          )}
+                          <ProductPhoto
+                            src={getImageUrl(line.image) ?? line.image ?? ""}
+                            alt={line.name}
+                            fill
+                            sizes="64px"
+                            className="object-cover"
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-900 dark:text-neutral-100">
@@ -138,7 +140,7 @@ function HeaderCartDropdown() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 cursor-pointer rounded-md"
-                                onClick={() => setLineQuantity(line.id, line.quantity - 1)}
+                                onClick={() => void setLineQuantity(line.id, line.quantity - 1)}
                                 aria-label="Giảm"
                               >
                                 <Minus className="h-3.5 w-3.5" />
@@ -151,7 +153,7 @@ function HeaderCartDropdown() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 cursor-pointer rounded-md"
-                                onClick={() => setLineQuantity(line.id, line.quantity + 1)}
+                                onClick={() => void setLineQuantity(line.id, line.quantity + 1)}
                                 aria-label="Tăng"
                               >
                                 <Plus className="h-3.5 w-3.5" />
@@ -166,7 +168,7 @@ function HeaderCartDropdown() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 shrink-0 cursor-pointer text-gray-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 hover:cursor-pointer"
-                                onClick={() => removeLine(line.id)}
+                                onClick={() => void removeLine(line.id)}
                                 aria-label="Xóa"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -251,7 +253,7 @@ function HeaderNotificationDropdown() {
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[min(24rem,calc(100vh-12rem))]">
+            <ScrollArea className={headerDropdownScroll24}>
               <ul className="space-y-0 p-2">
                 {notifications.map((notification) => {
                   return (
@@ -316,28 +318,15 @@ function HeaderNotificationDropdown() {
 }
 
 export function DefaultHeader() {
-  const dispatch = useAppDispatch();
   const { handleLogout } = useLogout();
   const user = useAppSelector(selectUser);
   const accessToken = useAppSelector(selectAccessToken);
   const avatarSrc = getImageUrl(user?.image);
   const [mounted, setMounted] = useState(false);
-  const demoSeededRef = useRef(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!mounted || demoSeededRef.current) return;
-    const id = window.setTimeout(() => {
-      if (demoSeededRef.current) return;
-      if (store.getState().cart.items.length > 0) return;
-      demoSeededRef.current = true;
-      MOCK_PRODUCTS.forEach((row) => {
-        dispatch(cartSlice.actions.addLine(row));
-      });
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [mounted, dispatch]);
+    setMounted(true);
+  }, []);
 
   const isLoggedIn = !!accessToken;
 
