@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import ColorBends from "@/components/ui/ColorBends";
 import { HERO_COLOR_BENDS, HERO_SLIDES } from "../lib";
+import { buildProductPageUrl } from "@/modules/ProductPage/lib";
+import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const SLIDE_COUNT = HERO_SLIDES.length;
@@ -50,25 +52,24 @@ export function SlideSection() {
               <p className="max-w-lg text-sm leading-relaxed text-slate-600 md:text-[15px]">{slide.description}</p>
             </motion.div>
           </AnimatePresence>
-          <form
-            className="flex w-full max-w-md flex-col gap-2 rounded-2xl border border-white/90 bg-white/95 p-1.5 shadow-[0_10px_40px_-12px_rgba(14,165,233,0.35)] ring-1 ring-sky-100/90 backdrop-blur-md transition-shadow focus-within:shadow-[0_12px_44px_-10px_rgba(14,165,233,0.45)] focus-within:ring-sky-200 sm:flex-row sm:rounded-full"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <div className="relative min-w-0 flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                type="search"
-                placeholder="Tìm iPhone, laptop, tai nghe..."
-                className="h-11 w-full border-0 bg-transparent pl-11 pr-4 text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:ring-0 sm:h-12"
-              />
-            </div>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <Button
-              type="submit"
-              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/30 hover:bg-sky-600 sm:h-12 sm:rounded-full hover:cursor-pointer"
+              asChild
+              className="h-11 rounded-full bg-sky-500 px-6 text-sm font-semibold text-white hover:bg-sky-600"
             >
-              Tìm kiếm
+              <Link href={ROUTES.PRODUCTS}>
+                <ShoppingBag className="size-4" />
+                Khám phá ngay
+              </Link>
             </Button>
-          </form>
+            <Link
+              href={buildProductPageUrl({ sort: "best_selling" })}
+              className="inline-flex items-center gap-1 text-sm font-semibold text-sky-600 transition-colors hover:text-sky-700"
+            >
+              Xem sản phẩm nổi bật
+              <ChevronRight className="size-4" />
+            </Link>
+          </div>
         </div>
         <div className="relative flex min-h-[180px] items-center justify-center overflow-hidden px-4 pb-5 lg:min-h-[400px] lg:px-6 lg:pb-0">
           <AnimatePresence mode="wait">

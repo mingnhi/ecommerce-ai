@@ -270,7 +270,7 @@ export class ProductsService {
       query.limit || 20,
     );
 
-    const where: FilterQuery<ProductEntity> =
+    let where: FilterQuery<ProductEntity> =
       {};
 
     if (query.search) {
@@ -298,6 +298,32 @@ export class ProductsService {
     ) {
       where.isActive =
         query.isActive;
+    }
+
+    const priceWhere = await this.applyPriceFilter(
+      where,
+      query.minPrice,
+      query.maxPrice,
+    );
+    if (priceWhere === 'empty') {
+      return {
+        products: [],
+        pagination: {
+          page,
+          limit,
+          totalItems: 0,
+          totalPages: 0,
+        },
+      };
+    }
+    where = priceWhere;
+
+    if (query.sort === 'best_selling') {
+      return this.findAllByBestSelling(
+        where,
+        page,
+        limit,
+      );
     }
 
     let orderBy: any = {
@@ -350,55 +376,7 @@ export class ProductsService {
         },
       );
 
-    const formattedProducts =
-      products.map((product) => {
-        const activePrice =
-          product.prices?.find(
-            (p) => p.isActive,
-          ) ||
-          product.prices?.[0];
-
-        return {
-          id: product.id,
-          name: product.name,
-          slug: product.slug,
-          shortDescription:
-            product.shortDescription,
-
-          thumbnail:
-            product.thumbnail ||
-            product.images?.[0]
-              ?.imageUrl ||
-            null,
-
-          isActive:
-            product.isActive,
-
-          category: {
-            id: product.category.id,
-            name:
-              product.category.name,
-            slug:
-              product.category.slug,
-          },
-
-          price: activePrice
-            ? {
-                price:
-                  activePrice.price,
-                originalPrice:
-                  activePrice.originalPrice,
-                discountPercent:
-                  activePrice.discountPercent,
-                currency:
-                  activePrice.currency,
-              }
-            : null,
-
-          createdAt:
-            product.createdAt,
-        };
-      });
+    let formattedProducts = this.formatProductList(products);
 
     if (query.sort === 'price_asc') {
       formattedProducts.sort(
@@ -408,9 +386,7 @@ export class ProductsService {
       );
     }
 
-    if (
-      query.sort === 'price_desc'
-    ) {
+    if (query.sort === 'price_desc') {
       formattedProducts.sort(
         (a, b) =>
           (b.price?.price || 0) -
@@ -420,16 +396,195 @@ export class ProductsService {
 
     return {
       products: formattedProducts,
-
       pagination: {
         page,
         limit,
         totalItems: total,
-        totalPages: Math.ceil(
-          total / limit,
-        ),
+        totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  private async findAllByBestSelling(
+    where: FilterQuery<ProductEntity>,
+    page: number,
+    limit: number,
+  ) {
+    const matches = await this.productRepository.find(where, {
+      fields: ['id'],
+    });
+    const ids = matches.map((product) => product.id);
+    const salesMap = await this.getSalesCountByProductIds(ids);
+
+    const sortedIds = [...ids].sort(
+      (a, b) => (salesMap.get(b) ?? 0) - (salesMap.get(a) ?? 0),
+    );
+
+    const total = sortedIds.length;
+    const pageIds = sortedIds.slice((page - 1) * limit, page * limit);
+
+    const products = pageIds.length
+      ? await this.productRepository.find(
+          { id: { $in: pageIds } },
+          {
+            populate: ['category', 'images', 'prices'],
+          },
+        )
+      : [];
+
+    const productMap = new Map(products.map((product) => [product.id, product]));
+    const ordered = pageIds
+      .map((id) => productMap.get(id))
+      .filter(Boolean) as ProductEntity[];
+
+    return {
+      products: this.formatProductList(ordered),
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+    };
+  }
+
+  async getActivePriceRange(): Promise<{
+    min: number;
+    max: number;
+  }> {
+    const rows = (await this.em
+      .getConnection()
+      .execute(
+        `SELECT MIN(pp.price) AS minPrice, MAX(pp.price) AS maxPrice
+         FROM product_prices pp
+         WHERE pp.is_active = 1`,
+      )) as {
+      minPrice: string | number | null;
+      maxPrice: string | number | null;
+    }[];
+
+    const max = Number(rows[0]?.maxPrice) || 0;
+
+    return {
+      min: 0,
+      max: this.roundUpPrice(max),
+    };
+  }
+
+  private roundUpPrice(value: number): number {
+    if (value <= 0) return 10;
+    const power = Math.pow(10, Math.floor(Math.log10(value)));
+    const unit = value / power;
+    const factor =
+      unit <= 1 ? 1 : unit <= 2 ? 2 : unit <= 5 ? 5 : 10;
+    return factor * power;
+  }
+
+  private async applyPriceFilter(
+    where: FilterQuery<ProductEntity>,
+    minPrice?: number,
+    maxPrice?: number,
+  ): Promise<FilterQuery<ProductEntity> | 'empty'> {
+    const ids = await this.resolveProductIdsByPrice(
+      minPrice,
+      maxPrice,
+    );
+    if (ids === null) {
+      return where;
+    }
+    if (!ids.length) {
+      return 'empty';
+    }
+    return {
+      $and: [where, { id: { $in: ids } }],
+    } as FilterQuery<ProductEntity>;
+  }
+
+  private async resolveProductIdsByPrice(
+    minPrice?: number,
+    maxPrice?: number,
+  ): Promise<string[] | null> {
+    if (minPrice == null && maxPrice == null) {
+      return null;
+    }
+
+    const conditions = ['pp.is_active = 1'];
+    const params: number[] = [];
+
+    if (minPrice != null) {
+      conditions.push('pp.price >= ?');
+      params.push(minPrice);
+    }
+    if (maxPrice != null) {
+      conditions.push('pp.price <= ?');
+      params.push(maxPrice);
+    }
+
+    const rows = (await this.em
+      .getConnection()
+      .execute(
+        `SELECT DISTINCT pp.product_id AS id
+         FROM product_prices pp
+         WHERE ${conditions.join(' AND ')}`,
+        params,
+      )) as { id: string }[];
+
+    return rows.map((row) => row.id);
+  }
+
+  private async getSalesCountByProductIds(
+    productIds: string[],
+  ): Promise<Map<string, number>> {
+    if (!productIds.length) {
+      return new Map();
+    }
+
+    const placeholders = productIds.map(() => '?').join(',');
+    const rows = (await this.em.getConnection().execute(
+      `SELECT pv.product_id AS productId, COALESCE(SUM(oi.quantity), 0) AS sold
+       FROM order_items oi
+       INNER JOIN product_variants pv ON pv.id = oi.variant_id
+       WHERE pv.product_id IN (${placeholders})
+       GROUP BY pv.product_id`,
+      productIds,
+    )) as { productId: string; sold: number | string }[];
+
+    const map = new Map<string, number>();
+    for (const row of rows) {
+      map.set(row.productId, Number(row.sold) || 0);
+    }
+    return map;
+  }
+
+  private formatProductList(products: ProductEntity[]) {
+    return products.map((product) => {
+      const activePrice =
+        product.prices?.find((p) => p.isActive) || product.prices?.[0];
+
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        shortDescription: product.shortDescription,
+        thumbnail:
+          product.thumbnail || product.images?.[0]?.imageUrl || null,
+        isActive: product.isActive,
+        category: {
+          id: product.category.id,
+          name: product.category.name,
+          slug: product.category.slug,
+        },
+        price: activePrice
+          ? {
+              price: activePrice.price,
+              originalPrice: activePrice.originalPrice,
+              discountPercent: activePrice.discountPercent,
+              currency: activePrice.currency,
+            }
+          : null,
+        createdAt: product.createdAt,
+      };
+    });
   }
 
   /** ====================== FIND DETAIL ====================== */

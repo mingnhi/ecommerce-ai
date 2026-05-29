@@ -13,6 +13,7 @@ export const ROUTES = {
   VOUCHERS: '/voucher-cua-toi',
   NOTIFICATIONS: '/thong-bao',
   CHANGE_PASSWORD: '/doi-mat-khau',
+  PRODUCTS: '/san-pham',
 } as const;
 
 export function paymentResultRoute(orderId: string) {
