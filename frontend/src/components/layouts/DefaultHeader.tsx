@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Bell, Key, LogOut, Minus, Package, Plus, ShoppingBag, Ticket, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
 import { useAppDispatch, useAppSelector } from "@/stores";
@@ -16,6 +16,8 @@ import { siteConfig } from "@/configs/site";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +27,7 @@ import { formatVnd } from "@/lib/format-currency";
 import { useCart } from "@/hooks/use-cart";
 import { cartSlice } from "@/stores/cart/slice";
 import { MOCK_PRODUCTS } from "@/faker/mock-products";
+import { MOCK_NOTIFICATIONS } from "@/faker/mock-notifications";
 import { cn } from "@/lib/utils";
 import type { ICartLine } from "@/types/cart";
 function HeaderCartDropdown() {
@@ -196,11 +199,128 @@ function HeaderCartDropdown() {
   );
 }
 
+function HeaderNotificationDropdown() {
+  const [notifications] = useState(MOCK_NOTIFICATIONS);
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger className="hover:shadow-none">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="relative h-10 w-10 shrink-0 cursor-pointer rounded-full text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+          aria-label="Thông báo"
+        >
+          <Bell className="h-5 w-5" strokeWidth={2} />
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className={cn(
+                "pointer-events-none absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums shadow-sm",
+                "border-2 border-white bg-red-500 text-white hover:bg-red-500 dark:border-neutral-950"
+              )}
+            >
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={10}
+        className="w-[min(calc(100vw-1.5rem),24rem)] overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-0 shadow-xl backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/95"
+        maxHeight="none"
+      >
+        <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-4 py-3 dark:border-neutral-800 dark:from-neutral-900/80 dark:to-neutral-950">
+          <p className="text-sm font-semibold text-gray-900 dark:text-neutral-100">Thông báo</p>
+          <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
+            {unreadCount > 0 ? `Bạn có ${unreadCount} thông báo chưa đọc` : "Bạn không có thông báo mới"}
+          </p>
+        </div>
+
+        {notifications.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-400 dark:bg-neutral-800 dark:text-neutral-500">
+              <Bell className="h-7 w-7" strokeWidth={1.5} />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-neutral-400">
+              Không có thông báo nào
+            </p>
+          </div>
+        ) : (
+          <>
+            <ScrollArea className="h-[min(24rem,calc(100vh-12rem))]">
+              <ul className="space-y-0 p-2">
+                {notifications.map((notification) => {
+                  return (
+                    <li
+                      key={notification.id}
+                      className={cn(
+                        "group rounded-xl border border-transparent p-3 transition-colors hover:border-gray-100 hover:bg-gray-50/80 dark:hover:border-neutral-800 dark:hover:bg-neutral-900/50 cursor-pointer relative",
+                        !notification.isRead ? "bg-sky-50/40 dark:bg-sky-900/10" : ""
+                      )}
+                    >
+                      <div className="flex gap-3">
+                        <div className={cn(
+                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm",
+                          notification.type === 'order' ? 'bg-sky-500' :
+                          notification.type === 'promotion' ? 'bg-rose-500' : 'bg-amber-500'
+                        )}>
+                          {notification.type === 'order' ? <Package className="h-5 w-5" /> :
+                           notification.type === 'promotion' ? <Ticket className="h-5 w-5" /> :
+                           <Bell className="h-5 w-5" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={cn(
+                            "text-sm leading-snug text-gray-900 dark:text-neutral-100 mb-1 pr-4",
+                            !notification.isRead ? "font-semibold" : "font-medium"
+                          )}>
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-neutral-400 line-clamp-2">
+                            {notification.content}
+                          </p>
+                          <p className="text-[11px] font-medium text-gray-400 dark:text-neutral-500 mt-1.5">
+                            {new Date(notification.createdAt).toLocaleDateString('vi-VN', {
+                              hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        {!notification.isRead && (
+                          <div className="absolute right-3 top-4 flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </ScrollArea>
+            <Separator />
+            <div className="bg-gray-50/50 p-2 dark:bg-neutral-900/40">
+              <Button asChild variant="ghost" className="w-full rounded-xl text-sm font-medium text-sky-600 hover:text-sky-700 hover:bg-sky-50 dark:text-sky-400 dark:hover:text-sky-300 dark:hover:bg-sky-900/20">
+                <Link href={ROUTES.NOTIFICATIONS || "/notifications"}>
+                  Xem tất cả thông báo
+                </Link>
+              </Button>
+            </div>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function DefaultHeader() {
   const dispatch = useAppDispatch();
   const { handleLogout } = useLogout();
   const user = useAppSelector(selectUser);
   const accessToken = useAppSelector(selectAccessToken);
+  const avatarSrc = getImageUrl(user?.image);
   const [mounted, setMounted] = useState(false);
   const demoSeededRef = useRef(false);
 
@@ -220,16 +340,10 @@ export function DefaultHeader() {
   }, [mounted, dispatch]);
 
   const isLoggedIn = !!accessToken;
-  const userName =
-    user
-      ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-      user?.name ||
-      undefined
-      : undefined;
 
   return (
-    <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50 py-1">
-      <div className="mx-auto flex items-center justify-between py-1 px-4 sm:px-6 lg:px-8 relative">
+    <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50 py-1" suppressHydrationWarning>
+      <div className="mx-auto flex items-center justify-between py-1 px-4 sm:px-6 lg:px-8 relative" suppressHydrationWarning>
         <div className="flex items-center gap-6">
           <Link
             href={ROUTES.HOME}
@@ -253,27 +367,83 @@ export function DefaultHeader() {
 
         {mounted && isLoggedIn ? (
           <div className="flex items-center gap-2 sm:gap-3">
+            <HeaderNotificationDropdown />
             <HeaderCartDropdown />
-            <div className="flex items-center gap-2 text-gray-700">
-              <Avatar className="h-8 w-8 border border-gray-300">
-                <AvatarImage src={getImageUrl(user?.image)} alt={userName} />
-                <AvatarFallback className="bg-sky-500/10 text-sky-600 text-sm font-semibold">
-                  {userName ? userName.charAt(0).toUpperCase() : "…"}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden md:inline font-medium max-w-[160px] truncate">
-                {userName ?? "Tài khoản"}
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full gap-1"
-              onClick={() => handleLogout()}
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Đăng xuất</span>
-            </Button>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 text-gray-700 outline-none hover:bg-gray-100 p-1.5 pr-3 rounded-full transition-colors cursor-pointer dark:hover:bg-neutral-800">
+                  <Avatar className="h-8 w-8 border border-gray-200 shadow-sm dark:border-neutral-700">
+                    <AvatarImage key={avatarSrc} src={avatarSrc} alt={user?.fullName} className="object-cover" />
+                    <AvatarFallback className="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:inline font-medium text-sm max-w-[150px] truncate">
+                    {user?.fullName ?? "Tài khoản"}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={10} maxHeight="none" className="w-64 overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-0 shadow-xl backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/95">
+                <div className="flex items-center gap-3 px-3 py-3 border-b border-gray-100 dark:border-neutral-800">
+                  <Avatar className="h-10 w-10 border border-gray-200 shadow-sm dark:border-neutral-700">
+                    <AvatarImage key={avatarSrc} src={avatarSrc} alt={user?.fullName} className="object-cover" />
+                    <AvatarFallback className="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
+                      <User className="h-5 w-5" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-sm truncate text-gray-900 dark:text-neutral-100">
+                      {user?.fullName ?? "Tài khoản"}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-neutral-400 truncate mt-0.5">
+                      {user?.email ?? "Thành viên"}
+                    </span>
+                  </div>
+                </div>
+                <ScrollArea className="max-h-72">
+                  <div className="p-2 space-y-1">
+                    <Link href={ROUTES.PROFILE}>
+                      <DropdownMenuItem>
+                        <User className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                        <span>Thông tin tài khoản</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href={ROUTES.VOUCHERS}>
+                      <DropdownMenuItem>
+                        <Ticket className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                        <span>Voucher của tôi</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href={ROUTES.NOTIFICATIONS}>
+                      <DropdownMenuItem>
+                        <Bell className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                        <span>Thông báo</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href={ROUTES.ORDER_HISTORY}>
+                      <DropdownMenuItem>
+                        <Package className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                        <span>Lịch sử đơn hàng</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href={ROUTES.CHANGE_PASSWORD}>
+                      <DropdownMenuItem>
+                        <Key className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                        <span>Đổi mật khẩu</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuSeparator className="my-1" />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => handleLogout()}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span className="font-medium">Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </div>
+                </ScrollArea>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           <div className="flex items-center gap-2 sm:gap-3">

@@ -9,7 +9,7 @@ import { ApiResponse } from '@common/interfaces/api-response.interface';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<any>();
     let status: number = HttpStatus.INTERNAL_SERVER_ERROR;

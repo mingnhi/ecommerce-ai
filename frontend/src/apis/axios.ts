@@ -2,33 +2,34 @@ import axios, { AxiosError, AxiosResponse, AxiosInstance, AxiosRequestConfig, In
 import { signOut } from 'next-auth/react';
 import { IAxiosResponse } from '@/types/common';
 import { envConfig } from '@/lib/const';
+import { KEYS } from '@/apis/auth/keys';
 import { store } from '@/stores';
 import { clearUserAction, setAccessTokenAction, setRefreshTokenAction, setUserAction } from '@/stores/user/actions';
 import { clearAuthAction, setTokensAction } from '@/stores/auth/actions';
 import { getRoleFromToken } from '@/utils/jwt';
 
 const safeJsonParse = (data: string): unknown => {
-  const t = typeof data === 'string' ? data.trim() : '';
-  if (!t) return {};
-  try {
-    return JSON.parse(t);
-  } catch {
-    return {};
-  }
+    const t = typeof data === 'string' ? data.trim() : '';
+    if (!t) return {};
+    try {
+        return JSON.parse(t);
+    } catch {
+        return {};
+    }
 };
 
 const instance = axios.create({
-  baseURL: `${envConfig.API_URL}/api`,
-  transformResponse: [(data) => (typeof data === 'string' ? safeJsonParse(data) : data)],
+    baseURL: envConfig.API_URL,
+    transformResponse: [(data) => (typeof data === 'string' ? safeJsonParse(data) : data)],
 });
 
 let isRefreshing = false;
 let failedQueue: Array<{
     resolve: (token: string) => void;
-    reject: (error: any) => void;
+    reject: (error: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
     failedQueue.forEach((prom) => {
         if (error) {
             prom.reject(error);
@@ -48,7 +49,7 @@ const refreshAccessToken = async (): Promise<string> => {
         throw new Error('No tokens available');
     }
 
-    const url = `${envConfig.API_URL}/api/token/refresh`;
+    const url = `${envConfig.API_URL}${KEYS.TOKEN_REFRESH}`;
     const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,7 +98,10 @@ const handleError = async (error: AxiosError) => {
     const originalError = error.response?.data as IAxiosResponse;
     const statusCode = error.response?.status;
 
-    if (statusCode === 401 && !originalRequest._retry) {
+    const url = originalRequest?.url ?? '';
+    const isPublicAuth = /\/(auth\/(login|register|reset-password)|otp\/)/.test(url);
+
+    if (statusCode === 401 && !originalRequest._retry && !isPublicAuth) {
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
                 failedQueue.push({ resolve, reject });
@@ -155,10 +159,10 @@ instance.interceptors.response.use(handleSuccess, handleError);
 
 interface CustomAxiosInstance extends Omit<AxiosInstance, 'get' | 'post' | 'put' | 'delete' | 'patch'> {
     get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+    post<T = any>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>;
+    put<T = any>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>;
     delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+    patch<T = any>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>;
 }
 
 export const request = instance as unknown as CustomAxiosInstance;

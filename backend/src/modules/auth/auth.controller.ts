@@ -4,9 +4,12 @@ import {
   Get,
   Headers,
   Post,
+  Put,
   Req,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import { AuthService } from './services/auth.service';
@@ -17,10 +20,11 @@ import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResetPasswordDto } from '../otp/dto/reset-password.dto';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
-
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+  ) { }
 
   @Post('register')
   async register(@Body() dto: RegisterDto): Promise<ApiResponse<any>> {
@@ -78,18 +82,6 @@ export class AuthController {
     return {
       status: 'success',
       message: 'Logout successfully',
-      data,
-    };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async me(@Req() req: any): Promise<ApiResponse<any>> {
-    const data = await this.authService.me(req.user.sub);
-
-    return {
-      status: 'success',
-      message: 'Get current user successfully',
       data,
     };
   }

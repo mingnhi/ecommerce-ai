@@ -1,86 +1,48 @@
 export class ProductDetailResponse {
   id: string;
-
   name: string;
-
   slug: string;
-
   shortDescription?: string;
-
   description?: string;
-
+  thumbnail?: string;
   isActive: boolean;
-
   createdAt: Date;
-
   updatedAt?: Date;
 
   category: {
     id: string;
-
     name: string;
-
     slug: string;
   };
 
-  prices: {
-    id: string;
-
-    price: number;
-
-    originalPrice?: number;
-
+  prices: Array<{
+    originalPrice: number;
     discountPercent?: number;
-
+    price: number;
     currency: string;
-
     isActive: boolean;
-  }[];
+  }>;
 
-  variants: {
-    id: string;
-
+  variants: Array<{
     title: string;
-
     sku: string;
-
     stock: number;
-
-    image?: string;
-
     price?: number;
-
+    image?: string;
     isActive: boolean;
+    attributes?: Record<string, any>;
+  }>;
 
-    attributes?: Record<
-      string,
-      any
-    >;
-  }[];
-
-  attributes: {
-    id: string;
-
+  attributes: Array<{
     name: string;
-
     value: string;
-  }[];
+  }>;
 
-  images: {
+  images: Array<{
     id: string;
-
     imageUrl: string;
-
     type: string;
-
     sortOrder: number;
-
     isPrimary: boolean;
-  }[];
-
-  reviewSummary: {
-    averageRating: number;
-
-    totalReviews: number;
-  };
+  }>;
 }

@@ -6,10 +6,11 @@ export interface ApiResponse<T> {
     count?: number;
     page?: number;
     limit?: number;
+    total?: number;
     totalPages?: number;
     period?: string;
     groupBy?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   errors?: ValidationError[];
 }

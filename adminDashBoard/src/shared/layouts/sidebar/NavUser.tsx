@@ -24,9 +24,11 @@ import {
   BellIcon,
   ChevronsUpDownIcon,
   CreditCardIcon,
+  KeyRoundIcon,
   LogOutIcon,
   SparklesIcon,
 } from "lucide-react"
+import { useLogout } from "@/features/auth/hooks"
 
 export function NavUser({
   user,
@@ -34,6 +36,7 @@ export function NavUser({
   user: { name: string; email: string; avatar: string }
 }) {
   const { isMobile } = useSidebar()
+  const { mutate: logout, isPending } = useLogout()
   const initials = user.name
     .split(/\s+/)
     .map((p) => p[0])
@@ -79,34 +82,35 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+           
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <SparklesIcon />
-                Nâng cấp gói
+              <DropdownMenuItem asChild className="cursor-pointer"> 
+                <Link to="/account/profile">
+                  <BadgeCheckIcon />
+                  Thông tin tài khoản
+                </Link>
               </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheckIcon />
-                Tài khoản
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/account/password">
+                  <KeyRoundIcon />
+                  Đổi mật khẩu
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Thanh toán
-              </DropdownMenuItem>
-              <DropdownMenuItem>
+             
+              <DropdownMenuItem className="cursor-pointer">
                 <BellIcon />
                 Thông báo
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/login" className="cursor-pointer">
-                <LogOutIcon />
-                Đăng xuất
-              </Link>
+            <DropdownMenuItem
+              onClick={() => logout()}
+              disabled={isPending}
+              className="cursor-pointer text-destructive focus:text-destructive"
+            >
+              <LogOutIcon />
+              {isPending ? "Đang đăng xuất..." : "Đăng xuất"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

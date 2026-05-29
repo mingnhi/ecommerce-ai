@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { ROUTES } from '@/lib/routes';
 
-const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER];
+const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER, ROUTES.FORGOT_PASSWORD];
 
 function isAuthRoute(pathname: string): boolean {
   return authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));

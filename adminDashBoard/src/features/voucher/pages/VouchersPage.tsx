@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { Badge } from '@/shared/components/ui/badge';
-import { Spinner } from '@/shared/components/ui/spinner';
-import { toast } from '@/shared/components/ui/toast';
+import { useState } from "react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Badge } from "@/shared/components/ui/badge";
+import { toast } from "sonner";
+import { PageSkeleton } from "@/shared/components/common/PageSkeleton";
 import {
   Table,
   TableBody,
@@ -12,18 +12,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/shared/components/ui/table';
-import { useVouchers, useDeleteVoucher } from '../hooks';
-import { VoucherFormDialog } from '../components/VoucherFormDialog';
-import { useUrlState } from '@/shared/hooks/use-url-state';
-import type { Voucher } from '../types';
+} from "@/shared/components/ui/table";
+import { useVouchers, useDeleteVoucher } from "../hooks";
+import { VoucherFormDialog } from "../components/VoucherFormDialog";
+import { useUrlState } from "@/shared/hooks/use-url-state";
+import type { Voucher } from "../types";
 
 const URL_SCHEMA = {
-  search: { type: 'string', default: '' },
-  page: { type: 'number', default: 1 },
+  search: { type: "string", default: "" },
+  page: { type: "number", default: 1 },
 } as const;
 
-const formatVnd = (v: string | number) => Number(v).toLocaleString('vi-VN') + 'đ';
+const formatVnd = (v: string | number) =>
+  Number(v).toLocaleString("vi-VN") + "đ";
 
 export default function VouchersPage() {
   const [urlState, setUrlState] = useUrlState(URL_SCHEMA);
@@ -38,9 +39,9 @@ export default function VouchersPage() {
     if (!confirm(`Xoá voucher ${v.code}?`)) return;
     try {
       await del.mutateAsync(v.id);
-      toast.success('Đã xoá');
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? 'Lỗi');
+      toast.success("Đã xoá");
+    } catch (e: unknown) {
+      toast.error(e?.response?.data?.message ?? "Lỗi");
     }
   };
 
@@ -76,7 +77,7 @@ export default function VouchersPage() {
       </div>
 
       {vouchers.isLoading ? (
-        <Spinner />
+        <PageSkeleton filterCount={1} columnCount={7} rowCount={6} />
       ) : items.length === 0 ? (
         <div className="border rounded-lg p-12 text-center text-slate-500">
           Chưa có voucher nào
@@ -97,7 +98,8 @@ export default function VouchersPage() {
             </TableHeader>
             <TableBody>
               {items.map((v) => {
-                const expired = v.validUntil && new Date(v.validUntil) < new Date();
+                const expired =
+                  v.validUntil && new Date(v.validUntil) < new Date();
                 const used =
                   v.usageLimit !== null &&
                   v.usageLimit !== undefined &&
@@ -107,25 +109,29 @@ export default function VouchersPage() {
                     <TableCell>
                       <div className="font-mono font-semibold">{v.code}</div>
                       {v.description && (
-                        <div className="text-xs text-slate-500">{v.description}</div>
+                        <div className="text-xs text-slate-500">
+                          {v.description}
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
-                      {v.discountType === 'PERCENT'
+                      {v.discountType === "PERCENT"
                         ? `${Number(v.discountValue)}%${
-                            v.maxDiscount ? ` (max ${formatVnd(v.maxDiscount)})` : ''
+                            v.maxDiscount
+                              ? ` (max ${formatVnd(v.maxDiscount)})`
+                              : ""
                           }`
                         : formatVnd(v.discountValue)}
                     </TableCell>
                     <TableCell>{formatVnd(v.minOrderAmount)}</TableCell>
                     <TableCell className="text-sm">
                       {v.validUntil
-                        ? new Date(v.validUntil).toLocaleDateString('vi-VN')
-                        : '—'}
+                        ? new Date(v.validUntil).toLocaleDateString("vi-VN")
+                        : "—"}
                     </TableCell>
                     <TableCell className="text-center text-sm">
                       {v.usageCount}
-                      {v.usageLimit ? ` / ${v.usageLimit}` : ''}
+                      {v.usageLimit ? ` / ${v.usageLimit}` : ""}
                     </TableCell>
                     <TableCell className="text-center">
                       {!v.isActive ? (

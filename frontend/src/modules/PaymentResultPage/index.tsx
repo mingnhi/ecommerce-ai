@@ -14,6 +14,8 @@ import { usePaymentResultOrder } from "@/hooks/use-payment-result-order";
 import type { IOrderProduct, OrderStatus } from "@/types/order";
 import { PaymentResultSkeleton } from "./components/Skeleton";
 import { SuccessFireworks } from "./components/SuccessFireworks";
+import { useSearchParams } from "next/dist/client/components/navigation";
+import { useVerifyVnpayReturn } from "@/apis/payment/queries";
 
 type PaymentResultPageProps = {
   params: Promise<{ orderId: string }>;
@@ -91,118 +93,131 @@ export default function PaymentResultPage({ params }: PaymentResultPageProps) {
   const { orderId } = use(params);
   const { order, polling } = usePaymentResultOrder(orderId);
 
-  if (!order) {
+  const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
+
+   const { data, isLoading, isError } = useVerifyVnpayReturn(queryString);
+
+  // if (!order) {
+  //   return <PaymentResultSkeleton />;
+  // }
+  if (isLoading) {
     return <PaymentResultSkeleton />;
   }
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-700">
+          <X className="size-5" />
+        </div>
+        <h1 className="text-2xl font-bold">Thanh toán thất bại</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Không thể kiểm tra kết quả thanh toán. Vui lòng thử lại hoặc liên hệ
+          hỗ trợ.
+        </p>
+        <Button asChild className="mt-6">
+          <Link href={ROUTES.HOME}>Về trang chủ</Link>
+        </Button>
+      </div>
+    );
+  }
 
-  const config = statusConfig[order.status];
-  const Icon = variantIcon[config.variant];
+  const result = data?.data;
+  const isSuccess = result?.status === "COMPLETED";
+  const variant: ResultVariant = isSuccess ? "success" : "failed";
+  const Icon = variantIcon[variant];
 
   return (
     <div className="relative py-6 sm:py-8">
-      {config.variant === "success" && <SuccessFireworks />}
+      {isSuccess && <SuccessFireworks />}
+
       <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6">
         <header className="mb-8 flex gap-4 sm:gap-5">
           <div
             className={cn(
               "flex size-11 shrink-0 items-center justify-center rounded-sm border",
-              variantIconWrap[config.variant],
+              variantIconWrap[variant],
             )}
           >
             <Icon className="size-5" strokeWidth={1.75} />
           </div>
+
           <div className="min-w-0 space-y-1.5 pt-0.5">
             <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-              {config.headline}
+              {isSuccess ? "Thanh toán thành công" : "Thanh toán thất bại"}
             </h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              {config.description}
+              {result?.message ||
+                (isSuccess
+                  ? "Cảm ơn bạn. Giao dịch đã được xử lý thành công."
+                  : "Giao dịch không thành công hoặc đã bị huỷ.")}
             </p>
-            {config.variant === "pending" && polling && (
-              <p className="text-xs text-muted-foreground">Đang cập nhật trạng thái…</p>
-            )}
           </div>
         </header>
 
         <div className="overflow-hidden rounded-sm border border-border/60 bg-card shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/25 px-5 py-4 sm:px-6">
             <div>
-              <p className="text-xs text-muted-foreground">Mã đơn hàng</p>
+              <p className="text-xs text-muted-foreground">Mã giao dịch</p>
               <p className="mt-0.5 font-mono text-sm font-medium uppercase tracking-wide text-foreground">
-                {order.orderNumber}
+                {result?.txnRef || searchParams.get("vnp_TxnRef") || "N/A"}
               </p>
             </div>
+
             <Badge
               variant="outline"
-              className={cn("border font-medium", config.badgeClass)}
+              className={cn("border font-medium", variantBadgeClass[variant])}
             >
-              {config.label}
+              {isSuccess ? "Đã thanh toán" : "Thanh toán thất bại"}
             </Badge>
           </div>
 
           <dl className="grid gap-4 px-5 py-5 sm:grid-cols-2 sm:px-6">
             <div>
               <dt className="text-xs text-muted-foreground">Trạng thái</dt>
-              <dd className="mt-1 text-sm font-medium text-foreground">{config.label}</dd>
+              <dd className="mt-1 text-sm font-medium text-foreground">
+                {result?.status || "FAILED"}
+              </dd>
             </div>
+
             <div>
-              <dt className="text-xs text-muted-foreground">Tổng thanh toán</dt>
+              <dt className="text-xs text-muted-foreground">Số tiền</dt>
               <dd className="mt-1 text-xl font-semibold tabular-nums text-sky-600">
-                {formatVnd(order.total)}
+                {formatVnd(result?.amount || 0)}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-muted-foreground">Ngân hàng</dt>
+              <dd className="mt-1 text-sm font-medium text-foreground">
+                {result?.bankCode || searchParams.get("vnp_BankCode") || "N/A"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-muted-foreground">Mã VNPAY</dt>
+              <dd className="mt-1 text-sm font-medium text-foreground">
+                {result?.vnpTransactionNo ||
+                  searchParams.get("vnp_TransactionNo") ||
+                  "N/A"}
               </dd>
             </div>
           </dl>
 
           <Separator className="bg-border/50" />
 
-          <section className="px-5 py-5 sm:px-6">
-            <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Sản phẩm
-            </h2>
-            <ul className="mt-4 divide-y divide-border/40">
-              {order.products.map((product: IOrderProduct) => (
-                <li key={product.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-                  <div className="relative size-14 shrink-0 overflow-hidden rounded-sm border border-border/50 bg-muted/30 sm:size-16">
-                    {product.image ? (
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-muted-foreground/40">
-                        <Package className="size-5" strokeWidth={1.5} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 sm:flex-row sm:items-center">
-                    <div className="min-w-0">
-                      <p className="line-clamp-2 text-sm font-medium text-foreground">
-                        {product.name}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatVnd(product.price)} · SL {product.quantity}
-                      </p>
-                    </div>
-                    <p className="shrink-0 text-sm font-medium tabular-nums text-foreground sm:text-right">
-                      {formatVnd(product.price * product.quantity)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
           <div className="flex flex-col-reverse gap-2 border-t border-border/50 bg-muted/15 px-5 py-5 sm:flex-row sm:px-6">
-            <Button variant="outline" className="h-11 flex-1 rounded-sm" asChild>
+            <Button
+              variant="outline"
+              className="h-11 flex-1 rounded-sm"
+              asChild
+            >
               <Link href={ROUTES.HOME}>
                 Tiếp tục mua sắm
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
+
             <Button className="h-11 flex-1 rounded-sm" asChild>
               <Link href={ROUTES.ORDER_HISTORY}>Xem đơn hàng</Link>
             </Button>
@@ -211,4 +226,121 @@ export default function PaymentResultPage({ params }: PaymentResultPageProps) {
       </div>
     </div>
   );
+
+  // const config = statusConfig[order.status];
+  // const Icon = variantIcon[config.variant];
+
+  // return (
+  //   <div className="relative py-6 sm:py-8">
+  //     {config.variant === "success" && <SuccessFireworks />}
+  //     <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6">
+  //       <header className="mb-8 flex gap-4 sm:gap-5">
+  //         <div
+  //           className={cn(
+  //             "flex size-11 shrink-0 items-center justify-center rounded-sm border",
+  //             variantIconWrap[config.variant],
+  //           )}
+  //         >
+  //           <Icon className="size-5" strokeWidth={1.75} />
+  //         </div>
+  //         <div className="min-w-0 space-y-1.5 pt-0.5">
+  //           <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+  //             {config.headline}
+  //           </h1>
+  //           <p className="text-sm leading-relaxed text-muted-foreground">
+  //             {config.description}
+  //           </p>
+  //           {config.variant === "pending" && polling && (
+  //             <p className="text-xs text-muted-foreground">Đang cập nhật trạng thái…</p>
+  //           )}
+  //         </div>
+  //       </header>
+
+  //       <div className="overflow-hidden rounded-sm border border-border/60 bg-card shadow-sm">
+  //         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/25 px-5 py-4 sm:px-6">
+  //           <div>
+  //             <p className="text-xs text-muted-foreground">Mã đơn hàng</p>
+  //             <p className="mt-0.5 font-mono text-sm font-medium uppercase tracking-wide text-foreground">
+  //               {order.orderNumber}
+  //             </p>
+  //           </div>
+  //           <Badge
+  //             variant="outline"
+  //             className={cn("border font-medium", config.badgeClass)}
+  //           >
+  //             {config.label}
+  //           </Badge>
+  //         </div>
+
+  //         <dl className="grid gap-4 px-5 py-5 sm:grid-cols-2 sm:px-6">
+  //           <div>
+  //             <dt className="text-xs text-muted-foreground">Trạng thái</dt>
+  //             <dd className="mt-1 text-sm font-medium text-foreground">{config.label}</dd>
+  //           </div>
+  //           <div>
+  //             <dt className="text-xs text-muted-foreground">Tổng thanh toán</dt>
+  //             <dd className="mt-1 text-xl font-semibold tabular-nums text-sky-600">
+  //               {formatVnd(order.total)}
+  //             </dd>
+  //           </div>
+  //         </dl>
+
+  //         <Separator className="bg-border/50" />
+
+  //         <section className="px-5 py-5 sm:px-6">
+  //           <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+  //             Sản phẩm
+  //           </h2>
+  //           <ul className="mt-4 divide-y divide-border/40">
+  //             {order.products.map((product: IOrderProduct) => (
+  //               <li key={product.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+  //                 <div className="relative size-14 shrink-0 overflow-hidden rounded-sm border border-border/50 bg-muted/30 sm:size-16">
+  //                   {product.image ? (
+  //                     <Image
+  //                       src={product.image}
+  //                       alt={product.name}
+  //                       fill
+  //                       className="object-cover"
+  //                       sizes="64px"
+  //                       unoptimized
+  //                     />
+  //                   ) : (
+  //                     <div className="flex h-full items-center justify-center text-muted-foreground/40">
+  //                       <Package className="size-5" strokeWidth={1.5} />
+  //                     </div>
+  //                   )}
+  //                 </div>
+  //                 <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 sm:flex-row sm:items-center">
+  //                   <div className="min-w-0">
+  //                     <p className="line-clamp-2 text-sm font-medium text-foreground">
+  //                       {product.name}
+  //                     </p>
+  //                     <p className="mt-1 text-xs text-muted-foreground">
+  //                       {formatVnd(product.price)} · SL {product.quantity}
+  //                     </p>
+  //                   </div>
+  //                   <p className="shrink-0 text-sm font-medium tabular-nums text-foreground sm:text-right">
+  //                     {formatVnd(product.price * product.quantity)}
+  //                   </p>
+  //                 </div>
+  //               </li>
+  //             ))}
+  //           </ul>
+  //         </section>
+
+  //         <div className="flex flex-col-reverse gap-2 border-t border-border/50 bg-muted/15 px-5 py-5 sm:flex-row sm:px-6">
+  //           <Button variant="outline" className="h-11 flex-1 rounded-sm" asChild>
+  //             <Link href={ROUTES.HOME}>
+  //               Tiếp tục mua sắm
+  //               <ArrowRight className="size-4" />
+  //             </Link>
+  //           </Button>
+  //           <Button className="h-11 flex-1 rounded-sm" asChild>
+  //             <Link href={ROUTES.ORDER_HISTORY}>Xem đơn hàng</Link>
+  //           </Button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 }

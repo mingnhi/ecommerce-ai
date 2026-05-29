@@ -1,37 +1,25 @@
 import { Suspense } from 'react';
-import type { Metadata } from 'next';
 import HomePage from '@/modules/HomePage';
 import HomePageSkeleton from '@/modules/HomePage/components/Skeleton';
-import { APP_URL, siteConfig } from '@/configs/site';
 
-export const metadata: Metadata = {
-  title: siteConfig.metaTitle,
-  description: siteConfig.description,
-  alternates: {
-    canonical: APP_URL,
-  },
-  openGraph: {
-    title: siteConfig.metaTitle,
-    description: siteConfig.description,
-    url: APP_URL,
-    siteName: siteConfig.name,
-    images: [siteConfig.ogImage],
-    locale: 'vi_VN',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: siteConfig.metaTitle,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
-  },
-};
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export default function Page() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function Page({ 
+  searchParams 
+}: { 
+  searchParams?: Promise<SearchParams> | SearchParams 
+}) {
+  const sp = (await searchParams) ?? {};
+  const slow = typeof sp.slow === 'string' ? sp.slow : undefined;
+  
+  // Dùng để test loading state (xóa sau khi dev xong)
+  if (slow === '1') await sleep(1500);
+
   return (
     <Suspense fallback={<HomePageSkeleton />}>
       <HomePage />
     </Suspense>
   );
 }
-

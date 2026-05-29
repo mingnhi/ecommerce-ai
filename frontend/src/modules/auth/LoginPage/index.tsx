@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 import { ArrowLeft, Eye, EyeOff, User, Lock } from 'lucide-react';
@@ -11,14 +11,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { ROUTES } from '@/lib/routes';
 import { loginSchema, type LoginSchemaType } from '@/lib/validations/auth';
+import { getSignInErrorMessage } from '@/lib/api-response';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const error = searchParams.get('error');
+    if (!error) return;
+    toast.error(getSignInErrorMessage(error, 'Đăng nhập thất bại. Vui lòng thử lại.'));
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    router.replace(`${url.pathname}${url.search}`);
+  }, [searchParams, router]);
 
   const {
     register,
@@ -37,13 +48,13 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (!result?.error) {
+      if (result?.ok && !result?.error) {
         toast.success('Đăng nhập thành công!');
-        setTimeout(() => router.push(ROUTES.HOME), 500);
+        router.push(ROUTES.HOME);
         return;
       }
 
-      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      toast.error(getSignInErrorMessage(result?.error, 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'));
     } catch {
       toast.error('Đã có lỗi xảy ra khi đăng nhập');
     } finally {
@@ -152,6 +163,15 @@ export default function LoginPage() {
                 {errors.password && (
                   <p className="text-red-500 text-xs mt-1 pl-1 font-medium">{errors.password.message}</p>
                 )}
+              </div>
+
+              <div className="flex justify-end">
+                <Link
+                  href={ROUTES.FORGOT_PASSWORD}
+                  className="text-xs font-semibold text-sky-500 hover:text-sky-600 hover:underline transition-colors"
+                >
+                  Quên mật khẩu?
+                </Link>
               </div>
 
               <Button

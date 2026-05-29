@@ -1,7 +1,4 @@
-import {
-  Type,
-} from 'class-transformer';
-
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -14,27 +11,25 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-class CreateProductPriceRequest {
-  @Type(() => Number)
+class ProductPriceRequest {
   @IsNumber()
-  price: number;
+  @IsNotEmpty()
+  originalPrice: number;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  originalPrice?: number;
-
-  @IsOptional()
-  @Type(() => Number)
   @IsNumber()
   discountPercent?: number;
 
   @IsOptional()
   @IsString()
-  currency?: string;
+  currency?: string = 'VND';
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean = true;
 }
 
-class CreateProductVariantRequest {
+class ProductVariantRequest {
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -44,12 +39,10 @@ class CreateProductVariantRequest {
   sku: string;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
-  stock?: number;
+  stock?: number = 0;
 
   @IsOptional()
-  @Type(() => Number)
   @IsNumber()
   price?: number;
 
@@ -58,14 +51,15 @@ class CreateProductVariantRequest {
   image?: string;
 
   @IsOptional()
-  @IsObject()
-  attributes?: Record<
-    string,
-    any
-  >;
+  @IsBoolean()
+  isActive?: boolean = true;
+
+  @IsOptional()
+  @IsObject()                    // ← Đã import đúng
+  attributes?: Record<string, any>;
 }
 
-class CreateProductAttributeRequest {
+class ProductAttributeRequest {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -93,45 +87,23 @@ export class CreateProductRequest {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean = true;
 
   @IsOptional()
   @IsArray()
-
-  @ValidateNested({
-    each: true,
-  })
-
-  @Type(
-    () =>
-      CreateProductPriceRequest,
-  )
-  prices?: CreateProductPriceRequest[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductPriceRequest)
+  prices?: ProductPriceRequest[];
 
   @IsOptional()
   @IsArray()
-
-  @ValidateNested({
-    each: true,
-  })
-
-  @Type(
-    () =>
-      CreateProductVariantRequest,
-  )
-  variants?: CreateProductVariantRequest[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantRequest)
+  variants?: ProductVariantRequest[];
 
   @IsOptional()
   @IsArray()
-
-  @ValidateNested({
-    each: true,
-  })
-
-  @Type(
-    () =>
-      CreateProductAttributeRequest,
-  )
-  attributes?: CreateProductAttributeRequest[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttributeRequest)
+  attributes?: ProductAttributeRequest[];
 }
-
