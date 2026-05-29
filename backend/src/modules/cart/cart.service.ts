@@ -18,15 +18,10 @@ import { CartStatus } from './enums/cart-status.enum';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { MergeCartDto } from './dto/merge-cart.dto';
+import type { CartItemSnapshot, CartResponse } from './dto/cart.response';
 import { InventoryService } from '@modules/inventory/inventory.service';
 
 const MAX_QTY = 999;
-
-interface CartLine {
-  variantId: string;
-  quantity: number;
-  priceAtTime?: number;
-}
 
 @Injectable()
 export class CartService {
@@ -35,15 +30,15 @@ export class CartService {
     private readonly inventoryService: InventoryService,
   ) {}
 
-  async getCart(userId: string) {
-    const cart = await this.getOrCreateActiveCart(this.em, userId);
+  async getCart(userId: string): Promise<CartResponse> {
+    const cart = await this.findOrCreateActiveCart(this.em, userId);
     await this.em.populate(cart, ['items']);
-    return this.toDtoWithLivePrice(this.em, cart);
+    return this.buildCartResponse(this.em, cart);
   }
 
-  async addItem(userId: string, dto: AddCartItemDto) {
+  async addItem(userId: string, dto: AddCartItemDto): Promise<CartResponse> {
     return this.em.transactional(async (em) => {
-      const cart = await this.getOrCreateActiveCart(em, userId);
+      const cart = await this.findOrCreateActiveCart(em, userId);
       await em.populate(cart, ['items']);
 
       const existing = cart.items
@@ -63,22 +58,27 @@ export class CartService {
         existing.priceAtTime = priceAtTime;
         em.persist(existing);
       } else {
-        em.persist(
-          em.create(CartItemEntity, {
-            cart,
-            variantId: dto.variantId,
-            quantity: targetQty,
-            priceAtTime,
-          }),
-        );
+        const item = em.create(CartItemEntity, {
+          cart,
+          variantId: dto.variantId,
+          quantity: targetQty,
+          priceAtTime,
+        });
+        cart.items.add(item);
+        em.persist(item);
       }
+
       await em.flush();
       await em.populate(cart, ['items']);
-      return this.toDtoWithLivePrice(em, cart);
+      return this.buildCartResponse(em, cart);
     });
   }
 
-  async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
+  async updateItem(
+    userId: string,
+    itemId: string,
+    dto: UpdateCartItemDto,
+  ): Promise<CartResponse> {
     return this.em.transactional(async (em) => {
       const item = await em.findOne(
         CartItemEntity,
@@ -99,11 +99,11 @@ export class CartService {
       em.persist(item);
       await em.flush();
       await em.populate(item.cart, ['items']);
-      return this.toDtoWithLivePrice(em, item.cart);
+      return this.buildCartResponse(em, item.cart);
     });
   }
 
-  async removeItem(userId: string, itemId: string) {
+  async removeItem(userId: string, itemId: string): Promise<CartResponse> {
     return this.em.transactional(async (em) => {
       const item = await em.findOne(
         CartItemEntity,
@@ -122,85 +122,64 @@ export class CartService {
       em.remove(item);
       await em.flush();
       await em.populate(cart, ['items']);
-      return this.toDtoWithLivePrice(em, cart);
+      return this.buildCartResponse(em, cart);
     });
   }
 
-  async merge(userId: string, dto: MergeCartDto) {
+  async mergeGuestItems(
+    userId: string,
+    dto: MergeCartDto,
+  ): Promise<CartResponse> {
     return this.em.transactional(async (em) => {
-      const cart = await this.getOrCreateActiveCart(em, userId);
+      const cart = await this.findOrCreateActiveCart(em, userId);
       await em.populate(cart, ['items']);
 
-      const mergedMap = new Map<string, CartLine>();
-      for (const i of cart.items.getItems()) {
-        mergedMap.set(i.variantId, {
-          variantId: i.variantId,
-          quantity: i.quantity,
-          priceAtTime: i.priceAtTime,
-        });
-      }
-      for (const g of dto.items) {
-        if (g.quantity <= 0) continue;
-        const existing = mergedMap.get(g.variantId);
-        if (existing) {
-          mergedMap.set(g.variantId, {
-            ...existing,
-            quantity: Math.min(existing.quantity + g.quantity, MAX_QTY),
-          });
-        } else {
-          mergedMap.set(g.variantId, {
-            variantId: g.variantId,
-            quantity: Math.min(g.quantity, MAX_QTY),
-          });
-        }
-      }
-      const merged = Array.from(mergedMap.values());
+      for (const guestLine of dto.items) {
+        if (guestLine.quantity <= 0) continue;
 
-      const validated: CartLine[] = [];
-      for (const line of merged) {
-        const available = await this.inventoryService.getAvailable(
-          em,
-          line.variantId,
-        );
-        const safe = Math.min(line.quantity, available);
-        if (safe > 0) {
-          validated.push({ ...line, quantity: safe });
-        }
-      }
+        try {
+          const existing = cart.items
+            .getItems()
+            .find((item) => item.variantId === guestLine.variantId);
 
-      const byVariant = new Map(
-        cart.items.getItems().map((i) => [i.variantId, i] as const),
-      );
-
-      for (const line of validated) {
-        const existing = byVariant.get(line.variantId);
-        const price =
-          line.priceAtTime ??
-          (await this.resolveCurrentPrice(em, line.variantId));
-        if (existing) {
-          existing.quantity = line.quantity;
-          existing.priceAtTime = price;
-          em.persist(existing);
-          byVariant.delete(line.variantId);
-        } else {
-          em.persist(
-            em.create(CartItemEntity, {
-              cart,
-              variantId: line.variantId,
-              quantity: line.quantity,
-              priceAtTime: price,
-            }),
+          const available = await this.resolveAvailableStock(
+            em,
+            guestLine.variantId,
           );
-        }
-      }
+          const targetQty = Math.min(
+            (existing?.quantity ?? 0) + guestLine.quantity,
+            MAX_QTY,
+            available,
+          );
+          if (targetQty <= 0) continue;
 
-      for (const stale of byVariant.values()) {
-        em.remove(stale);
+          const priceAtTime = await this.resolveCurrentPrice(
+            em,
+            guestLine.variantId,
+          );
+
+          if (existing) {
+            existing.quantity = targetQty;
+            existing.priceAtTime = priceAtTime;
+            em.persist(existing);
+          } else {
+            const item = em.create(CartItemEntity, {
+              cart,
+              variantId: guestLine.variantId,
+              quantity: targetQty,
+              priceAtTime,
+            });
+            cart.items.add(item);
+            em.persist(item);
+          }
+        } catch {
+          continue;
+        }
       }
 
       await em.flush();
-      await em.populate(cart, ['items']);
-      return this.toDtoWithLivePrice(em, cart);
+      await em.populate(cart, ['items'], { refresh: true });
+      return this.buildCartResponse(em, cart);
     });
   }
 
@@ -224,7 +203,7 @@ export class CartService {
     return this.resolveCurrentPrice(em, variantId);
   }
 
-  private async getOrCreateActiveCart(
+  private async findOrCreateActiveCart(
     em: EntityManager,
     userId: string,
   ): Promise<CartEntity> {
@@ -244,12 +223,32 @@ export class CartService {
     return cart;
   }
 
+  private async resolveAvailableStock(
+    em: EntityManager,
+    variantId: string,
+  ): Promise<number> {
+    const variant = await em.findOne(ProductVariantEntity, {
+      id: variantId,
+      isActive: true,
+    });
+    if (!variant) {
+      throw new BadRequestException(`Variant ${variantId} not found`);
+    }
+
+    const inventoryAvailable = await this.inventoryService.getAvailable(
+      em,
+      variantId,
+    );
+
+    return Math.max(inventoryAvailable, variant.stock);
+  }
+
   private async assertStockAvailable(
     em: EntityManager,
     variantId: string,
     requested: number,
   ) {
-    const available = await this.inventoryService.getAvailable(em, variantId);
+    const available = await this.resolveAvailableStock(em, variantId);
     if (available < requested) {
       throw new ConflictException(
         `Insufficient stock for variant ${variantId}: need ${requested}, available ${available}`,
@@ -290,36 +289,79 @@ export class CartService {
     return Number(price.price);
   }
 
-  private async toDtoWithLivePrice(em: EntityManager, cart: CartEntity) {
-    const items = cart.items.getItems();
-    const livePrices = await Promise.all(
-      items.map((i) =>
-        this.resolveCurrentPrice(em, i.variantId).catch(() => null),
-      ),
+  private async resolveItemSnapshotMap(
+    em: EntityManager,
+    variantIds: string[],
+  ): Promise<Map<string, CartItemSnapshot>> {
+    const uniqueIds = [...new Set(variantIds)];
+    if (uniqueIds.length === 0) return new Map();
+
+    const variants = await em.find(
+      ProductVariantEntity,
+      { id: { $in: uniqueIds } },
+      { populate: ['product'] },
     );
 
-    const itemsDto = items.map((item, idx) => {
-      const live = livePrices[idx] ?? Number(item.priceAtTime);
+    return new Map(
+      variants.map((variant) => {
+        const product = variant.product;
+        const thumbnail = variant.image ?? product?.thumbnail ?? null;
+        return [
+          variant.id,
+          {
+            productName: product?.name ?? '',
+            variantLabel: variant.title || undefined,
+            thumbnail,
+          },
+        ] as const;
+      }),
+    );
+  }
+
+  private async buildCartResponse(
+    em: EntityManager,
+    cart: CartEntity,
+  ): Promise<CartResponse> {
+    const items = cart.items.getItems();
+    const variantIds = items.map((item) => item.variantId);
+
+    const [unitPrices, snapshots] = await Promise.all([
+      Promise.all(
+        items.map((item) =>
+          this.resolveCurrentPrice(em, item.variantId).catch(
+            () => Number(item.priceAtTime),
+          ),
+        ),
+      ),
+      this.resolveItemSnapshotMap(em, variantIds),
+    ]);
+
+    const cartItems = items.map((item, index) => {
+      const priceAtTime = unitPrices[index];
+      const snapshot = snapshots.get(item.variantId);
       return {
         id: item.id,
         variantId: item.variantId,
         quantity: item.quantity,
-        priceAtTime: live,
-        subtotal: Number((live * item.quantity).toFixed(2)),
+        priceAtTime,
+        subtotal: Number((priceAtTime * item.quantity).toFixed(2)),
+        productName: snapshot?.productName ?? '',
+        variantLabel: snapshot?.variantLabel,
+        thumbnail: snapshot?.thumbnail ?? null,
       };
     });
 
     const total = Number(
-      itemsDto.reduce((sum, i) => sum + i.subtotal, 0).toFixed(2),
+      cartItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2),
     );
 
     return {
       id: cart.id,
       userId: cart.userId,
       status: cart.status,
-      items: itemsDto,
+      items: cartItems,
       total,
-      itemCount: itemsDto.reduce((n, i) => n + i.quantity, 0),
+      itemCount: cartItems.reduce((count, item) => count + item.quantity, 0),
     };
   }
 }

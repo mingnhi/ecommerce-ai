@@ -1,4 +1,10 @@
-type CartItemResponse = {
+export type CartItemSnapshot = {
+  productName: string;
+  variantLabel?: string;
+  thumbnail: string | null;
+};
+
+export type CartItemResponse = CartItemSnapshot & {
   id: string;
   variantId: string;
   quantity: number;
@@ -6,7 +12,7 @@ type CartItemResponse = {
   subtotal: number;
 };
 
-type CartResponse = {
+export type CartResponse = {
   id: string;
   userId: string;
   status: string;

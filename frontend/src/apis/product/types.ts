@@ -1,8 +1,11 @@
+import type { ApiEnvelope } from '@/types/common';
+
 export interface ProductPrice {
   price: number;
   originalPrice: number;
   discountPercent?: number;
   currency: string;
+  isActive?: boolean;
 }
 
 export interface ProductVariant {
@@ -13,7 +16,7 @@ export interface ProductVariant {
   price?: number;
   image?: string;
   isActive: boolean;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 export interface ProductImage {
@@ -40,54 +43,39 @@ export interface Product {
   id: string;
   name: string;
   slug: string;
-
   shortDescription?: string;
   description?: string;
-
   thumbnail?: string;
-
   isActive: boolean;
-
   createdAt: string;
   updatedAt?: string;
-
   category: ProductCategory;
-
-  // API list products
-  price: ProductPrice;
-
-  // API product detail
+  price?: ProductPrice;
   prices?: ProductPrice[];
-
   variants: ProductVariant[];
-
   attributes: ProductAttribute[];
-
   images: ProductImage[];
 }
 
-export interface ProductListResponse {
-  status: string;
-  message: string;
-
-  data: Product[];
-
-  meta: {
-    page: number;
-    limit: number;
-    totalItems: number;
-    totalPages: number;
-  };
+export interface ProductPaginationMeta {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
 }
+
+export type ProductListResponse = ApiEnvelope<Product[]> & {
+  meta: ProductPaginationMeta;
+};
+
+export type ProductDetailResponse = ApiEnvelope<Product>;
 
 export interface QueryProductRequest {
   page?: number;
   limit?: number;
   search?: string;
-
   categoryId?: string;
   categorySlug?: string;
-
   sort?:
     | 'newest'
     | 'oldest'
@@ -96,4 +84,3 @@ export interface QueryProductRequest {
     | 'price_asc'
     | 'price_desc';
 }
-

@@ -1,15 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { formatVnd } from "@/lib/format-currency";
 import { getImageUrl } from "@/lib/api-assets";
-import type { ICartLine } from "@/types/cart";
+import { ProductPhoto } from "@/modules/HomePage/components/ProductCard";
+import type { CartLine } from "@/apis/cart/types";
 
 interface CartItemProps {
-  line: ICartLine;
+  line: CartLine;
   isSel: boolean;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
@@ -17,7 +17,6 @@ interface CartItemProps {
 }
 
 export function CartItem({ line, isSel, onToggle, onRemove, onQuantityChange }: CartItemProps) {
-  const src = getImageUrl(line.image) ?? line.image ?? undefined;
   const lineTotal = line.price * line.quantity;
 
   return (
@@ -31,16 +30,13 @@ export function CartItem({ line, isSel, onToggle, onRemove, onQuantityChange }: 
 
         <div className="flex min-w-0 gap-3 lg:col-start-2">
           <div className="relative size-[72px] shrink-0 overflow-hidden rounded-lg border border-border/50 bg-muted/30 sm:size-20">
-            {src ? (
-              <Image
-                src={src}
-                alt={line.name}
-                fill
-                className="object-cover"
-                sizes="80px"
-                unoptimized
-              />
-            ) : null}
+            <ProductPhoto
+              src={getImageUrl(line.image) ?? line.image ?? ""}
+              alt={line.name}
+              fill
+              sizes="80px"
+              className="object-cover"
+            />
           </div>
           <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
             <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
