@@ -23,6 +23,7 @@ import { Roles } from '@modules/auth/guards/roles.decorator';
 import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
 import { UserRolesService } from '@modules/user-roles/user-roles.service';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
+import { BulkUpdateStatusResponse, OrderResponse } from './dto/order.response';
 
 @ApiTags('Order')
 @ApiBearerAuth('JWT')

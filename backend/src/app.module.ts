@@ -22,7 +22,7 @@ import { InventoryModule } from '@modules/inventory/inventory.module';
 import { CartModule } from '@modules/cart/cart.module';
 import { OrderModule } from '@modules/order/order.module';
 import { UserEventModule } from './modules/user-event/user-event.module';
-
+import { AddressModule } from '@modules/address/address.module';
 
 @Module({
   imports: [
@@ -53,6 +53,7 @@ import { UserEventModule } from './modules/user-event/user-event.module';
     CartModule,
     OrderModule,
     UserEventModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],

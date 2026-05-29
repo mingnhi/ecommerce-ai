@@ -1,7 +1,12 @@
 import { Payment } from '@entities/payment.entity';
 import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as qs from 'qs';
 import moment from 'moment';
@@ -21,11 +26,15 @@ export class PaymentService {
     private readonly orderRepo: EntityRepository<OrderEntity>,
   ) { }
 
-  async createPayment(dto: CreatePaymentDto, ipAddr: string) {
+  async createPayment(dto: CreatePaymentDto, userId: string, ipAddr: string) {
     const order = await this.orderRepo.findOne({ id: dto.orderId });
 
     if (!order) {
       throw new NotFoundException('Order not found');
+    }
+
+    if (order.userId !== userId) {
+      throw new ForbiddenException('You cannot pay for this order');
     }
 
     if (order.status !== OrderStatus.PENDING) {
