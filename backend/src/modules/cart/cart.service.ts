@@ -50,7 +50,7 @@ export class CartService {
         MAX_QTY,
       );
 
-      await this.assertStockAvailable(em, dto.variantId, targetQty);
+      // await this.assertStockAvailable(em, dto.variantId, targetQty);
       const priceAtTime = await this.resolveCurrentPrice(em, dto.variantId);
 
       if (existing) {
@@ -93,7 +93,7 @@ export class CartService {
         throw new ConflictException('Cart already checked out');
       }
 
-      await this.assertStockAvailable(em, item.variantId, dto.quantity);
+      // await this.assertStockAvailable(em, item.variantId, dto.quantity);
       item.quantity = dto.quantity;
       item.priceAtTime = await this.resolveCurrentPrice(em, item.variantId);
       em.persist(item);
@@ -142,14 +142,13 @@ export class CartService {
             .getItems()
             .find((item) => item.variantId === guestLine.variantId);
 
-          const available = await this.resolveAvailableStock(
-            em,
-            guestLine.variantId,
-          );
+          // const available = await this.resolveAvailableStock(
+          //   em,
+          //   guestLine.variantId,
+          // );
           const targetQty = Math.min(
             (existing?.quantity ?? 0) + guestLine.quantity,
             MAX_QTY,
-            available,
           );
           if (targetQty <= 0) continue;
 
@@ -244,16 +243,19 @@ export class CartService {
   }
 
   private async assertStockAvailable(
-    em: EntityManager,
-    variantId: string,
-    requested: number,
+    _em: EntityManager,
+    _variantId: string,
+    _requested: number,
   ) {
-    const available = await this.resolveAvailableStock(em, variantId);
-    if (available < requested) {
-      throw new ConflictException(
-        `Insufficient stock for variant ${variantId}: need ${requested}, available ${available}`,
-      );
-    }
+    // Tạm tắt kiểm tra tồn kho — bật lại khi có nhập kho
+    return;
+
+    // const available = await this.resolveAvailableStock(em, variantId);
+    // if (available < requested) {
+    //   throw new ConflictException(
+    //     `Insufficient stock for variant ${variantId}: need ${requested}, available ${available}`,
+    //   );
+    // }
   }
 
   private async resolveCurrentPrice(

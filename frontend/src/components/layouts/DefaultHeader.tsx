@@ -190,7 +190,7 @@ function HeaderCartDropdown() {
                   {formatVnd(subtotal)}
                 </span>
               </div>
-              <Button asChild className="w-full rounded-xl font-semibold shadow-sm" size="sm">
+              <Button asChild className="w-full rounded-xl font-semibold shadow-sm bg-sky-500 text-white hover:bg-sky-600" size="sm">
                 <Link href={ROUTES.CART}>Xem giỏ hàng</Link>
               </Button>
             </div>

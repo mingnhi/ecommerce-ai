@@ -6,18 +6,21 @@ import { PackageSearch, Search, SearchX, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useOrderListQuery } from "@/apis/order";
+import { ORDER_TAB_STATUS, mapApiOrder } from "@/lib/order";
 import { OrderCard } from "./components/OrderCard";
+import { OrderHistorySkeleton } from "./components/Skeleton";
 import { cn } from "@/lib/utils";
-import { MOCK_ORDERS } from "@/faker/mock-orders";
 import { ROUTES } from "@/lib/routes";
 import { useOrderTabsSticky } from "@/hooks/use-order-tabs-sticky";
+
 const orderTabs = [
   { value: "all", label: "Tất cả" },
   { value: "pending", label: "Chờ thanh toán" },
-  { value: "shipping", label: "Vận chuyển" },
+  { value: "confirmed", label: "Đã thanh toán" },
+  { value: "shipping", label: "Đang giao" },
   { value: "delivered", label: "Hoàn thành" },
   { value: "cancelled", label: "Đã hủy" },
-  { value: "returned", label: "Trả hàng/Hoàn tiền" },
 ] as const;
 
 type EmptyType = "all" | "tab" | "search";
@@ -75,7 +78,7 @@ function OrderHistoryEmptyView({
           </Button>
         ) : null}
         {type === "all" ? (
-          <Button asChild className="rounded-full bg-sky-600 hover:bg-sky-700 px-8 shadow-md shadow-sky-600/20 text-white hover:cursor-pointer">
+          <Button asChild className="rounded-full bg-sky-600 px-8 text-white shadow-md shadow-sky-600/20 hover:bg-sky-700 hover:cursor-pointer">
             <Link href={ROUTES.HOME}>Mua sắm ngay</Link>
           </Button>
         ) : type === "tab" ? (
@@ -93,26 +96,41 @@ export default function OrderHistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { sentinelRef, isPinned } = useOrderTabsSticky();
 
+  const apiStatus = ORDER_TAB_STATUS[activeTab];
+  const { data, isLoading, isError } = useOrderListQuery({
+    status: apiStatus,
+    limit: 50,
+  });
+
+  const orders = useMemo(
+    () => (data?.items ?? []).map(mapApiOrder),
+    [data?.items],
+  );
+
   const filteredOrders = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return MOCK_ORDERS.filter((order) => {
-      const matchesTab = activeTab === "all" || order.status === activeTab;
-      const matchesSearch =
-        !q ||
+    if (!q) return orders;
+    return orders.filter(
+      (order) =>
+        order.id.toLowerCase().includes(q) ||
         order.orderNumber.toLowerCase().includes(q) ||
-        order.products.some((p) => p.name.toLowerCase().includes(q));
-      return matchesTab && matchesSearch;
-    });
-  }, [activeTab, searchQuery]);
+        order.products.some((p) => p.name.toLowerCase().includes(q)),
+    );
+  }, [orders, searchQuery]);
 
   const emptyType = useMemo<EmptyType | null>(() => {
+    if (isLoading) return null;
     if (filteredOrders.length > 0) return null;
     if (searchQuery.trim()) return "search";
     if (activeTab !== "all") return "tab";
     return "all";
-  }, [filteredOrders.length, searchQuery, activeTab]);
+  }, [filteredOrders.length, searchQuery, activeTab, isLoading]);
 
   const activeTabLabel = orderTabs.find((t) => t.value === activeTab)?.label;
+
+  if (isLoading) {
+    return <OrderHistorySkeleton />;
+  }
 
   return (
     <div className="min-h-auto pb-6">
@@ -135,7 +153,7 @@ export default function OrderHistoryPage() {
                     className={cn(
                       "min-w-fit flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all",
                       "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:cursor-pointer",
-                      "data-[state=active]:bg-sky-500/10 data-[state=active]:text-sky-600 data-[state=active]:shadow-none"
+                      "data-[state=active]:bg-sky-500/10 data-[state=active]:text-sky-600 data-[state=active]:shadow-none",
                     )}
                   >
                     {tab.label}
@@ -154,6 +172,12 @@ export default function OrderHistoryPage() {
               className="h-12 w-full rounded-sm border-border/60 bg-card pl-11 shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-sky-500"
             />
           </div>
+
+          {isError ? (
+            <div className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+              Không tải được danh sách đơn hàng. Vui lòng thử lại sau.
+            </div>
+          ) : null}
 
           <div className="space-y-4">
             {emptyType ? (
