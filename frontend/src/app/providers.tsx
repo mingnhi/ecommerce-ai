@@ -7,7 +7,7 @@ import { Provider as ReduxProvider } from 'react-redux';
 import NextTopLoader from 'nextjs-toploader';
 import { Toaster } from 'sonner';
 import LayoutContainer from '@/components/layouts/LayoutContainer';
-import Chatbot from '@/components/common/Chatbot';
+
 import { AuthSessionSync } from '@/components/auth/AuthSessionSync';
 import { useScrollToTop } from '@/hooks/use-scroll-to-top';
 import { store } from '@/stores';
@@ -52,7 +52,6 @@ export function Providers({ children }: { children: ReactNode }) {
                         speed={200}
                         shadow={false}
                     />
-                    <Chatbot />
                 </QueryClientProvider>
             </SessionProvider>
         </ReduxProvider>

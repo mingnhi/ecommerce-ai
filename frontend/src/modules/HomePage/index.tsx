@@ -12,7 +12,7 @@ export default function HomePage() {
     <div className="mx-auto w-full max-w-[1440px] space-y-10 px-4 py-8 md:space-y-12 md:px-6 md:p-8">
       <SlideSection />
       <CategorySection />
-      <RecommendSection />
+      <RecommendSection limit={10} />
       <PopularProductSection />
       <DailyBestSection />
       <DealSection />
