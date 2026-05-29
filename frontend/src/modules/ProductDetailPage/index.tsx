@@ -142,7 +142,7 @@ console.log(product.price);
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <Image
+                  <ProductPhoto
                     src={img.imageUrl}
                     alt={product.name}
                     fill

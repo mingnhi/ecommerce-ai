@@ -52,7 +52,7 @@ export function ProductListsSection() {
               return (
                 <article
                   key={product.id}
-                  className="group flex gap-3 rounded-lg px-2 py-3.5 transition-colors hover:bg-sky-50/40"
+                  className="group flex gap-3 rounded-lg px-2 py-3.5 transition-colors hover:bg-sky-50/40 cursor-pointer"
                 >
                   <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-gradient-to-b from-sky-50 to-white">
                     {/* Discount Badge */}
