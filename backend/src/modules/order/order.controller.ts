@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -114,6 +115,21 @@ export class OrderController {
     return {
       status: 'success',
       message: 'Update order status successfully',
+      data,
+    };
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async destroy(
+    @Param('id') id: string,
+  ): Promise<ApiResponse<{ message: string }>> {
+    const data = await this.orderService.remove(id);
+
+    return {
+      status: 'success',
+      message: 'Delete order successfully',
       data,
     };
   }

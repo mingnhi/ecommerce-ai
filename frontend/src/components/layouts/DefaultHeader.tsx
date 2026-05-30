@@ -24,7 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatVnd } from "@/lib/format-currency";
-import { buildProductPageUrl } from "@/modules/ProductPage/lib";
+import { buildSearchUrl } from "@/lib/search";
 import { useCartContext } from "@/contexts";
 import { MOCK_NOTIFICATIONS } from "@/faker/mock-notifications";
 import { cn } from "@/lib/utils";
@@ -322,7 +322,7 @@ function HeaderNotificationDropdown() {
 function HeaderSearchForm({ className }: { className?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryFromUrl = searchParams.get("search") ?? "";
+  const queryFromUrl = searchParams.get("q") ?? "";
   const [term, setTerm] = useState(queryFromUrl);
 
   useEffect(() => {
@@ -331,7 +331,7 @@ function HeaderSearchForm({ className }: { className?: string }) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    router.push(buildProductPageUrl({ search: term, page: 1 }));
+    router.push(buildSearchUrl({ q: term, page: 1 }));
   };
 
   return (
@@ -343,13 +343,13 @@ function HeaderSearchForm({ className }: { className?: string }) {
       )}
     >
       <div className="relative min-w-0 flex-1">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-sky-500" />
         <input
           type="search"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           placeholder="Tìm sản phẩm..."
-          className="h-10 w-full border-0 bg-sky-50/50 pl-10 pr-3 text-sm text-sky-950 outline-none "
+          className="h-10 w-full border-0 bg-sky-50/50 pl-10 pr-3 text-sm text-sky-950 outline-none placeholder:text-sky-400"
         />
       </div>
       <button

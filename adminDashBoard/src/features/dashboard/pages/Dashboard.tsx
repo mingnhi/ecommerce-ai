@@ -80,7 +80,7 @@ import { cn } from "@/shared/lib/utils";
 
 import {
   useCategories,
-} from "@/features/categories/hooks/categories";
+} from "@/features/products/hooks/categories";
 
 const areaConfig = {
   value: {

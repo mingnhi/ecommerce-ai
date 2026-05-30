@@ -2,13 +2,12 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import DashboardPage from "@/features/dashboard/pages/Dashboard";
 
-import CategoriesPage from "@/features/categories/pages/categories-page";
+import CategoriesPage from "@/features/products/pages/CategoriesPage";
 
-// Products
-import ProductsPage from "@/features/products/pages/products-page";
-import ProductDetailPage from "@/features/products/pages/product-detail-page";
-import CreateProductPage from "@/features/products/pages/create-product-page";
-import EditProductPage from "@/features/products/pages/edit-product-page";
+import ProductsPage from "@/features/products/pages/ProductsPage";
+import ProductDetailPage from "@/features/products/pages/ProductDetailPage";
+import CreateProductPage from "@/features/products/pages/CreateProductPage";
+import EditProductPage from "@/features/products/pages/EditProductPage";
 
 import { CartPage } from "@/features/cart/pages/CartPage";
 import OrdersPage from "@/features/order/pages/OrdersPage";

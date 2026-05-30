@@ -7,6 +7,7 @@ import {
   PackagePlus,
   Pencil,
   Plus,
+  ImagePlus,
   RefreshCw,
   Settings,
   Shield,
@@ -18,7 +19,7 @@ import {
 
 export const PERMISSION_RESOURCE_LABELS = {
   Dashboard: "Tổng quan",
-  Product: "Sản phẩm",
+  Product: "Sản phẩm & Danh mục",
   Order: "Đơn hàng",
   Inventory: "Tồn kho",
   User: "Người dùng",
@@ -28,13 +29,22 @@ export const PERMISSION_RESOURCE_LABELS = {
 
 export const PERMISSION_RESOURCE_ACTIONS = {
   Dashboard: ["read"],
-  Product: ["read", "create", "update", "delete"],
-  Order: ["read", "update_status", "cancel"],
+  Product: ["read", "create", "update", "delete", "upload_images"],
+  Order: ["read", "update_status", "cancel", "delete"],
   Inventory: ["read", "import", "check", "adjust", "update_threshold", "delete"],
   Role: ["read", "create", "update", "delete", "assign_permissions"],
   Permission: ["read", "create", "update", "delete"],
   User: ["read", "create", "update", "delete", "update_status", "assign_roles"],
 } as const;
+
+const PRODUCT_RESOURCE_ENDPOINTS: Record<string, string> = {
+  read: "GET /products · GET /products/:slug · GET /categories",
+  create: "POST /products · POST /categories",
+  update: "PUT /products/:id · PUT /categories/:id",
+  delete: "DELETE /products/:id · DELETE /categories/:id · DELETE /images/:id",
+  upload_images:
+    "POST /products/:id/images · PATCH /images/:id/thumbnail · DELETE /images/:id",
+};
 
 export type PermissionResource = keyof typeof PERMISSION_RESOURCE_ACTIONS;
 export type PermissionAction = keyof typeof PERMISSION_ACTION_META;
@@ -199,6 +209,14 @@ export const PERMISSION_ACTION_META: Record<string, PermissionActionMeta> = {
     tone: "violet",
     endpoint: "POST /roles/:id/permissions",
   },
+  upload_images: {
+    label: "Quản lý ảnh",
+    description: "Upload, đặt thumbnail và xóa ảnh sản phẩm",
+    method: "POST/PATCH/DELETE",
+    icon: ImagePlus,
+    tone: "cyan",
+    endpoint: "POST /products/:id/images",
+  },
 };
 
 export function getPermissionResources(): PermissionResource[] {
@@ -225,7 +243,10 @@ export function createPermissionDraft(
   if (!meta) return null;
 
   const resourceLabel = PERMISSION_RESOURCE_LABELS[resource];
-  const endpoint = meta.endpoint ? ` (${meta.endpoint})` : "";
+  const resourceEndpoint =
+    resource === "Product" ? PRODUCT_RESOURCE_ENDPOINTS[action] : undefined;
+  const endpointDetail = resourceEndpoint ?? meta.endpoint;
+  const endpoint = endpointDetail ? ` (${endpointDetail})` : "";
 
   return {
     name: buildPermissionKey(resource, action),

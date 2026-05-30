@@ -1,7 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { ChevronRight, Eye, Trash2, User } from "lucide-react"
 import type { IAdminOrder, OrderStatus, OrdersTableRow } from "@/features/order/types"
-import { ORDER_STATUS_LABEL, ORDER_STATUSES } from "@/features/order/types"
+import { ORDER_STATUS_LABEL } from "@/features/order/types"
+import { getSelectableStatuses } from "@/features/order/lib"
 import { formatVnd } from "@/shared/lib/format-vnd"
 import { cn } from "@/shared/lib/utils"
 import {
@@ -33,8 +34,6 @@ function statusTone(status: OrderStatus) {
       "border-emerald-500/35 bg-emerald-500/[0.07] text-emerald-950 dark:text-emerald-100",
     cancelled:
       "border-border bg-muted/50 text-muted-foreground",
-    returned:
-      "border-rose-500/35 bg-rose-500/[0.07] text-rose-950 dark:text-rose-100",
   }
   return map[status]
 }
@@ -51,7 +50,7 @@ function formatDate(iso: string) {
 }
 
 type BuilderProps = {
-  onUpdateStatus: (orderId: string, status: OrderStatus) => void
+  onUpdateStatus: (orderId: string, status: OrderStatus) => void | Promise<void>
   onPreview: (order: IAdminOrder) => void
 }
 
@@ -127,7 +126,6 @@ export function buildOrderColumns({
             </div>
           )
         }
-        const title = r.products.map((p) => p.name).join(" · ")
         return (
           <div className="min-w-[220px] space-y-1 py-1 flex items-center gap-2">
             <span className="text-slate-300 dark:text-slate-700 select-none font-mono">├─</span>
@@ -213,50 +211,70 @@ export function buildOrderColumns({
           return null
         }
         return (
-          <div className="flex justify-end gap-0.5 pr-3">
-            <Can permission={PERMISSIONS.ORDER.READ}>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
-                aria-label="Xem chi tiết"
-                onClick={() => onPreview(r as IAdminOrder)}
-              >
-                <Eye className="size-4" />
-              </Button>
-            </Can>
-            <Can permission={PERMISSIONS.ORDER.CANCEL}>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:cursor-pointer"
-                aria-label="Xóa đơn"
-                onClick={() => {
-                  const meta = table.options.meta as { onDeleteTarget?: (row: OrdersTableRow) => void }
-                  if (meta?.onDeleteTarget) {
-                    meta.onDeleteTarget(r)
-                  }
-                }}
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </Can>
-          </div>
+          <OrderActionsCell
+            order={r as IAdminOrder}
+            onPreview={onPreview}
+            onDelete={(orderRow) => {
+              const tableMeta = table.options.meta as {
+                onDeleteTarget?: (row: OrdersTableRow) => void
+              }
+              tableMeta?.onDeleteTarget?.(orderRow)
+            }}
+          />
         )
       },
     },
   ]
 }
 
+type OrderActionsCellProps = {
+  order: IAdminOrder
+  onPreview: (order: IAdminOrder) => void
+  onDelete: (row: OrdersTableRow) => void
+}
+
+function OrderActionsCell({ order, onPreview, onDelete }: OrderActionsCellProps) {
+  const canDelete =
+    useCan(PERMISSIONS.ORDER.DELETE) || useCan(PERMISSIONS.ORDER.UPDATE_STATUS)
+
+  return (
+    <div className="flex justify-end gap-0.5 pr-3">
+      <Can permission={PERMISSIONS.ORDER.READ}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className="text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500 hover:cursor-pointer"
+          aria-label="Xem chi tiết"
+          onClick={() => onPreview(order)}
+        >
+          <Eye className="size-4" />
+        </Button>
+      </Can>
+      {canDelete ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive hover:cursor-pointer"
+          aria-label="Xóa đơn hàng"
+          onClick={() => onDelete({ rowType: "order", ...order })}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+
 type OrderStatusCellProps = {
   order: IAdminOrder
-  onUpdateStatus: (orderId: string, status: OrderStatus) => void
+  onUpdateStatus: (orderId: string, status: OrderStatus) => void | Promise<void>
 }
 
 function OrderStatusCell({ order, onUpdateStatus }: OrderStatusCellProps) {
   const canUpdate = useCan(PERMISSIONS.ORDER.UPDATE_STATUS)
+  const options = getSelectableStatuses()
 
   if (!canUpdate) {
     return (
@@ -286,8 +304,12 @@ function OrderStatusCell({ order, onUpdateStatus }: OrderStatusCellProps) {
         <SelectValue />
       </SelectTrigger>
       <SelectContent align="start">
-        {ORDER_STATUSES.map((s) => (
-          <SelectItem key={s} value={s} className="text-sm">
+        {options.map((s) => (
+          <SelectItem
+            key={s}
+            value={s}
+            className={cn("text-sm", statusTone(s))}
+          >
             {ORDER_STATUS_LABEL[s]}
           </SelectItem>
         ))}

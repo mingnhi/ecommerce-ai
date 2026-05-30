@@ -4,7 +4,6 @@ export type OrderStatus =
   | "shipping"
   | "delivered"
   | "cancelled"
-  | "returned"
 
 export interface IOrderProductLines {
   id: string
@@ -54,7 +53,6 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   shipping: "Đang giao",
   delivered: "Đã giao",
   cancelled: "Đã hủy",
-  returned: "Hoàn trả",
 }
 
 export const ORDER_STATUSES: OrderStatus[] = [
@@ -63,5 +61,4 @@ export const ORDER_STATUSES: OrderStatus[] = [
   "shipping",
   "delivered",
   "cancelled",
-  "returned",
 ]
