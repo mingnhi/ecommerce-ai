@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { useProductBySlug } from "../hooks/products";
 import type { ProductImage, ProductPrice } from "../types/product.type";

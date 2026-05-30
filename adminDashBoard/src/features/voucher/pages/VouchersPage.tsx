@@ -13,10 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { useVouchers, useDeleteVoucher } from "../hooks";
+import { useVouchers, useDeleteVoucher } from "../hooks/vouchers";
 import { VoucherFormDialog } from "../components/VoucherFormDialog";
 import { useUrlState } from "@/shared/hooks/use-url-state";
-import type { Voucher } from "../types";
+import type { Voucher } from "../types/voucher.type";
+import { isAxiosError } from "axios";
 
 const URL_SCHEMA = {
   search: { type: "string", default: "" },
@@ -41,7 +42,10 @@ export default function VouchersPage() {
       await del.mutateAsync(v.id);
       toast.success("Đã xoá");
     } catch (e: unknown) {
-      toast.error(e?.response?.data?.message ?? "Lỗi");
+      const message = isAxiosError(e)
+        ? (e.response?.data as { message?: string })?.message
+        : undefined;
+      toast.error(message ?? "Lỗi");
     }
   };
 

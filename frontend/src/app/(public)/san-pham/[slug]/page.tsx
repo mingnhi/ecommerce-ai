@@ -23,24 +23,20 @@ export default async function Page({ params, searchParams }: Props) {
   );
 }
 
-// ==================== METADATA ĐỘNG (SEO) ====================
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
 
   try {
-    // Bạn có thể import ProductService ở đây nếu muốn fetch metadata
-    // const product = await ProductService.getBySlug(slug);
-    
     return {
       title: `Sản phẩm ${slug} - Tên Cửa Hàng`,
       description: `Chi tiết sản phẩm ${slug}`,
       openGraph: {
         title: `Sản phẩm ${slug}`,
         description: `Xem chi tiết sản phẩm ${slug}`,
-        images: [{ url: '/images/og-image.jpg' }], // có thể thay bằng ảnh thật sau
+        images: [{ url: '/images/og-image.jpg' }],
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Sản phẩm không tồn tại',
       description: 'Không tìm thấy sản phẩm bạn đang tìm kiếm.',

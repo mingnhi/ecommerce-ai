@@ -1,7 +1,20 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ProductService } from './requests';
 import { KEYS } from './keys';
-import type { ProductListResponse, QueryProductRequest } from './types';
+import type {
+  ProductListResponse,
+  ProductPriceRangeResponse,
+  QueryProductRequest,
+} from './types';
+
+export const useProductPriceRange = () => {
+  return useQuery<ProductPriceRangeResponse>({
+    queryKey: [KEYS.PRICE_RANGE],
+    queryFn: () => ProductService.getPriceRange(),
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
+  });
+};
 
 export const useProducts = (query: QueryProductRequest = {}) => {
   return useQuery<ProductListResponse>({

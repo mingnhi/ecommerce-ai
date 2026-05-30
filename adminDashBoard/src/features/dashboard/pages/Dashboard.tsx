@@ -26,7 +26,6 @@ import {
 import { MOCK_TOP_SELLING } from "@/faker/mock-products";
 
 import {
-  analyticMiniStats,
   currentOffers,
   salesAnalytic30d,
   salesAnalytic7d,
@@ -48,7 +47,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
@@ -80,7 +78,7 @@ import { cn } from "@/shared/lib/utils";
 
 import {
   useCategories,
-} from "@/features/categories/hooks/categories";
+} from "@/features/products/hooks/categories";
 
 const areaConfig = {
   value: {

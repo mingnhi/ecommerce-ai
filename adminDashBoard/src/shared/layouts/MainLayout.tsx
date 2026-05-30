@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,13 +6,15 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/shared/components/ui/breadcrumb"
+} from "@/shared/components/ui/breadcrumb";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/shared/components/ui/sidebar"
-import { AppSidebar } from "@/shared/layouts/sidebar/AppSidebar"
+} from "@/shared/components/ui/sidebar";
+import { AppSidebar } from "@/shared/layouts/sidebar/AppSidebar";
+
+type Crumb = { label: string; href?: string };
 
 const LABELS: Record<string, string> = {
   "/dashboard": "Tổng quan",
@@ -20,7 +22,7 @@ const LABELS: Record<string, string> = {
   "/orders": "Đơn hàng",
   "/inventory": "Tồn kho",
   "/inventory/history": "Lịch sử kho",
-  "/categories": "Danh mục sản phẩm",
+  "/categories": "Danh mục",
   "/products": "Sản phẩm",
   "/roles": "Vai trò",
   "/permissions": "Quyền hạn",
@@ -28,26 +30,45 @@ const LABELS: Record<string, string> = {
   "/account/profile": "Thông tin tài khoản",
   "/account/password": "Đổi mật khẩu",
   "/403": "Không có quyền truy cập",
-}
+};
 
-function breadcrumbLabel(pathname: string) {
-  if (LABELS[pathname]) return LABELS[pathname]
-  if (pathname === "/") return "Tổng quan"
-  if (pathname.startsWith("/products/")) return "Chi tiết sản phẩm"
-  return "Không tìm thấy"
+function getBreadcrumbs(pathname: string): Crumb[] {
+  if (pathname === "/products/create") {
+    return [
+      { label: "Sản phẩm", href: "/products" },
+      { label: "Tạo sản phẩm" },
+    ];
+  }
+
+  if (/^\/products\/[^/]+\/edit$/.test(pathname)) {
+    return [
+      { label: "Sản phẩm", href: "/products" },
+      { label: "Chỉnh sửa sản phẩm" },
+    ];
+  }
+
+  if (/^\/products\/[^/]+$/.test(pathname)) {
+    return [
+      { label: "Sản phẩm", href: "/products" },
+      { label: "Chi tiết sản phẩm" },
+    ];
+  }
+
+  const label = LABELS[pathname] ?? (pathname === "/" ? "Tổng quan" : "Không tìm thấy");
+  return [{ label }];
 }
 
 const MainLayout = () => {
-  const { pathname } = useLocation()
-  const current = breadcrumbLabel(pathname)
+  const { pathname } = useLocation();
+  const crumbs = getBreadcrumbs(pathname);
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="h-svh overflow-hidden">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/30 px-4 backdrop-blur-sm md:h-16 md:px-6 sticky top-0 z-30">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-sky-500/10 bg-card/80 px-4 backdrop-blur-sm md:h-16 md:px-6">
           <SidebarTrigger className="-ml-0.5 hover:cursor-pointer" />
-          
+
           <Breadcrumb>
             <BreadcrumbList className="text-sm">
               <BreadcrumbItem className="hidden sm:inline-flex">
@@ -55,21 +76,31 @@ const MainLayout = () => {
                   <Link to="/dashboard">Quản trị</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden sm:inline-flex" />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="font-medium text-foreground">
-                  {current}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
+              {crumbs.map((crumb, index) => (
+                <span key={`${crumb.label}-${index}`} className="contents">
+                  <BreadcrumbSeparator className="hidden sm:inline-flex" />
+                  <BreadcrumbItem>
+                    {crumb.href && index < crumbs.length - 1 ? (
+                      <BreadcrumbLink asChild>
+                        <Link to={crumb.href}>{crumb.label}</Link>
+                      </BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage className="font-medium text-foreground">
+                        {crumb.label}
+                      </BreadcrumbPage>
+                    )}
+                  </BreadcrumbItem>
+                </span>
+              ))}
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <main className="flex overflow-y-auto min-h-[calc(100svh-3.5rem)] flex-1 flex-col bg-[#F9FAFB] p-4 md:min-h-[calc(100svh-4rem)] md:p-6 dark:bg-background">
+        <main className="flex min-h-[calc(100svh-3.5rem)] flex-1 flex-col overflow-y-auto bg-slate-50/80 p-4 md:min-h-[calc(100svh-4rem)] md:p-6 dark:bg-background">
           <Outlet />
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
-}
+  );
+};
 
-export default MainLayout
+export default MainLayout;

@@ -76,11 +76,22 @@ export interface QueryProductRequest {
   search?: string;
   categoryId?: string;
   categorySlug?: string;
+  isActive?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
   sort?:
     | 'newest'
+    | 'best_selling'
     | 'oldest'
     | 'name_asc'
     | 'name_desc'
     | 'price_asc'
     | 'price_desc';
 }
+
+export interface ProductPriceRange {
+  min: number;
+  max: number;
+}
+
+export type ProductPriceRangeResponse = ApiEnvelope<ProductPriceRange>;

@@ -95,7 +95,7 @@ export const MOCK_ORDERS: IAdminOrder[] = [
   {
     id: "ord-5",
     orderNumber: "ORD-R3TURN",
-    status: "returned",
+    status: "cancelled",
     products: [toProduct(3, "op-6")],
     subtotal: lineTotal(3),
     shippingFee: 30_000,

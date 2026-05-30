@@ -17,6 +17,7 @@ import { EntityManager } from '@mikro-orm/core';
 
 import { OrderEntity } from '@entities/order.entity';
 import { OrderItemEntity } from '@entities/order-item.entity';
+import { Payment } from '@entities/payment.entity';
 import { ProductVariantEntity } from '@entities/product-variant.entity';
 import { ProductImageType } from '@entities/product-image.entity';
 
@@ -40,12 +41,6 @@ interface ApplyTransitionInput {
 
 const USER_ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.PENDING]: [OrderStatus.CANCELLED],
-};
-
-const ADMIN_ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
-  [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
-  [OrderStatus.PAID]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
-  [OrderStatus.SHIPPED]: [OrderStatus.COMPLETED],
 };
 
 @Injectable()
@@ -218,6 +213,27 @@ export class OrderService {
     });
   }
 
+  async remove(orderId: string) {
+    return this.em.transactional(async (em) => {
+      const order = await em.findOne(
+        OrderEntity,
+        { id: orderId },
+        { populate: ['items'] },
+      );
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      const payments = await em.find(Payment, { order: orderId });
+      payments.forEach((payment) => em.remove(payment));
+      order.items.getItems().forEach((item) => em.remove(item));
+      em.remove(order);
+      await em.flush();
+
+      return { message: 'Delete order successfully' };
+    });
+  }
+
   async bulkUpdateStatus(
     actorUserId: string,
     orderIds: string[],
@@ -265,13 +281,19 @@ export class OrderService {
 
       const from = order.status;
       const to = input.targetStatus;
-      const allowed = input.isAdmin
-        ? ADMIN_ALLOWED_TRANSITIONS[from]
-        : USER_ALLOWED_TRANSITIONS[from];
-      if (!allowed?.includes(to)) {
-        throw new ConflictException(
-          `Cannot transition order from ${from} to ${to}`,
-        );
+
+      if (from === to) {
+        const variantMap = await this.loadVariantMap(em, [order]);
+        return this.toDto(order, variantMap);
+      }
+
+      if (!input.isAdmin) {
+        const allowed = USER_ALLOWED_TRANSITIONS[from];
+        if (!allowed?.includes(to)) {
+          throw new ConflictException(
+            `Cannot transition order from ${from} to ${to}`,
+          );
+        }
       }
 
       await this.applyInventorySideEffects(

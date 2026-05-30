@@ -23,14 +23,22 @@ export class ProductsController {
     private readonly productsService: ProductsService,
   ) {}
 
+  @Get('price-range')
+  async showPriceRange(): Promise<ApiResponse<{ min: number; max: number }>> {
+    const data = await this.productsService.getActivePriceRange();
+
+    return {
+      status: 'success',
+      message: 'Get product price range successfully',
+      data,
+    };
+  }
+
   @Get()
-  async findAll(
+  async index(
     @Query() query: QueryProductRequest,
   ): Promise<ApiResponse<any>> {
-    const data =
-      await this.productsService.findAll(
-        query,
-      );
+    const data = await this.productsService.findAll(query);
 
     return {
       status: 'success',
@@ -41,13 +49,10 @@ export class ProductsController {
   }
 
   @Get(':slug')
-  async findBySlug(
+  async show(
     @Param('slug') slug: string,
   ): Promise<ApiResponse<any>> {
-    const data =
-      await this.productsService.findBySlug(
-        slug,
-      );
+    const data = await this.productsService.findBySlug(slug);
 
     return {
       status: 'success',
@@ -57,18 +62,14 @@ export class ProductsController {
   }
 
   @Post()
-  async create(
+  async store(
     @Body() request: CreateProductRequest,
   ): Promise<ApiResponse<any>> {
-    const data =
-      await this.productsService.create(
-        request,
-      );
+    const data = await this.productsService.create(request);
 
     return {
       status: 'success',
-      message:
-        'Create product successfully',
+      message: 'Create product successfully',
       data,
     };
   }
@@ -78,33 +79,24 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() request: UpdateProductRequest,
   ): Promise<ApiResponse<any>> {
-    const data =
-      await this.productsService.update(
-        id,
-        request,
-      );
+    const data = await this.productsService.update(id, request);
 
     return {
       status: 'success',
-      message:
-        'Update product successfully',
+      message: 'Update product successfully',
       data,
     };
   }
 
   @Delete(':id')
-  async remove(
+  async destroy(
     @Param('id') id: string,
-  ): Promise<
-    ApiResponse<{ message: string }>
-  > {
-    const data =
-      await this.productsService.remove(id);
+  ): Promise<ApiResponse<{ message: string }>> {
+    const data = await this.productsService.remove(id);
 
     return {
       status: 'success',
-      message:
-        'Delete product successfully',
+      message: 'Delete product successfully',
       data,
     };
   }

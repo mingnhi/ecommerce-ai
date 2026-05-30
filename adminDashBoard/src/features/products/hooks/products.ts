@@ -4,12 +4,10 @@ import productService from "@/services/product";
 import type {
   ProductFormValues,
   ProductImageType,
+  ProductListQuery,
 } from "../types/product.type";
 
-/**
- * GET ALL PRODUCTS (FIXED QUERY KEY)
- */
-export const useProducts = (params?: unknown) =>
+export const useProducts = (params?: ProductListQuery) =>
   useQuery({
     queryKey: [
       "products",

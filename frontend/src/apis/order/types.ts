@@ -48,7 +48,11 @@ export type OrderListResult = {
   pagination?: OrderListPagination;
 };
 
-export type OrderListResponse = ApiEnvelope<ApiOrder[]>;
+export type OrderListResponse = ApiEnvelope<ApiOrder[]> & {
+  meta?: {
+    pagination?: OrderListPagination;
+  };
+};
 
 export type CreateOrderPayload = {
   shippingAddress: string;

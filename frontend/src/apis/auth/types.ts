@@ -81,6 +81,7 @@ export interface UserResponse {
   id?: string;
   email?: string;
   role?: string;
+  fullName?: string;
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;

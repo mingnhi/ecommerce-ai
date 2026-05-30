@@ -137,32 +137,16 @@ export function PermissionDialog({ open, onOpenChange, permission }: Props) {
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const needsScroll = isEdit || Boolean(selectedAction);
+  const scrollBodyClass =
+    "h-[min(520px,calc(90vh-11rem))] max-h-[min(520px,calc(90vh-11rem))]";
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden rounded-xl border border-slate-200/80 p-0 shadow-2xl sm:max-w-xl dark:border-slate-800">
-        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-5 dark:border-slate-800">
-          <div className="flex items-start gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
-              <ShieldPlus className="size-5" />
-            </div>
-            <div className="space-y-1">
-              <DialogTitle className="text-lg font-semibold tracking-tight">
-                {isEdit ? "Chỉnh sửa quyền" : "Tạo quyền mới"}
-              </DialogTitle>
-              <DialogDescription className="text-xs leading-relaxed">
-                Chọn module và hành động — hệ thống tự điền tên và mô tả
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <ScrollArea className="max-h-[min(60vh,520px)]">
-          <form
-            id="permission-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-5 px-6 py-5"
-          >
+  const permissionForm = (
+    <form
+      id="permission-form"
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-5 px-6 py-5"
+    >
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Bước 1 · Module
@@ -310,8 +294,33 @@ export function PermissionDialog({ open, onOpenChange, permission }: Props) {
                 />
               </div>
             )}
-          </form>
-        </ScrollArea>
+    </form>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90vh] w-full flex-col gap-0 overflow-hidden rounded-xl border border-slate-200/80 p-0 shadow-2xl sm:max-w-xl dark:border-slate-800">
+        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-5 dark:border-slate-800">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+              <ShieldPlus className="size-5" />
+            </div>
+            <div className="space-y-1">
+              <DialogTitle className="text-lg font-semibold tracking-tight">
+                {isEdit ? "Chỉnh sửa quyền" : "Tạo quyền mới"}
+              </DialogTitle>
+              <DialogDescription className="text-xs leading-relaxed">
+                Chọn module và hành động — hệ thống tự điền tên và mô tả
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        {needsScroll ? (
+          <ScrollArea className={scrollBodyClass}>{permissionForm}</ScrollArea>
+        ) : (
+          permissionForm
+        )}
 
         <DialogFooter className="shrink-0 gap-2 border-t border-slate-100 bg-slate-50/50 px-6 pb-6 pt-4 dark:border-slate-800 dark:bg-slate-900/30 sm:justify-end">
           <Button

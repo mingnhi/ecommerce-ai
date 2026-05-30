@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { DataTableBase } from "@/shared/components/common/DataTableBase";
-import { buildPermissionColumns } from "../columns/permission-columns";
+import { buildPermissionColumns, type PermissionRow } from "../columns/permission-columns";
 import { PermissionDialog } from "../components/PermissionDialog";
 import { usePermissions, useDeletePermission } from "../hooks";
-import type { Permission } from "../../roles/types";
 import { PERMISSIONS } from "@/shared/lib/casl/permissions";
 import { getResourceLabel } from "@/shared/lib/casl/permission-actions";
 import { cn } from "@/shared/lib/utils";
@@ -38,12 +37,11 @@ export default function PermissionsPage() {
 
     // Now group by resource to create the nested subRows hierarchy
     const uniqueResources = Array.from(new Set(result.map((p) => p.resource)));
-    const finalRows: unknown[] = [];
+    const finalRows: PermissionRow[] = [];
 
     uniqueResources.forEach((res) => {
       const children = result.filter((p) => p.resource === res);
       if (children.length > 0) {
-        // Add parent module header row with children as subRows
         finalRows.push({
           id: `parent-${res}`,
           name: getResourceLabel(res),
@@ -51,6 +49,7 @@ export default function PermissionsPage() {
           action: "",
           description: `Quản lý các chức năng thuộc module ${getResourceLabel(res).toLowerCase()}`,
           createdAt: children[0]?.createdAt || new Date().toISOString(),
+          updatedAt: children[0]?.updatedAt,
           isParent: true,
           subRows: children.map((child) => ({
             ...child,
@@ -103,9 +102,10 @@ export default function PermissionsPage() {
   const deleteConfig = useMemo(
     () => ({
       title: "Xóa quyền hạn",
-      getConfirmName: (permission: Permission) => permission.name,
-      onConfirm: (permission: Permission) => {
-        void deleteMutation.mutateAsync(permission.id);
+      getConfirmName: (row: PermissionRow) => row.name,
+      onConfirm: (row: PermissionRow) => {
+        if (row.isParent) return;
+        void deleteMutation.mutateAsync(row.id);
       },
       confirmText: "Xóa",
       messageSuffix: "sẽ bị xóa khỏi hệ thống. Thao tác không hoàn tác.",
@@ -130,17 +130,17 @@ export default function PermissionsPage() {
         </PermissionButton>
       </div>
 
-      <DataTableBase
+      <DataTableBase<PermissionRow>
         data={filteredData}
         columns={columns}
         filterKey={searchTerm + resourceFilter}
         toolbarConfig={toolbarConfig}
         deleteConfig={deleteConfig}
-        getSubRows={(row: unknown) => (row.isParent ? row.subRows : undefined)}
+        getSubRows={(row) => (row.isParent ? row.subRows : undefined)}
         mainColumnId="name"
         defaultExpandedAll={true}
         rowClassName={(row) => {
-          const original = row.original as Permission & { isParent?: boolean };
+          const original = row.original;
           return cn(
             "border-slate-100 dark:border-slate-900 transition-colors",
             original.isParent

@@ -1,141 +1,61 @@
 import { httpClient } from "./http";
+import type { Category } from "@/features/products/types/category.type";
 
-import type { Category } from "@/features/categories/types";
+type ApiCategory = Omit<Category, "parentId"> & {
+  parentId?: string | number | null;
+  parent?: { id?: string };
+};
 
-/**
- * normalize category
- */
-const normalizeCategory = (
-  category: unknown
-): Category => {
+const normalizeCategory = (category: unknown): Category => {
+  const raw = category as ApiCategory;
+
   return {
-    id: String(category.id),
-
-    name: category.name,
-
-    slug: category.slug,
-
+    id: String(raw.id),
+    name: raw.name,
+    slug: raw.slug,
     parentId:
-      category.parentId === 0 ||
-        category.parentId === "0" ||
-        category.parentId === null
+      raw.parentId === 0 ||
+      raw.parentId === "0" ||
+      raw.parentId == null
         ? "0"
-        : String(
-          category.parentId ||
-          category.parent?.id ||
-          "0"
-        ),
-
-    children:
-      category.children?.map(
-        normalizeCategory
-      ) || [],
-
-    createdAt:
-      category.createdAt,
-
-    updatedAt:
-      category.updatedAt,
+        : String(raw.parentId || raw.parent?.id || "0"),
+    children: raw.children?.map(normalizeCategory) ?? [],
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
   };
 };
 
-/**
- * GET categories
- */
-export const getCategories =
-  async (
-    type:
-      | "tree"
-      | "flat" = "tree"
-  ) => {
-    const res =
-      await httpClient.get(
-        `/categories?type=${type}`
-      );
-
-    console.log(
-      "CATEGORY API =>",
-      res.data
-    );
-
-    /**
-     * FIX CHUẨN
-     */
-    const rawCategories =
-      res.data?.data
-        ?.categories || [];
-
-    return {
-      categories:
-        rawCategories.map(
-          normalizeCategory
-        ),
-    };
+export const getCategories = async (type: "tree" | "flat" = "tree") => {
+  const res = await httpClient.get(`/categories?type=${type}`);
+  const rawCategories = res.data?.data?.categories ?? [];
+  return {
+    categories: rawCategories.map(normalizeCategory),
   };
+};
 
-/**
- * CREATE category
- */
-export const createCategory =
-  async (payload: {
-    name: string;
+export const createCategory = async (payload: {
+  name: string;
+  parentId?: string;
+}) => {
+  const res = await httpClient.post("/categories", {
+    name: payload.name,
+    parentId: payload.parentId || "0",
+  });
+  return res.data;
+};
 
-    parentId?: string;
-  }) => {
-    const res =
-      await httpClient.post(
-        "/categories",
-        {
-          name: payload.name,
+export const updateCategory = async (
+  id: string,
+  payload: { name?: string; parentId?: string },
+) => {
+  const res = await httpClient.put(`/categories/${id}`, {
+    ...payload,
+    parentId: payload.parentId || "0",
+  });
+  return res.data;
+};
 
-          parentId:
-            payload.parentId ||
-            "0",
-        }
-      );
-
-    return res.data;
-  };
-
-/**
- * UPDATE category
- */
-export const updateCategory =
-  async (
-    id: string,
-    payload: {
-      name?: string;
-
-      parentId?: string;
-    }
-  ) => {
-    const res =
-      await httpClient.put(
-        `/categories/${id}`,
-        {
-          ...payload,
-
-          parentId:
-            payload.parentId ||
-            "0",
-        }
-      );
-
-    return res.data;
-  };
-
-/**
- * DELETE category
- */
-export const deleteCategory =
-  async (
-    id: string
-  ) => {
-    const res =
-      await httpClient.delete(
-        `/categories/${id}`
-      );
-
-    return res.data;
-  };
-
+export const deleteCategory = async (id: string) => {
+  const res = await httpClient.delete(`/categories/${id}`);
+  return res.data;
+};

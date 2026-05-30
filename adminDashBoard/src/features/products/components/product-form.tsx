@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Upload, Trash2, Star, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 
 import {
   Card,
@@ -40,7 +41,17 @@ interface Props {
   loading?: boolean;
   onSubmit: (values: ProductFormValues) => Promise<any>;
   onSuccess?: (slug?: string) => void;
+  onCancel?: () => void;
 }
+
+const cardClass =
+  "overflow-hidden rounded-md border border-sky-500/15 bg-card shadow-sm ring-0";
+const fieldClass =
+  "h-10 w-full rounded-md border border-slate-200 bg-background/50 text-sm transition-all placeholder:text-muted-foreground/60 focus-visible:border-sky-500 focus-visible:ring-3 focus-visible:ring-sky-500/10 dark:border-slate-800";
+const labelClass =
+  "text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400";
+const uploadBoxClass =
+  "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-sky-200 bg-sky-50/40 transition-colors hover:border-sky-400 hover:bg-sky-50/70 dark:border-sky-500/25 dark:bg-sky-500/5";
 
 const DEFAULT_PRICE = {
   originalPrice: 0,
@@ -70,6 +81,7 @@ export const ProductForm = ({
   loading = false,
   onSubmit,
   onSuccess,
+  onCancel,
 }: Props) => {
   const form = useForm<ProductFormValues>({
     defaultValues: {
@@ -88,7 +100,6 @@ export const ProductForm = ({
 
   const { register, handleSubmit, setValue, watch, reset, control } = form;
 
-  // Sửa lỗi useFieldArray
   const priceArray = useFieldArray({ control, name: "prices" });
   const variantArray = useFieldArray({ control, name: "variants" });
   const attributeArray = useFieldArray({ control, name: "attributes" });
@@ -139,7 +150,6 @@ export const ProductForm = ({
     });
   }, [initialData, reset]);
 
-  // ==================== THÊM VARIANT MỚI - GIỮ STOCK CỦA VARIANT TRƯỚC ĐÓ ====================
   const handleAddVariant = () => {
     const currentVariants = watch("variants") || [];
     const lastStock =
@@ -188,7 +198,10 @@ export const ProductForm = ({
       onSuccess?.(slug);
     } catch (error: unknown) {
       console.error(error);
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+      const message = isAxiosError(error)
+        ? (error.response?.data as { message?: string })?.message
+        : undefined;
+      toast.error(message || "Có lỗi xảy ra");
     }
   };
 
@@ -207,21 +220,23 @@ export const ProductForm = ({
         {/* LEFT SIDE */}
         <div className="xl:col-span-2 space-y-6">
           {/* Thông tin cơ bản */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Thông tin sản phẩm</CardTitle>
+          <Card className={cardClass}>
+            <CardHeader className="border-b border-sky-500/10 bg-sky-500/4">
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                Thông tin sản phẩm
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>
-                    Danh mục <span className="text-red-500">*</span>
+            <CardContent className="space-y-5 pt-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className={labelClass}>
+                    Danh mục <span className="text-sky-600">*</span>
                   </Label>
                   <Select
                     value={watch("categoryId")}
                     onValueChange={(v) => setValue("categoryId", v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={fieldClass}>
                       <SelectValue placeholder="Chọn danh mục" />
                     </SelectTrigger>
                     <SelectContent>
@@ -233,79 +248,89 @@ export const ProductForm = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>
-                    Tên sản phẩm <span className="text-red-500">*</span>
+                <div className="space-y-2">
+                  <Label className={labelClass}>
+                    Tên sản phẩm <span className="text-sky-600">*</span>
                   </Label>
-                  <Input {...register("name")} placeholder="Ví dụ: Laptop" />
+                  <Input
+                    {...register("name")}
+                    placeholder="Ví dụ: Laptop"
+                    className={fieldClass}
+                  />
                 </div>
               </div>
 
-              <div>
-                <Label>Mô tả ngắn</Label>
+              <div className="space-y-2">
+                <Label className={labelClass}>Mô tả ngắn</Label>
                 <Textarea
                   {...register("shortDescription")}
                   rows={2}
                   placeholder="Mô tả ngắn gọn về sản phẩm..."
+                  className="min-h-[80px] rounded-md border border-slate-200 bg-background/50 text-sm focus-visible:border-sky-500 focus-visible:ring-3 focus-visible:ring-sky-500/10 dark:border-slate-800"
                 />
               </div>
 
-              <div>
-                <Label>Mô tả chi tiết</Label>
+              <div className="space-y-2">
+                <Label className={labelClass}>Mô tả chi tiết</Label>
                 <Textarea
                   {...register("description")}
                   rows={6}
                   placeholder="Nhập chi tiết chất liệu, kích thước..."
+                  className="rounded-md border border-slate-200 bg-background/50 text-sm focus-visible:border-sky-500 focus-visible:ring-3 focus-visible:ring-sky-500/10 dark:border-slate-800"
                 />
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-md border border-sky-500/15 bg-sky-500/4 px-4 py-3">
                 <Checkbox
                   checked={watch("isActive")}
                   onCheckedChange={(c) => setValue("isActive", !!c)}
+                  className="border-sky-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600"
                 />
-                <Label>Hiển thị sản phẩm</Label>
+                <Label className="text-sm font-medium">Hiển thị sản phẩm</Label>
               </div>
             </CardContent>
           </Card>
 
           {/* Giá sản phẩm */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
+          <Card className={cardClass}>
+            <CardHeader className="border-b border-sky-500/10 bg-sky-500/4">
+              <CardTitle className="flex items-center justify-between text-base font-semibold text-slate-900 dark:text-slate-50">
                 Giá sản phẩm
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="cursor-pointer border-sky-500/25 hover:bg-sky-500/10 hover:text-sky-600"
                   onClick={() => appendPrice({ ...DEFAULT_PRICE })}
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Thêm mức giá
+                  <Plus className="mr-1 size-4" /> Thêm mức giá
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-5">
               {priceFields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6 border p-5 rounded-xl relative"
+                  className="relative grid grid-cols-1 gap-4 rounded-md border border-sky-500/15 bg-sky-500/3 p-5 md:grid-cols-2"
                 >
-                  <div>
-                    <Label>
-                      Giá gốc <span className="text-red-500">*</span>
+                  <div className="space-y-2">
+                    <Label className={labelClass}>
+                      Giá gốc <span className="text-sky-600">*</span>
                     </Label>
                     <Input
                       type="number"
+                      className={fieldClass}
                       {...register(`prices.${index}.originalPrice`, {
                         valueAsNumber: true,
                       })}
                       placeholder="500000"
                     />
                   </div>
-                  <div>
-                    <Label>Giảm giá (%)</Label>
+                  <div className="space-y-2">
+                    <Label className={labelClass}>Giảm giá (%)</Label>
                     <Input
                       type="number"
+                      className={fieldClass}
                       {...register(`prices.${index}.discountPercent`, {
                         valueAsNumber: true,
                       })}
@@ -316,11 +341,11 @@ export const ProductForm = ({
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
-                      className="absolute top-4 right-4 text-red-500"
+                      size="icon-sm"
+                      className="absolute top-3 right-3 cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600"
                       onClick={() => removePrice(index)}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="size-4" />
                     </Button>
                   )}
                 </div>
@@ -328,47 +353,50 @@ export const ProductForm = ({
             </CardContent>
           </Card>
 
-          {/* Biến thể */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                Biến thể (Variants)
+          <Card className={cardClass}>
+            <CardHeader className="border-b border-sky-500/10 bg-sky-500/4">
+              <CardTitle className="flex items-center justify-between text-base font-semibold text-slate-900 dark:text-slate-50">
+                Biến thể
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="cursor-pointer border-sky-500/25 hover:bg-sky-500/10 hover:text-sky-600"
                   onClick={handleAddVariant}
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Thêm biến thể
+                  <Plus className="mr-1 size-4" /> Thêm biến thể
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-5">
               {variantFields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4 border p-5 rounded-xl relative"
+                  className="relative grid grid-cols-1 gap-4 rounded-md border border-sky-500/15 bg-sky-500/3 p-5 md:grid-cols-3"
                 >
-                  <div>
-                    <Label>
-                      Tên biến thể <span className="text-red-500">*</span>
+                  <div className="space-y-2">
+                    <Label className={labelClass}>
+                      Tên biến thể <span className="text-sky-600">*</span>
                     </Label>
                     <Input
                       {...register(`variants.${index}.title`)}
                       placeholder="Đen - Size L"
+                      className={fieldClass}
                     />
                   </div>
-                  <div>
-                    <Label>SKU</Label>
+                  <div className="space-y-2">
+                    <Label className={labelClass}>SKU</Label>
                     <Input
                       {...register(`variants.${index}.sku`)}
                       placeholder="ATN-COTTON-DEN-L"
+                      className={fieldClass}
                     />
                   </div>
-                  <div>
-                    <Label>Tồn kho</Label>
+                  <div className="space-y-2">
+                    <Label className={labelClass}>Tồn kho</Label>
                     <Input
                       type="number"
+                      className={fieldClass}
                       {...register(`variants.${index}.stock`, {
                         valueAsNumber: true,
                       })}
@@ -380,11 +408,11 @@ export const ProductForm = ({
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
-                      className="absolute top-4 right-4 text-red-500"
+                      size="icon-sm"
+                      className="absolute top-3 right-3 cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600"
                       onClick={() => removeVariant(index)}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="size-4" />
                     </Button>
                   )}
                 </div>
@@ -392,45 +420,47 @@ export const ProductForm = ({
             </CardContent>
           </Card>
 
-          {/* Thuộc tính */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
+          <Card className={cardClass}>
+            <CardHeader className="border-b border-sky-500/10 bg-sky-500/4">
+              <CardTitle className="flex items-center justify-between text-base font-semibold text-slate-900 dark:text-slate-50">
                 Thuộc tính
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="cursor-pointer border-sky-500/25 hover:bg-sky-500/10 hover:text-sky-600"
                   onClick={() => appendAttribute({ ...DEFAULT_ATTRIBUTE })}
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Thêm thuộc tính
+                  <Plus className="mr-1 size-4" /> Thêm thuộc tính
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-5">
               {attributeFields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="flex gap-3 border p-4 rounded-lg relative"
+                  className="relative flex flex-col gap-3 rounded-md border border-sky-500/15 bg-sky-500/3 p-4 sm:flex-row"
                 >
                   <Input
                     {...register(`attributes.${index}.name`)}
                     placeholder="Màu sắc"
+                    className={fieldClass}
                   />
                   <Input
                     {...register(`attributes.${index}.value`)}
                     placeholder="Đen, Trắng, Xanh"
+                    className={fieldClass}
                   />
 
                   {attributeFields.length > 1 && (
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 text-red-500"
+                      size="icon-sm"
+                      className="absolute top-2 right-2 cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600 sm:static"
                       onClick={() => removeAttribute(index)}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="size-4" />
                     </Button>
                   )}
                 </div>
@@ -439,16 +469,19 @@ export const ProductForm = ({
           </Card>
         </div>
 
-        {/* RIGHT SIDE - HÌNH ẢNH */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Thumbnail</CardTitle>
+          <Card className={cardClass}>
+            <CardHeader className="border-b border-sky-500/10 bg-sky-500/4">
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                Thumbnail
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <label className="border-2 border-dashed h-52 flex flex-col items-center justify-center cursor-pointer rounded-xl hover:border-gray-400">
-                <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-600">Chọn ảnh đại diện</span>
+            <CardContent className="pt-5">
+              <label className={`${uploadBoxClass} h-52`}>
+                <Upload className="mb-2 size-10 text-sky-400" />
+                <span className="text-sm font-medium text-sky-700/80 dark:text-sky-300/80">
+                  Chọn ảnh đại diện
+                </span>
                 <input
                   type="file"
                   hidden
@@ -462,21 +495,25 @@ export const ProductForm = ({
               {thumbnailFile && (
                 <img
                   src={URL.createObjectURL(thumbnailFile)}
-                  className="mt-4 w-full h-40 object-cover rounded-lg"
+                  className="mt-4 h-40 w-full rounded-md object-cover ring-1 ring-sky-500/20"
                   alt="thumbnail preview"
                 />
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Gallery</CardTitle>
+          <Card className={cardClass}>
+            <CardHeader className="border-b border-sky-500/10 bg-sky-500/4">
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                Gallery
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <label className="border border-dashed p-6 flex flex-col items-center justify-center cursor-pointer rounded-xl hover:border-gray-400">
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                <span className="text-sm">Chọn nhiều ảnh gallery</span>
+            <CardContent className="pt-5">
+              <label className={`${uploadBoxClass} p-6`}>
+                <Upload className="mb-2 size-8 text-sky-400" />
+                <span className="text-sm font-medium text-sky-700/80 dark:text-sky-300/80">
+                  Chọn nhiều ảnh gallery
+                </span>
                 <input
                   type="file"
                   multiple
@@ -489,12 +526,12 @@ export const ProductForm = ({
               </label>
 
               {galleryFiles.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 mt-4">
+                <div className="mt-4 grid grid-cols-3 gap-3">
                   {galleryFiles.map((file, i) => (
                     <img
                       key={i}
                       src={URL.createObjectURL(file)}
-                      className="h-24 object-cover rounded-lg"
+                      className="h-24 rounded-md object-cover ring-1 ring-sky-500/20"
                       alt={`preview ${i + 1}`}
                     />
                   ))}
@@ -503,32 +540,33 @@ export const ProductForm = ({
 
               {currentImages.length > 0 && (
                 <div className="mt-6">
-                  <p className="text-sm font-medium mb-3">Hình ảnh hiện tại</p>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Hình ảnh hiện tại
+                  </p>
                   <div className="grid grid-cols-3 gap-3">
                     {currentImages.map((image: ProductImage) => (
-                      <div key={image.id} className="relative group">
+                      <div key={image.id} className="group relative">
                         <img
                           src={image.imageUrl}
-                          className="h-24 w-full object-cover rounded-lg"
+                          className="h-24 w-full rounded-md object-cover ring-1 ring-sky-500/20"
                           alt=""
                         />
-                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
                           <button
                             type="button"
                             onClick={() => handleSetThumbnail(image.id)}
-                            className="bg-white p-1 rounded shadow"
+                            className="cursor-pointer rounded-md bg-white p-1 shadow hover:bg-sky-50"
                             title="Đặt làm thumbnail"
                           >
                             <Star
                               size={16}
-                              fill={image.isPrimary ? "gold" : "none"}
-                              stroke={image.isPrimary ? "gold" : "currentColor"}
+                              className={image.isPrimary ? "fill-amber-400 text-amber-400" : "text-sky-600"}
                             />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteImage(image.id)}
-                            className="bg-white p-1 rounded shadow text-red-500"
+                            className="cursor-pointer rounded-md bg-white p-1 text-red-500 shadow hover:bg-red-50"
                             title="Xóa ảnh"
                           >
                             <Trash2 size={16} />
@@ -544,8 +582,22 @@ export const ProductForm = ({
         </div>
       </div>
 
-      <div className="flex justify-end pt-6">
-        <Button type="submit" size="lg" disabled={loading}>
+      <div className="flex justify-end gap-3 border-t border-sky-500/10 pt-6">
+        {onCancel ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="h-10 cursor-pointer rounded-md border-slate-200 px-5 font-semibold dark:border-slate-800"
+          >
+            Hủy
+          </Button>
+        ) : null}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-10 cursor-pointer rounded-md bg-sky-600 px-6 font-semibold text-white shadow-sm transition-all hover:bg-sky-700 active:scale-95"
+        >
           {loading
             ? "Đang xử lý..."
             : initialData

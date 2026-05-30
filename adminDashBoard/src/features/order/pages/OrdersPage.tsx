@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Row } from "@tanstack/react-table"
-import { MOCK_ORDERS } from "@/faker/mock-orders"
+import { toast } from "sonner"
 import { buildOrderColumns } from "@/features/order/columns/order-columns"
 import { OrderDetailDialog } from "@/features/order/components/OrderDetailDialog"
 import {
@@ -11,12 +11,18 @@ import {
   type OrdersTableRow,
 } from "@/features/order/types"
 import { DataTableBase } from "@/shared/components/common/DataTableBase"
+import { PageSkeleton } from "@/shared/components/common/PageSkeleton"
 import {
-  type OrderListFilters,
+  buildOrderQuery,
   filterOrders,
   groupOrdersByCustomer,
+  toAdminOrder,
+  type OrderListFilters,
 } from "@/features/order/lib"
+import { useOrders, useDeleteOrder, useUpdateOrderStatus } from "@/features/order/hooks"
+import { useUsers } from "@/features/users/hooks"
 import { cn } from "@/shared/lib/utils"
+import { isOrderRow } from "@/features/order/lib"
 
 const defaultFilters: OrderListFilters = {
   search: "",
@@ -26,15 +32,27 @@ const defaultFilters: OrderListFilters = {
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = React.useState<IAdminOrder[]>(() => [...MOCK_ORDERS])
   const [filters, setFilters] = React.useState<OrderListFilters>(defaultFilters)
   const [preview, setPreview] = React.useState<IAdminOrder | null>(null)
+
+  const query = React.useMemo(() => buildOrderQuery(filters), [filters])
+  const { data: users = [], isLoading: usersLoading } = useUsers()
+  const { data, isLoading: ordersLoading } = useOrders(query)
+  const updateStatusMutation = useUpdateOrderStatus()
+  const deleteMutation = useDeleteOrder()
+
+  const orders = React.useMemo(() => {
+    const userMap = new Map(users.map((user) => [user.id, user]))
+    return (data?.items ?? []).map((order) =>
+      toAdminOrder(order, userMap.get(order.userId)),
+    )
+  }, [data?.items, users])
 
   const filtered = React.useMemo(
     () => filterOrders(orders, filters),
     [orders, filters],
   )
-  const data = React.useMemo(
+  const tableData = React.useMemo(
     () => groupOrdersByCustomer(filtered),
     [filtered],
   )
@@ -52,28 +70,44 @@ export default function OrdersPage() {
     [filters, orders.length, filtered.length],
   )
 
-  const onDeleteOrder = React.useCallback((orderId: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId))
-  }, [])
-
   const onUpdateStatus = React.useCallback(
-    (orderId: string, status: OrderStatus) => {
-      const now = new Date().toISOString()
-      setOrders((prev) =>
-        prev.map((o) => {
-          if (o.id !== orderId) return o
-          return {
-            ...o,
-            status,
-            updatedAt: now,
-            ...(status === "delivered"
-              ? { deliveredAt: now }
-              : { deliveredAt: undefined }),
-          }
-        }),
-      )
+    async (orderId: string, status: OrderStatus) => {
+      try {
+        await updateStatusMutation.mutateAsync({ id: orderId, status })
+        toast.success("Cập nhật trạng thái đơn hàng thành công")
+      } catch {
+        toast.error("Không thể cập nhật trạng thái đơn hàng")
+      }
     },
-    [],
+    [updateStatusMutation],
+  )
+
+  const onDeleteOrder = React.useCallback(
+    async (order: IAdminOrder) => {
+      try {
+        await deleteMutation.mutateAsync(order.id)
+        if (preview?.id === order.id) setPreview(null)
+        toast.success("Xóa đơn hàng thành công")
+      } catch {
+        toast.error("Không thể xóa đơn hàng")
+      }
+    },
+    [deleteMutation, preview?.id],
+  )
+
+  const deleteConfig = React.useMemo(
+    () => ({
+      title: "Xóa đơn hàng",
+      getConfirmName: (row: OrdersTableRow) =>
+        isOrderRow(row) ? row.orderNumber : "",
+      onConfirm: (row: OrdersTableRow) => {
+        if (!isOrderRow(row)) return
+        void onDeleteOrder(row)
+      },
+      confirmText: "Xóa",
+      messageSuffix: "sẽ bị xóa khỏi hệ thống. Thao tác không hoàn tác.",
+    }),
+    [onDeleteOrder],
   )
 
   const columns = React.useMemo(
@@ -90,14 +124,12 @@ export default function OrdersPage() {
 
   const rowClassName = (row: Row<OrdersTableRow>) => {
     const isCust = row.original.rowType === "customer"
-    return (
-      cn(
-        "border-sky-500/10 transition-colors dark:border-border/80",
-        isCust &&
-          "bg-sky-500/6 hover:bg-sky-500/9 dark:bg-sky-500/10 dark:hover:bg-sky-500/[0.14]",
-        !isCust &&
-          "bg-card hover:bg-sky-500/4 dark:bg-card dark:hover:bg-sky-500/5",
-      )
+    return cn(
+      "border-sky-500/10 transition-colors dark:border-border/80",
+      isCust &&
+        "bg-sky-500/6 hover:bg-sky-500/9 dark:bg-sky-500/10 dark:hover:bg-sky-500/[0.14]",
+      !isCust &&
+        "bg-card hover:bg-sky-500/4 dark:bg-card dark:hover:bg-sky-500/5",
     )
   }
 
@@ -141,20 +173,15 @@ export default function OrdersPage() {
     [filters],
   )
 
-  const deleteConfig = React.useMemo(
-    () => ({
-      title: "Xóa đơn hàng?",
-      getConfirmName: (row: OrdersTableRow) => (row as IAdminOrder).orderNumber || "",
-      onConfirm: (row: OrdersTableRow) => onDeleteOrder(row.id),
-    }),
-    [onDeleteOrder],
-  )
+  if (ordersLoading || usersLoading) {
+    return <PageSkeleton filterCount={2} columnCount={4} />
+  }
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6 md:gap-3">
       <div className="space-y-5">
         <DataTableBase
-          data={data}
+          data={tableData}
           columns={columns}
           filterKey={filterKey}
           getSubRows={getSubRows}
@@ -170,8 +197,8 @@ export default function OrdersPage() {
         <OrderDetailDialog
           order={preview}
           open={preview != null}
-          onOpenChange={(o) => {
-            if (!o) setPreview(null)
+          onOpenChange={(open) => {
+            if (!open) setPreview(null)
           }}
         />
       </div>
