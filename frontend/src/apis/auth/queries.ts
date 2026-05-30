@@ -77,8 +77,9 @@ export const useLogin = () => {
             }
         },
         onError: (error: unknown) => {
-            const errorMessages = error.response?.data?.messages || ['Đăng nhập thất bại'];
-            dispatch(loginFailureAction({ messages: errorMessages }));
+            dispatch(loginFailureAction({
+                messages: [getApiErrorMessage(error, 'Đăng nhập thất bại')],
+            }));
         },
     });
 };

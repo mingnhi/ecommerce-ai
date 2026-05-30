@@ -7,10 +7,12 @@ import { KEYS as CART_KEYS } from '@/apis/cart/keys';
 import { OrderService } from './requests';
 import { orderKeys } from './keys';
 import type {
+  ApiOrder,
   CreateOrderPayload,
   CreatedOrder,
   OrderListRequest,
   OrderListResult,
+  OrderListPagination,
 } from './types';
 
 export const useOrderDetailQuery = (orderId: string, enabled = true) => {
@@ -20,7 +22,7 @@ export const useOrderDetailQuery = (orderId: string, enabled = true) => {
     queryKey: orderKeys.detail(orderId),
     queryFn: async () => {
       const res = await OrderService.getById(orderId);
-      return getEnvelopeData(res);
+      return getEnvelopeData<ApiOrder>(res);
     },
     enabled: isAuthenticated && enabled && Boolean(orderId),
     refetchOnWindowFocus: false,
@@ -32,10 +34,10 @@ export const useOrderListQuery = (params?: OrderListRequest) => {
 
   return useQuery<OrderListResult>({
     queryKey: orderKeys.list(params),
-    queryFn: async () => {
+    queryFn: async (): Promise<OrderListResult> => {
       const res = await OrderService.list(params);
-      const items = getEnvelopeData(res) ?? [];
-      const pagination = res.meta?.pagination as OrderListResult['pagination'];
+      const items = getEnvelopeData<ApiOrder[]>(res) ?? [];
+      const pagination = res.meta?.pagination as OrderListPagination | undefined;
 
       return { items, pagination };
     },
@@ -48,9 +50,9 @@ export const useCreateOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation<CreatedOrder, Error, CreateOrderPayload>({
-    mutationFn: async (payload) => {
+    mutationFn: async (payload): Promise<CreatedOrder> => {
       const res = await OrderService.create(payload);
-      const data = getEnvelopeData(res);
+      const data = getEnvelopeData<CreatedOrder>(res);
       if (!data) {
         throw new Error('Không tạo được đơn hàng');
       }

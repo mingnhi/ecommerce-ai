@@ -8,8 +8,33 @@ interface StructuredDataProps {
     | "Article"
     | "JobPosting"
     | "BreadcrumbList";
-  data?: unknown;
+  data?: ArticleStructuredData | JobPostingStructuredData | BreadcrumbStructuredData;
 }
+
+type ArticleStructuredData = {
+  title?: string;
+  excerpt?: string;
+  description?: string;
+  imageUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type JobPostingStructuredData = {
+  title?: string;
+  description?: string;
+  created_at?: string;
+  deadline?: string;
+  job_type?: string;
+  salary_min?: number;
+  salary_max?: number;
+  location?: string;
+  employer?: { name?: string };
+};
+
+type BreadcrumbStructuredData = {
+  items?: Array<{ name?: string; url?: string }>;
+};
 
 export function StructuredData({ type, data }: StructuredDataProps) {
   const getStructuredData = () => {
@@ -46,19 +71,20 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           url: APP_URL,
         };
 
-      case "Article":
-        if (!data) return null;
+      case "Article": {
+        const article = data as ArticleStructuredData | undefined;
+        if (!article) return null;
         return {
           ...baseData,
           "@type": "Article",
-          headline: data.title,
-          description: data.excerpt || data.description,
-          image: data.imageUrl || siteConfig.ogImage,
-          datePublished: data.createdAt
-            ? new Date(data.createdAt).toISOString()
+          headline: article.title,
+          description: article.excerpt || article.description,
+          image: article.imageUrl || siteConfig.ogImage,
+          datePublished: article.createdAt
+            ? new Date(article.createdAt).toISOString()
             : undefined,
-          dateModified: data.updatedAt
-            ? new Date(data.updatedAt).toISOString()
+          dateModified: article.updatedAt
+            ? new Date(article.updatedAt).toISOString()
             : undefined,
           author: {
             "@type": "Organization",
@@ -73,56 +99,61 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             },
           },
         };
+      }
 
-      case "JobPosting":
-        if (!data) return null;
+      case "JobPosting": {
+        const job = data as JobPostingStructuredData | undefined;
+        if (!job) return null;
         return {
           ...baseData,
           "@type": "JobPosting",
-          title: data.title,
-          description: data.description,
-          datePosted: data.created_at
-            ? new Date(data.created_at).toISOString()
+          title: job.title,
+          description: job.description,
+          datePosted: job.created_at
+            ? new Date(job.created_at).toISOString()
             : undefined,
-          validThrough: data.deadline
-            ? new Date(data.deadline).toISOString()
+          validThrough: job.deadline
+            ? new Date(job.deadline).toISOString()
             : undefined,
-          employmentType: data.job_type || "FULL_TIME",
+          employmentType: job.job_type || "FULL_TIME",
           baseSalary: {
             "@type": "MonetaryAmount",
             currency: "VND",
             value: {
               "@type": "QuantitativeValue",
-              minValue: data.salary_min,
-              maxValue: data.salary_max,
+              minValue: job.salary_min,
+              maxValue: job.salary_max,
             },
           },
           jobLocation: {
             "@type": "Place",
             address: {
               "@type": "PostalAddress",
-              addressLocality: data.location,
+              addressLocality: job.location,
               addressCountry: "VN",
             },
           },
           hiringOrganization: {
             "@type": "Organization",
-            name: data.employer?.name || "Unknown",
+            name: job.employer?.name || "Unknown",
           },
         };
+      }
 
-      case "BreadcrumbList":
-        if (!data?.items || !Array.isArray(data.items)) return null;
+      case "BreadcrumbList": {
+        const breadcrumb = data as BreadcrumbStructuredData | undefined;
+        if (!breadcrumb?.items?.length) return null;
         return {
           ...baseData,
           "@type": "BreadcrumbList",
-          itemListElement: data.items.map((item: unknown, index: number) => ({
+          itemListElement: breadcrumb.items.map((item, index) => ({
             "@type": "ListItem",
             position: index + 1,
             name: item.name,
             item: item.url,
           })),
         };
+      }
 
       default:
         return null;

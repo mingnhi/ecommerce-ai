@@ -12,7 +12,6 @@ import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { ROUTES } from "@/lib/routes";
-import { FORGOT_PASSWORD_OTP_KEY } from "@/lib/const";
 
 import { otpSchema, type OtpSchemaType } from "@/lib/validations/auth";
 
@@ -28,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const RESEND_COOLDOWN = 60;
+const FORGOT_PASSWORD_OTP_KEY = "forgot_password_otp";
 
 export default function VerifyOtpPage() {
   const router = useRouter();

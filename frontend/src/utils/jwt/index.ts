@@ -66,15 +66,16 @@ export const isTokenExpired = (token: string | null | undefined): boolean => {
 export function getUserFromToken(token: string | null | undefined): IUser | null {
   const claims = getClaimsFromToken(token);
   if (!claims) return null;
-  const firstName = claims.firstName ?? '';
-  const lastName = claims.lastName ?? '';
-  const name = [firstName, lastName].filter(Boolean).join(' ').trim() || undefined;
+
+  const fullName = [claims.firstName, claims.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
   return {
     id: claims.userId ?? '',
     email: claims.email ?? '',
-    firstName: firstName || undefined,
-    lastName: lastName || undefined,
-    name,
+    fullName: fullName || undefined,
     image: claims.avatar ?? undefined,
     roles: claims.role ? [claims.role] : undefined,
   };
