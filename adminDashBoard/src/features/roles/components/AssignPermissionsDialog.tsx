@@ -11,7 +11,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Badge } from "@/shared/components/ui/badge";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-import { Shield, Search, Check, ChevronDown } from "lucide-react";
+import { Shield, Search, ChevronDown } from "lucide-react";
 import {
   useAvailablePermissions,
   useRolePermissions,

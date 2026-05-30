@@ -169,3 +169,12 @@ export interface ProductListItem {
     currency?: string;
   } | null;
 }
+
+export type ProductListQuery = {
+  search?: string;
+  categoryId?: string;
+  sort?: string;
+  limit?: number;
+  page?: number;
+  isActive?: boolean;
+};

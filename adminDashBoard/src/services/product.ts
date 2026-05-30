@@ -4,11 +4,74 @@ import type {
   ProductFormValues,
   ProductImage,
   ProductListItem,
+  ProductListQuery,
   ProductImageType,
 } from "../features/products/types/product.type";
 
-/* ===================== NORMALIZE ===================== */
-const normalizeImage = (image: unknown): ProductImage => ({
+type ApiImage = {
+  id?: string | number;
+  imageUrl?: string;
+  publicId?: string;
+  type?: ProductImageType;
+  sortOrder?: number;
+  isPrimary?: boolean;
+  createdAt?: string;
+};
+
+type ApiPrice = {
+  id?: string | number;
+  originalPrice?: number | string;
+  discountPercent?: number | string;
+  price?: number | string;
+  currency?: string;
+  isActive?: boolean;
+};
+
+type ApiVariant = {
+  id?: string | number;
+  title?: string;
+  sku?: string;
+  stock?: number | string;
+  price?: number | string;
+  image?: string;
+  isActive?: boolean;
+  attributes?: Record<string, string>;
+};
+
+type ApiAttribute = {
+  id?: string | number;
+  name?: string;
+  value?: string;
+};
+
+type ApiCategoryRef = {
+  id?: string | number;
+  name?: string;
+  slug?: string;
+};
+
+type ApiProductListItem = {
+  id?: string | number;
+  name?: string;
+  slug?: string;
+  shortDescription?: string;
+  thumbnail?: string | null;
+  isActive?: boolean;
+  createdAt?: string;
+  category?: ApiCategoryRef;
+  price?: ApiPrice | null;
+};
+
+type ApiProductDetail = ApiProductListItem & {
+  description?: string;
+  updatedAt?: string;
+  prices?: ApiPrice[];
+  variants?: ApiVariant[];
+  attributes?: ApiAttribute[];
+  images?: ApiImage[];
+};
+
+const normalizeImage = (image: ApiImage): ProductImage => ({
   id: String(image.id),
   imageUrl: image.imageUrl || "",
   publicId: image.publicId || "",
@@ -48,14 +111,13 @@ const normalizePayload = (payload: Partial<ProductFormValues>) => ({
   })),
 });
 
-/* ===================== SERVICE ===================== */
 export const productService = {
-  getAll: async (params?: unknown) => {
+  getAll: async (params?: ProductListQuery) => {
     const res = await httpClient.get("/products", { params });
-    const products = (res.data?.data || []).map((p: unknown) => ({
+    const products = (res.data?.data || []).map((p: ApiProductListItem) => ({
       id: String(p.id),
-      name: p.name,
-      slug: p.slug,
+      name: p.name ?? "",
+      slug: p.slug ?? "",
       shortDescription: p.shortDescription || "",
       thumbnail: p.thumbnail || null,
       isActive: Boolean(p.isActive),
@@ -80,13 +142,13 @@ export const productService = {
 
   getBySlug: async (slug: string) => {
     const res = await httpClient.get(`/products/${slug}`);
-    const p = res.data?.data;
+    const p = res.data?.data as ApiProductDetail;
 
     return {
       product: {
         id: String(p.id),
-        name: p.name,
-        slug: p.slug,
+        name: p.name ?? "",
+        slug: p.slug ?? "",
         shortDescription: p.shortDescription || "",
         description: p.description || "",
         thumbnail: p.thumbnail || null,
@@ -98,7 +160,7 @@ export const productService = {
           name: p.category?.name || "",
           slug: p.category?.slug || "",
         },
-        prices: (p.prices || []).map((price: unknown) => ({
+        prices: (p.prices || []).map((price) => ({
           id: String(price.id),
           originalPrice: Number(price.originalPrice),
           discountPercent: price.discountPercent !== undefined ? Number(price.discountPercent) : undefined,
@@ -106,20 +168,20 @@ export const productService = {
           currency: price.currency || "VND",
           isActive: Boolean(price.isActive),
         })),
-        variants: (p.variants || []).map((v: unknown) => ({
+        variants: (p.variants || []).map((v) => ({
           id: String(v.id),
-          title: v.title,
-          sku: v.sku,
+          title: v.title ?? "",
+          sku: v.sku ?? "",
           stock: Number(v.stock ?? 0),
           price: v.price !== undefined ? Number(v.price) : undefined,
           image: v.image,
           isActive: Boolean(v.isActive),
           attributes: v.attributes || {},
         })),
-        attributes: (p.attributes || []).map((a: unknown) => ({
+        attributes: (p.attributes || []).map((a) => ({
           id: String(a.id),
-          name: a.name,
-          value: a.value,
+          name: a.name ?? "",
+          value: a.value ?? "",
         })),
         images: (p.images || []).map(normalizeImage),
       } as Product,
@@ -145,11 +207,10 @@ export const productService = {
     productId: string,
     files: File[],
     type: ProductImageType = "GALLERY",
-    sortOrder: number = 0
+    sortOrder: number = 0,
   ) => {
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
-    console.log("Uploading files:", files);
     formData.append("type", type);
     formData.append("sortOrder", String(sortOrder));
 
@@ -158,7 +219,7 @@ export const productService = {
     });
 
     return {
-      images: (res.data?.data?.images || []).map(normalizeImage),
+      images: (res.data?.data?.images || []).map((image: ApiImage) => normalizeImage(image)),
     };
   },
 

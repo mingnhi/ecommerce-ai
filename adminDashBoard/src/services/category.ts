@@ -1,25 +1,29 @@
 import { httpClient } from "./http";
 import type { Category } from "@/features/products/types/category.type";
 
-const normalizeCategory = (category: unknown): Category => ({
-  id: String((category as Category).id),
-  name: (category as Category).name,
-  slug: (category as Category).slug,
-  parentId:
-    (category as Category).parentId === 0 ||
-    (category as Category).parentId === "0" ||
-    (category as Category).parentId === null
-      ? "0"
-      : String(
-          (category as Category).parentId ||
-            (category as { parent?: { id?: string } }).parent?.id ||
-            "0",
-        ),
-  children:
-    (category as Category).children?.map(normalizeCategory) ?? [],
-  createdAt: (category as Category).createdAt,
-  updatedAt: (category as Category).updatedAt,
-});
+type ApiCategory = Omit<Category, "parentId"> & {
+  parentId?: string | number | null;
+  parent?: { id?: string };
+};
+
+const normalizeCategory = (category: unknown): Category => {
+  const raw = category as ApiCategory;
+
+  return {
+    id: String(raw.id),
+    name: raw.name,
+    slug: raw.slug,
+    parentId:
+      raw.parentId === 0 ||
+      raw.parentId === "0" ||
+      raw.parentId == null
+        ? "0"
+        : String(raw.parentId || raw.parent?.id || "0"),
+    children: raw.children?.map(normalizeCategory) ?? [],
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
+};
 
 export const getCategories = async (type: "tree" | "flat" = "tree") => {
   const res = await httpClient.get(`/categories?type=${type}`);

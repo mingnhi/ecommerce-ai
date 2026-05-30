@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Upload, Trash2, Star, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 
 import {
   Card,
@@ -197,7 +198,10 @@ export const ProductForm = ({
       onSuccess?.(slug);
     } catch (error: unknown) {
       console.error(error);
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+      const message = isAxiosError(error)
+        ? (error.response?.data as { message?: string })?.message
+        : undefined;
+      toast.error(message || "Có lỗi xảy ra");
     }
   };
 
