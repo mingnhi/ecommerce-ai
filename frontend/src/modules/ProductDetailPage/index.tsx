@@ -1,23 +1,24 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { useProductBySlug } from '@/apis/product/queries';
-import { useCartContext } from '@/contexts';
-import type { Product, ProductVariant } from '@/apis/product/types';
-import { ProductPhoto } from '@/modules/HomePage/components/ProductCard';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { formatVnd } from '@/lib/format-currency';
-import { getEnvelopeData } from '@/lib/api-response';
-import { ProductDetailSkeleton } from './components/Skeleton';
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useProductBySlug } from "@/apis/product/queries";
+import { useCartContext } from "@/contexts";
+import type { Product, ProductVariant } from "@/apis/product/types";
+import { ProductPhoto } from "@/modules/HomePage/components/ProductCard";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { formatVnd } from "@/lib/format-currency";
+import { getEnvelopeData } from "@/lib/api-response";
+import { ProductDetailSkeleton } from "./components/Skeleton";
 
 type Props = {
   slug: string;
 };
 
 function resolvePrice(product: Product, variant?: ProductVariant) {
-  const activePrice = product.prices?.find((p) => p.isActive) ?? product.prices?.[0];
+  const activePrice =
+    product.prices?.find((p) => p.isActive) ?? product.prices?.[0];
 
   if (variant?.price && variant.price > 0) {
     return {
@@ -29,8 +30,10 @@ function resolvePrice(product: Product, variant?: ProductVariant) {
 
   return {
     currentPrice: activePrice?.price ?? product.price?.price ?? 0,
-    originalPrice: activePrice?.originalPrice ?? product.price?.originalPrice ?? 0,
-    discountPercent: activePrice?.discountPercent ?? product.price?.discountPercent ?? 0,
+    originalPrice:
+      activePrice?.originalPrice ?? product.price?.originalPrice ?? 0,
+    discountPercent:
+      activePrice?.discountPercent ?? product.price?.discountPercent ?? 0,
   };
 }
 
@@ -41,12 +44,12 @@ function buildDisplayImages(product: Product) {
 
   return [
     {
-      id: 'thumbnail',
+      id: "thumbnail",
       imageUrl: product.thumbnail,
-      type: 'THUMBNAIL' as const,
+      type: "THUMBNAIL" as const,
       sortOrder: 0,
       isPrimary: true,
-      createdAt: '',
+      createdAt: "",
     },
   ];
 }
@@ -54,7 +57,9 @@ function buildDisplayImages(product: Product) {
 export default function ProductDetailPage({ slug }: Props) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
   const [isAdding, setIsAdding] = useState(false);
 
   const { data: response, isLoading } = useProductBySlug(slug);
@@ -74,12 +79,15 @@ export default function ProductDetailPage({ slug }: Props) {
     }
 
     setSelectedVariantId((current) => {
-      if (current && selectableVariants.some((v) => v.id === current)) return current;
+      if (current && selectableVariants.some((v) => v.id === current))
+        return current;
       return selectableVariants[0].id;
     });
   }, [selectableVariants]);
 
-  const selectedVariant = selectableVariants.find((v) => v.id === selectedVariantId);
+  const selectedVariant = selectableVariants.find(
+    (v) => v.id === selectedVariantId,
+  );
   const { currentPrice, originalPrice, discountPercent } = product
     ? resolvePrice(product, selectedVariant)
     : { currentPrice: 0, originalPrice: 0, discountPercent: 0 };
@@ -93,7 +101,7 @@ export default function ProductDetailPage({ slug }: Props) {
     selectedVariant?.image ||
     displayImages[selectedImage]?.imageUrl ||
     product?.thumbnail ||
-    '';
+    "";
 
   useEffect(() => {
     setQuantity((value) => Math.min(Math.max(1, value), maxQuantity || 1));
@@ -113,7 +121,7 @@ export default function ProductDetailPage({ slug }: Props) {
 
   const handleAddToCart = async () => {
     if (!selectedVariantId) {
-      toast.error('Vui lòng chọn biến thể sản phẩm');
+      toast.error("Vui lòng chọn biến thể sản phẩm");
       return;
     }
 
@@ -127,9 +135,9 @@ export default function ProductDetailPage({ slug }: Props) {
         unitPrice: currentPrice,
         thumbnail: selectedImageSrc,
       });
-      toast.success('Đã thêm vào giỏ hàng');
+      toast.success("Đã thêm vào giỏ hàng");
     } catch (error) {
-      toast.error('Không thể thêm vào giỏ hàng');
+      toast.error("Không thể thêm vào giỏ hàng");
     } finally {
       setIsAdding(false);
     }
@@ -156,10 +164,10 @@ export default function ProductDetailPage({ slug }: Props) {
                   type="button"
                   onClick={() => setSelectedImage(idx)}
                   className={cn(
-                    'relative h-20 w-20 overflow-hidden rounded-2xl border-2 transition-all',
+                    "relative h-20 w-20 overflow-hidden rounded-2xl border-2 transition-all",
                     selectedImage === idx
-                      ? 'scale-105 border-sky-600'
-                      : 'border-slate-200 hover:border-slate-300',
+                      ? "scale-105 border-sky-600"
+                      : "border-slate-200 hover:border-slate-300",
                   )}
                 >
                   <ProductPhoto
@@ -176,7 +184,7 @@ export default function ProductDetailPage({ slug }: Props) {
 
         <div className="space-y-7">
           <p className="text-lg font-medium text-sky-600">
-            {product.category?.name || 'Sản phẩm'}
+            {product.category?.name || "Sản phẩm"}
           </p>
 
           <h1 className="text-3xl font-bold leading-tight">{product.name}</h1>
@@ -192,7 +200,9 @@ export default function ProductDetailPage({ slug }: Props) {
                 </span>
               </div>
             )}
-            <div className="text-4xl font-bold text-sky-700">{formatVnd(currentPrice)}</div>
+            <div className="text-4xl font-bold text-sky-700">
+              {formatVnd(currentPrice)}
+            </div>
           </div>
 
           {selectableVariants.length > 0 && (
@@ -210,19 +220,21 @@ export default function ProductDetailPage({ slug }: Props) {
                       disabled={outOfStock}
                       onClick={() => setSelectedVariantId(variant.id)}
                       className={cn(
-                        'rounded-xl border px-4 py-2 text-left text-sm transition-colors',
+                        "rounded-xl border px-4 py-2 text-left text-sm transition-colors",
                         isSelected
-                          ? 'border-sky-600 bg-sky-50 text-sky-700'
-                          : 'border-slate-200 hover:border-sky-300',
-                        outOfStock && 'cursor-not-allowed opacity-50',
+                          ? "border-sky-600 bg-sky-50 text-sky-700"
+                          : "border-slate-200 hover:border-sky-300",
+                        outOfStock && "cursor-not-allowed opacity-50",
                       )}
                     >
                       <div className="font-medium">{variant.title}</div>
                       {variant.sku && (
-                        <div className="text-xs text-slate-500">SKU: {variant.sku}</div>
+                        <div className="text-xs text-slate-500">
+                          SKU: {variant.sku}
+                        </div>
                       )}
                       <div className="text-xs text-slate-500">
-                        {outOfStock ? 'Hết hàng' : `Còn ${variant.stock}`}
+                        {outOfStock ? "Hết hàng" : `Còn ${variant.stock}`}
                       </div>
                     </button>
                   );
@@ -262,7 +274,11 @@ export default function ProductDetailPage({ slug }: Props) {
             disabled={!canAddToCart || isAdding}
             className="w-full cursor-pointer rounded-2xl bg-sky-500 py-7 text-lg hover:bg-sky-600 disabled:cursor-not-allowed"
           >
-            {isAdding ? 'Đang thêm...' : canAddToCart ? 'Thêm vào giỏ hàng' : 'Hết hàng'}
+            {isAdding
+              ? "Đang thêm..."
+              : canAddToCart
+                ? "Thêm vào giỏ hàng"
+                : "Hết hàng"}
           </Button>
 
           {(product.description || product.shortDescription) && (
@@ -279,7 +295,10 @@ export default function ProductDetailPage({ slug }: Props) {
               <h3 className="mb-3 text-lg font-semibold">Thông số kỹ thuật</h3>
               <div className="grid grid-cols-1 gap-y-3 rounded-2xl bg-slate-50 p-5 text-sm sm:grid-cols-2">
                 {product.attributes.map((attr, idx) => (
-                  <div key={idx} className="flex items-start justify-between gap-4">
+                  <div
+                    key={idx}
+                    className="flex items-start justify-between gap-4"
+                  >
                     <span className="text-slate-500">{attr.name}</span>
                     <span className="text-right font-medium">{attr.value}</span>
                   </div>

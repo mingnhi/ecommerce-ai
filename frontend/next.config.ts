@@ -48,6 +48,11 @@ const nextConfig: NextConfig = {
         hostname: "cdn.tgdd.vn",
         pathname: "/**",
       },
+
+      {
+        protocol: "https",
+        hostname: "example.com",
+      },
     ],
   },
 

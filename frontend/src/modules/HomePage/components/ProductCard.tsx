@@ -119,7 +119,9 @@ function PriceBlock({
       <p
         className={cn(
           "mt-0.5 line-through",
-          size === "sm" ? "h-3 truncate text-[10px] sm:text-[11px]" : "h-4 text-xs",
+          size === "sm"
+            ? "h-3 truncate text-[10px] sm:text-[11px]"
+            : "h-4 text-xs",
           discount > 0 ? "text-slate-400" : "invisible",
         )}
       >
@@ -129,7 +131,13 @@ function PriceBlock({
   );
 }
 
-function DealViewButton({ href, compact }: { href: string; compact?: boolean }) {
+function DealViewButton({
+  href,
+  compact,
+}: {
+  href: string;
+  compact?: boolean;
+}) {
   return (
     <>
       <Button
@@ -165,7 +173,8 @@ function GridProductCard({
   product: Product;
   className?: string;
 }) {
-  const { href, imageSrc, currentPrice, originalPrice, discount } = useProductMeta(product);
+  const { href, imageSrc, currentPrice, originalPrice, discount } =
+    useProductMeta(product);
 
   return (
     <motion.article
@@ -193,7 +202,9 @@ function GridProductCard({
       </Link>
 
       <div className="flex min-h-0 flex-1 flex-col pt-3">
-        <p className="truncate text-xs font-medium text-sky-600">{product.category?.name}</p>
+        <p className="truncate text-xs font-medium text-sky-600">
+          {product.category?.name}
+        </p>
 
         <Link
           href={href}
@@ -235,7 +246,8 @@ function DealProductCard({
   compact?: boolean;
   className?: string;
 }) {
-  const { href, imageSrc, currentPrice, originalPrice, discount } = useProductMeta(product);
+  const { href, imageSrc, currentPrice, originalPrice, discount } =
+    useProductMeta(product);
 
   return (
     <motion.article
@@ -248,14 +260,20 @@ function DealProductCard({
       <div
         className={cn(
           "relative aspect-[3/4] overflow-hidden bg-gradient-to-b from-sky-50 to-slate-100",
-          compact ? "min-h-[200px] sm:min-h-[260px]" : "min-h-[220px] sm:min-h-[300px]",
+          compact
+            ? "min-h-[200px] sm:min-h-[260px]"
+            : "min-h-[220px] sm:min-h-[300px]",
         )}
       >
         <ProductPhoto
           src={imageSrc}
           alt={product.name}
           fill
-          sizes={compact ? "(max-width: 640px) 100vw, 33vw" : "(max-width: 640px) 50vw, 25vw"}
+          sizes={
+            compact
+              ? "(max-width: 640px) 100vw, 33vw"
+              : "(max-width: 640px) 50vw, 25vw"
+          }
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -300,7 +318,13 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   if (variant === "deal") {
-    return <DealProductCard product={product} compact={compact} className={className} />;
+    return (
+      <DealProductCard
+        product={product}
+        compact={compact}
+        className={className}
+      />
+    );
   }
 
   return <GridProductCard product={product} className={className} />;

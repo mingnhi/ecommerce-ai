@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { AuthController } from './auth.controller';
+
 import { AuthService } from './services/auth.service';
 import { JwtService } from './services/jwt.service';
 import { UsersModule } from '@modules/users/users.module';
@@ -22,6 +22,7 @@ import { MailService } from '../mail/mail.service';
 import { OtpModule } from '@modules/otp/otp.module';
 import { MailModule } from '@modules/mail/mail.module';
 import { PermissionsModule } from '@modules/permissions/permissions.module';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [

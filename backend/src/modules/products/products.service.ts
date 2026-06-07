@@ -38,7 +38,7 @@ export class ProductsService {
 
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
-  ) {}
+  ) { }
 
   /** ====================== HELPERS ====================== */
 
@@ -425,11 +425,11 @@ export class ProductsService {
 
     const products = pageIds.length
       ? await this.productRepository.find(
-          { id: { $in: pageIds } },
-          {
-            populate: ['category', 'images', 'prices'],
-          },
-        )
+        { id: { $in: pageIds } },
+        {
+          populate: ['category', 'images', 'prices'],
+        },
+      )
       : [];
 
     const productMap = new Map(products.map((product) => [product.id, product]));
@@ -459,9 +459,9 @@ export class ProductsService {
          FROM product_prices pp
          WHERE pp.is_active = 1`,
       )) as {
-      minPrice: string | number | null;
-      maxPrice: string | number | null;
-    }[];
+        minPrice: string | number | null;
+        maxPrice: string | number | null;
+      }[];
 
     const max = Number(rows[0]?.maxPrice) || 0;
 
@@ -576,11 +576,11 @@ export class ProductsService {
         },
         price: activePrice
           ? {
-              price: activePrice.price,
-              originalPrice: activePrice.originalPrice,
-              discountPercent: activePrice.discountPercent,
-              currency: activePrice.currency,
-            }
+            price: activePrice.price,
+            originalPrice: activePrice.originalPrice,
+            discountPercent: activePrice.discountPercent,
+            currency: activePrice.currency,
+          }
           : null,
         createdAt: product.createdAt,
       };
