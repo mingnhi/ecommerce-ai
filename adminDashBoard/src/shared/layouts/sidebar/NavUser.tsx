@@ -23,10 +23,8 @@ import {
   BadgeCheckIcon,
   BellIcon,
   ChevronsUpDownIcon,
-  CreditCardIcon,
   KeyRoundIcon,
   LogOutIcon,
-  SparklesIcon,
 } from "lucide-react"
 import { useLogout } from "@/features/auth/hooks"
 

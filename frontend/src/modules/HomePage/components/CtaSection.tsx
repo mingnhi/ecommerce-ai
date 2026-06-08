@@ -45,7 +45,6 @@ export function CtaSection() {
           aria-hidden
         />
 
-        <div className="absolute inset-0 bg-black/20" />
       </div>
 
       <div className="relative flex flex-col items-center gap-6 px-4 py-6 sm:px-8 sm:py-8 md:gap-8 md:py-12 xl:flex-row">

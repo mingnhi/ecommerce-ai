@@ -2,14 +2,23 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Trash2, ChevronRight } from "lucide-react";
-import type { Permission } from "../../roles/types";
 import { Can } from "@/shared/components/common/Can";
 import { PERMISSIONS } from "@/shared/lib/casl/permissions";
 import { getActionMeta } from "@/shared/lib/casl/permission-actions";
 import { getPermissionActionBadgeClass } from "@/shared/lib/casl/permission-badge";
 import { cn } from "@/shared/lib/utils";
 
-type PermissionRow = Permission & { isParent?: boolean };
+export type PermissionRow = {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  description: string;
+  createdAt: string;
+  updatedAt?: string;
+  isParent?: boolean;
+  subRows?: PermissionRow[];
+};
 
 export function buildPermissionColumns(): ColumnDef<PermissionRow>[] {
   return [
@@ -137,7 +146,7 @@ export function buildPermissionColumns(): ColumnDef<PermissionRow>[] {
               className="size-7 rounded-md p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 hover:cursor-pointer dark:hover:bg-rose-950/30"
               onClick={() => {
                 const meta = table.options.meta as {
-                  onDeleteTarget?: (row: Permission) => void;
+                  onDeleteTarget?: (row: PermissionRow) => void;
                 };
                 meta?.onDeleteTarget?.(row.original);
               }}

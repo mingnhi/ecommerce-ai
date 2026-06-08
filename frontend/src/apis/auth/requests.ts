@@ -2,6 +2,7 @@ import { request } from '../axios';
 import { KEYS } from './keys';
 import type {
   ApiEnvelope,
+  AuthResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   UpdatePasswordRequest,
@@ -17,8 +18,8 @@ import type {
 } from './types';
 
 export const AuthService = {
-  login: async (data: LoginRequest) => {
-    return request.post<ApiEnvelope>(KEYS.AUTH_LOGIN, {
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
+    return request.post<AuthResponse>(KEYS.AUTH_LOGIN, {
       email: data.email,
       password: data.password,
     });

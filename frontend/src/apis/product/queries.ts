@@ -1,32 +1,38 @@
-import {
-  useQuery,
-  keepPreviousData,
-} from "@tanstack/react-query";
-
-import { ProductService } from "./requests";
-
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { ProductService } from './requests';
+import { KEYS } from './keys';
 import type {
-  QueryProductRequest,
   ProductListResponse,
-} from "./types";
+  ProductPriceRangeResponse,
+  QueryProductRequest,
+} from './types';
 
-import { KEYS } from "./keys";
+export const useProductPriceRange = () => {
+  return useQuery<ProductPriceRangeResponse>({
+    queryKey: [KEYS.PRICE_RANGE],
+    queryFn: () => ProductService.getPriceRange(),
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
+  });
+};
 
-export const useProducts = (
-  query: QueryProductRequest = {}
-) => {
+export const useProducts = (query: QueryProductRequest = {}) => {
   return useQuery<ProductListResponse>({
     queryKey: [KEYS.PRODUCTS, query],
-
-    queryFn: () =>
-      ProductService.getAll(query),
-
+    queryFn: () => ProductService.getAll(query),
     placeholderData: keepPreviousData,
+    staleTime: 60_000,
+    gcTime: 300_000,
+    refetchOnWindowFocus: false,
+  });
+};
 
-    staleTime: 1 * 60 * 1000,
-
-    gcTime: 5 * 60 * 1000,
-
+export const useProductBySlug = (slug: string) => {
+  return useQuery({
+    queryKey: [KEYS.PRODUCT_DETAIL, slug],
+    queryFn: () => ProductService.getBySlug(slug),
+    enabled: !!slug,
+    staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
 };

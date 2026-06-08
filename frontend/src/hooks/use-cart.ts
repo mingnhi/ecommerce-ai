@@ -1,39 +1,34 @@
 import { useCallback } from "react";
-import { cartSlice } from "@/stores/cart/slice";
-import { selectCartItems, selectCartSubtotal, selectCartTotalQuantity } from "@/stores/cart/selectors";
-import { useAppDispatch, useAppSelector } from "@/stores";
-import type { ICartLineInput } from "@/types/cart";
+import { useCartContext } from "@/contexts";
 
 export function useCart() {
-  const dispatch = useAppDispatch();
-  const items = useAppSelector(selectCartItems);
-  const totalQuantity = useAppSelector(selectCartTotalQuantity);
-  const subtotal = useAppSelector(selectCartSubtotal);
+  const {
+    items,
+    totalQuantity,
+    subtotal,
+    addToCart,
+    removeLine,
+    setLineQuantity,
+  } = useCartContext();
 
   const addLine = useCallback(
-    (payload: ICartLineInput) => {
-      dispatch(cartSlice.actions.addLine(payload));
+    async (payload: {
+      productId: string;
+      name: string;
+      price: number;
+      quantity: number;
+      image?: string | null;
+    }) => {
+      await addToCart({
+        variantId: payload.productId,
+        quantity: payload.quantity,
+        productName: payload.name,
+        unitPrice: payload.price,
+        thumbnail: payload.image ?? undefined,
+      });
     },
-    [dispatch]
+    [addToCart],
   );
-
-  const removeLine = useCallback(
-    (id: string) => {
-      dispatch(cartSlice.actions.removeLine(id));
-    },
-    [dispatch]
-  );
-
-  const setLineQuantity = useCallback(
-    (id: string, quantity: number) => {
-      dispatch(cartSlice.actions.setLineQuantity({ id, quantity }));
-    },
-    [dispatch]
-  );
-
-  const clearCart = useCallback(() => {
-    dispatch(cartSlice.actions.clearCart());
-  }, [dispatch]);
 
   return {
     items,
@@ -42,6 +37,5 @@ export function useCart() {
     addLine,
     removeLine,
     setLineQuantity,
-    clearCart,
   };
 }

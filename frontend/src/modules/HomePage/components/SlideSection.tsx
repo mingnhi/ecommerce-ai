@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import ColorBends from "@/components/ui/ColorBends";
 import { HERO_COLOR_BENDS, HERO_SLIDES } from "../lib";
+import { buildProductPageUrl } from "@/modules/ProductPage/lib";
+import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const SLIDE_COUNT = HERO_SLIDES.length;
@@ -26,8 +28,6 @@ export function SlideSection() {
       <div className="absolute inset-0 bg-sky-100/50">
         <ColorBends className="h-full w-full" {...HERO_COLOR_BENDS} />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-50/90 via-white/80 to-sky-100/40 lg:bg-gradient-to-r lg:from-sky-50/90 lg:via-white/75 lg:to-sky-100/40" />
-
       <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-sky-50/90 via-white/80 to-sky-100/40 lg:bg-gradient-to-r lg:from-sky-50/90 lg:via-white/75 lg:to-sky-100/40" />
       <div className="relative z-10 grid items-center gap-6 pb-12 pt-6 sm:pb-14 sm:pt-8 lg:grid-cols-2 lg:py-0 lg:min-h-[400px]">
         <div className="flex flex-col justify-center gap-4 px-5 sm:px-6 lg:p-8">
@@ -40,36 +40,36 @@ export function SlideSection() {
               transition={{ duration: 0.25 }}
               className="max-w-xl space-y-3"
             >
-              <span className="inline-flex w-fit items-center rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-sky-700 shadow-sm">
+              <span className="inline-flex w-fit items-center rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-sky-700 shadow-sm ring-1 ring-sky-100">
                 {slide.badge}
               </span>
               <h1 className="text-2xl font-extrabold leading-[1.15] tracking-tight text-slate-900 sm:text-[1.85rem] lg:text-[2.35rem]">
-                {slide.title}
+                <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-sky-700 bg-clip-text text-transparent">
+                  {slide.title}
+                </span>
               </h1>
               <p className="text-sm font-medium leading-snug text-sky-800/90 md:text-[15px]">{slide.subtitle}</p>
               <p className="max-w-lg text-sm leading-relaxed text-slate-600 md:text-[15px]">{slide.description}</p>
             </motion.div>
           </AnimatePresence>
-
-          <form
-            className="flex w-full max-w-md flex-col gap-2 rounded-2xl border border-white/90 bg-white/95 p-1.5 shadow-[0_10px_40px_-12px_rgba(14,165,233,0.35)] ring-1 ring-sky-100/90 backdrop-blur-md sm:flex-row sm:rounded-full"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <div className="relative min-w-0 flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                type="search"
-                placeholder="Tìm iPhone, laptop, tai nghe..."
-                className="h-11 w-full border-0 bg-transparent pl-11 pr-4 text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:ring-0 sm:h-12"
-              />
-            </div>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <Button
-              type="submit"
-              className="h-11 shrink-0 rounded-xl bg-sky-500 px-6 font-semibold shadow-md shadow-sky-500/30 hover:bg-sky-600 sm:h-12 sm:rounded-full"
+              asChild
+              className="h-11 rounded-full bg-sky-500 px-6 text-sm font-semibold text-white hover:bg-sky-600"
             >
-              Tìm kiếm
+              <Link href={ROUTES.PRODUCTS}>
+                <ShoppingBag className="size-4" />
+                Khám phá ngay
+              </Link>
             </Button>
-          </form>
+            <Link
+              href={buildProductPageUrl({ sort: "best_selling" })}
+              className="inline-flex items-center gap-1 text-sm font-semibold text-sky-600 transition-colors hover:text-sky-700"
+            >
+              Xem sản phẩm nổi bật
+              <ChevronRight className="size-4" />
+            </Link>
+          </div>
         </div>
         <div className="relative flex min-h-[180px] items-center justify-center overflow-hidden px-4 pb-5 lg:min-h-[400px] lg:px-6 lg:pb-0">
           <AnimatePresence mode="wait">

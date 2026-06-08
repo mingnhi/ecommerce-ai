@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -16,6 +17,9 @@ import { EntityManager } from '@mikro-orm/core';
 
 import { OrderEntity } from '@entities/order.entity';
 import { OrderItemEntity } from '@entities/order-item.entity';
+import { Payment } from '@entities/payment.entity';
+import { ProductVariantEntity } from '@entities/product-variant.entity';
+import { ProductImageType } from '@entities/product-image.entity';
 
 import { OrderStatus } from './enums/order-status.enum';
 
@@ -39,12 +43,6 @@ const USER_ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   [OrderStatus.PENDING]: [OrderStatus.CANCELLED],
 };
 
-const ADMIN_ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
-  [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
-  [OrderStatus.PAID]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
-  [OrderStatus.SHIPPED]: [OrderStatus.COMPLETED],
-};
-
 @Injectable()
 export class OrderService {
   constructor(
@@ -58,7 +56,17 @@ export class OrderService {
   async create(userId: string, dto: CreateOrderDto) {
     return this.em.transactional(async (em) => {
       const cart = await this.cartService.getActiveCartForCheckout(em, userId);
-      const items = cart.items.getItems();
+      const cartItems = cart.items.getItems();
+      const selectedIds = new Set(dto.cartItemIds);
+      const items = cartItems.filter((item) => selectedIds.has(item.id));
+
+      if (items.length !== dto.cartItemIds.length) {
+        throw new BadRequestException('Some cart items are invalid');
+      }
+
+      if (items.length === 0) {
+        throw new BadRequestException('No cart items selected for checkout');
+      }
 
       const order = em.create(OrderEntity, {
         userId,
@@ -73,18 +81,19 @@ export class OrderService {
 
       let total = 0;
       for (const ci of items) {
-        await this.inventoryService.applyMovementWithinTx(
-          em,
-          {
-            variantId: ci.variantId,
-            type: MovementType.RESERVE,
-            quantity: ci.quantity,
-          },
-          {
-            referenceId: order.id,
-            note: `RESERVE for order ${order.id}`,
-          },
-        );
+        // Tạm tắt giữ tồn kho khi đặt hàng — bật lại khi có nhập kho
+        // await this.inventoryService.applyMovementWithinTx(
+        //   em,
+        //   {
+        //     variantId: ci.variantId,
+        //     type: MovementType.RESERVE,
+        //     quantity: ci.quantity,
+        //   },
+        //   {
+        //     referenceId: order.id,
+        //     note: `RESERVE for order ${order.id}`,
+        //   },
+        // );
 
         const livePrice = await this.cartService.resolveCurrentPriceFor(
           em,
@@ -104,12 +113,20 @@ export class OrderService {
 
       order.totalPrice = Number(total.toFixed(2));
 
-      this.cartService.markCheckedOut(cart);
+      for (const item of items) {
+        em.remove(item);
+      }
+
+      if (items.length === cartItems.length) {
+        this.cartService.markCheckedOut(cart);
+      }
+
       em.persist(cart);
 
       await em.flush();
       await em.populate(order, ['items']);
-      return this.toDto(order);
+      const variantMap = await this.loadVariantMap(em, [order]);
+      return this.toDto(order, variantMap);
     });
   }
 
@@ -141,8 +158,10 @@ export class OrderService {
       populate: ['items'],
     });
 
+    const variantMap = await this.loadVariantMap(this.em, items);
+
     return {
-      items: items.map((o) => this.toDto(o)),
+      items: items.map((o) => this.toDto(o, variantMap)),
       meta: {
         pagination: {
           page,
@@ -165,7 +184,8 @@ export class OrderService {
     if (!isAdmin && order.userId !== requesterUserId) {
       throw new ForbiddenException('Order does not belong to this user');
     }
-    return this.toDto(order);
+    const variantMap = await this.loadVariantMap(this.em, [order]);
+    return this.toDto(order, variantMap);
   }
 
   async updateStatus(
@@ -190,6 +210,27 @@ export class OrderService {
       isAdmin,
       actorUserId,
       note: dto.note,
+    });
+  }
+
+  async remove(orderId: string) {
+    return this.em.transactional(async (em) => {
+      const order = await em.findOne(
+        OrderEntity,
+        { id: orderId },
+        { populate: ['items'] },
+      );
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      const payments = await em.find(Payment, { order: orderId });
+      payments.forEach((payment) => em.remove(payment));
+      order.items.getItems().forEach((item) => em.remove(item));
+      em.remove(order);
+      await em.flush();
+
+      return { message: 'Delete order successfully' };
     });
   }
 
@@ -240,13 +281,19 @@ export class OrderService {
 
       const from = order.status;
       const to = input.targetStatus;
-      const allowed = input.isAdmin
-        ? ADMIN_ALLOWED_TRANSITIONS[from]
-        : USER_ALLOWED_TRANSITIONS[from];
-      if (!allowed?.includes(to)) {
-        throw new ConflictException(
-          `Cannot transition order from ${from} to ${to}`,
-        );
+
+      if (from === to) {
+        const variantMap = await this.loadVariantMap(em, [order]);
+        return this.toDto(order, variantMap);
+      }
+
+      if (!input.isAdmin) {
+        const allowed = USER_ALLOWED_TRANSITIONS[from];
+        if (!allowed?.includes(to)) {
+          throw new ConflictException(
+            `Cannot transition order from ${from} to ${to}`,
+          );
+        }
       }
 
       await this.applyInventorySideEffects(
@@ -261,35 +308,39 @@ export class OrderService {
 
       await em.flush();
       await em.populate(order, ['items']);
-      return this.toDto(order);
+      const variantMap = await this.loadVariantMap(em, [order]);
+      return this.toDto(order, variantMap);
     });
   }
 
   private async applyInventorySideEffects(
-    em: EntityManager,
-    order: OrderEntity,
-    from: OrderStatus,
-    to: OrderStatus,
-    actorUserId: string,
+    _em: EntityManager,
+    _order: OrderEntity,
+    _from: OrderStatus,
+    _to: OrderStatus,
+    _actorUserId: string,
   ) {
-    const movementType = this.resolveMovementType(from, to);
-    if (!movementType) return;
+    // Tạm tắt cập nhật tồn kho khi đổi trạng thái đơn — bật lại khi có nhập kho
+    return;
 
-    const items = order.items.getItems();
-    for (const it of items) {
-      await this.inventoryService.applyMovementWithinTx(
-        em,
-        {
-          variantId: it.variantId,
-          type: movementType,
-          quantity: it.quantity,
-        },
-        {
-          referenceId: order.id,
-          note: `${movementType} for ${from}->${to} by ${actorUserId}`,
-        },
-      );
-    }
+    // const movementType = this.resolveMovementType(from, to);
+    // if (!movementType) return;
+    //
+    // const items = order.items.getItems();
+    // for (const it of items) {
+    //   await this.inventoryService.applyMovementWithinTx(
+    //     em,
+    //     {
+    //       variantId: it.variantId,
+    //       type: movementType,
+    //       quantity: it.quantity,
+    //     },
+    //     {
+    //       referenceId: order.id,
+    //       note: `${movementType} for ${from}->${to} by ${actorUserId}`,
+    //     },
+    //   );
+    // }
   }
 
   private resolveMovementType(
@@ -301,7 +352,37 @@ export class OrderService {
     return null;
   }
 
-  private toDto(order: OrderEntity) {
+  private async loadVariantMap(
+    em: EntityManager,
+    orders: OrderEntity[],
+  ): Promise<Map<string, ProductVariantEntity>> {
+    const variantIds = [
+      ...new Set(
+        orders.flatMap((order) =>
+          order.items.isInitialized()
+            ? order.items.getItems().map((item) => item.variantId)
+            : [],
+        ),
+      ),
+    ];
+
+    if (!variantIds.length) {
+      return new Map();
+    }
+
+    const variants = await em.find(
+      ProductVariantEntity,
+      { id: { $in: variantIds } },
+      { populate: ['product', 'product.images'] },
+    );
+
+    return new Map(variants.map((variant) => [variant.id, variant]));
+  }
+
+  private toDto(
+    order: OrderEntity,
+    variantMap: Map<string, ProductVariantEntity>,
+  ) {
     return {
       id: order.id,
       userId: order.userId,
@@ -313,13 +394,47 @@ export class OrderService {
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       items: order.items.isInitialized()
-        ? order.items.getItems().map((i) => ({
-          id: i.id,
-          variantId: i.variantId,
-          quantity: i.quantity,
-          price: Number(i.price),
-        }))
+        ? order.items.getItems().map((i) => this.mapOrderItem(i, variantMap))
         : undefined,
     };
+  }
+
+  private mapOrderItem(
+    item: OrderItemEntity,
+    variantMap: Map<string, ProductVariantEntity>,
+  ) {
+    const variant = variantMap.get(item.variantId);
+    const { productName, thumbnail } = this.resolveVariantDisplay(variant);
+
+    return {
+      id: item.id,
+      variantId: item.variantId,
+      quantity: item.quantity,
+      price: Number(item.price),
+      productName,
+      thumbnail,
+    };
+  }
+
+  private resolveVariantDisplay(variant?: ProductVariantEntity) {
+    if (!variant) {
+      return { productName: 'Sản phẩm', thumbnail: undefined };
+    }
+
+    const productName =
+      variant.product?.name?.trim() ||
+      variant.title?.trim() ||
+      'Sản phẩm';
+
+    let thumbnail = variant.image?.trim() || undefined;
+    const images = variant.product?.images;
+
+    if (!thumbnail && images?.isInitialized()) {
+      const list = images.getItems();
+      const thumb = list.find((img) => img.type === ProductImageType.THUMBNAIL);
+      thumbnail = thumb?.imageUrl ?? list[0]?.imageUrl;
+    }
+
+    return { productName, thumbnail };
   }
 }

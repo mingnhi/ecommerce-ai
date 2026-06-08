@@ -1,11 +1,13 @@
-type OrderItemResponse = {
+export type OrderItemResponse = {
   id: string;
   variantId: string;
   quantity: number;
   price: number;
+  productName: string;
+  thumbnail?: string;
 };
 
-type OrderResponse = {
+export type OrderResponse = {
   id: string;
   userId: string;
   status: string;
@@ -18,7 +20,7 @@ type OrderResponse = {
   items?: OrderItemResponse[];
 };
 
-type BulkUpdateStatusResponse = {
+export type BulkUpdateStatusResponse = {
   total: number;
   succeededCount: number;
   failedCount: number;

@@ -1,30 +1,22 @@
-import { request } from "../axios";
-
-import { KEYS } from "./keys";
-
+import { request } from '../axios';
+import { KEYS } from './keys';
 import type {
+  ProductDetailResponse,
   ProductListResponse,
-  Product,
+  ProductPriceRangeResponse,
   QueryProductRequest,
-} from "./types";
+} from './types';
 
 export const ProductService = {
-  getAll: async (
-    query: QueryProductRequest = {}
-  ): Promise<ProductListResponse> => {
-    return request.get<ProductListResponse>(
-      KEYS.PRODUCTS,
-      {
-        params: query,
-      }
-    );
+  getAll: (query: QueryProductRequest = {}) => {
+    return request.get<ProductListResponse>(KEYS.PRODUCTS, { params: query });
   },
 
-  getBySlug: async (
-    slug: string
-  ): Promise<{ data: Product }> => {
-    return request.get<{ data: Product }>(
-      `${KEYS.PRODUCT_DETAIL}/${slug}`
-    );
+  getPriceRange: () => {
+    return request.get<ProductPriceRangeResponse>(KEYS.PRICE_RANGE);
+  },
+
+  getBySlug: (slug: string) => {
+    return request.get<ProductDetailResponse>(`${KEYS.PRODUCT_DETAIL}/${slug}`);
   },
 };

@@ -1,12 +1,19 @@
-import { Entity, Index, ManyToOne, Property } from '@mikro-orm/core';
+import { Entity, Enum, Index, ManyToOne, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
+import { Province } from './province.entity';
+import { Ward } from './ward.entity';
 import { User } from './user.entity';
+import { AddressType } from '@modules/address/enums/address-type.enum';
 
 @Entity({ tableName: 'addresses' })
-@Index({ properties: ['user', 'isDefault'] })
+@Index({ properties: ['userId'] })
 export class Address extends AuditableEntity {
-  @ManyToOne(() => User, { deleteRule: 'cascade' })
-  user!: User;
+  @ManyToOne(() => User, {
+    fieldName: 'user_id',
+    deleteRule: 'cascade',
+    mapToPk: true,
+  })
+  userId!: string;
 
   @Property({ type: 'string', length: 100, fieldName: 'full_name' })
   fullName!: string;
@@ -17,17 +24,20 @@ export class Address extends AuditableEntity {
   @Property({ type: 'string', length: 500, fieldName: 'address_line' })
   addressLine!: string;
 
-  @Property({ type: 'string', length: 100, nullable: true })
-  ward?: string;
+  @ManyToOne(() => Province, {
+    fieldName: 'province_id',
+    mapToPk: true,
+  })
+  provinceId!: number;
 
-  @Property({ type: 'string', length: 100 })
-  district!: string;
+  @ManyToOne(() => Ward, {
+    fieldName: 'ward_id',
+    mapToPk: true,
+  })
+  wardId!: number;
 
-  @Property({ type: 'string', length: 100 })
-  province!: string;
-
-  @Property({ type: 'boolean', default: false, fieldName: 'is_default' })
-  isDefault: boolean = false;
+  @Enum({ items: () => AddressType, default: AddressType.HOME })
+  type: AddressType = AddressType.HOME;
 
   @Property({ type: 'boolean', default: false, fieldName: 'is_deleted' })
   isDeleted: boolean = false;

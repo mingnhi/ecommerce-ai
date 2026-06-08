@@ -19,6 +19,7 @@ import { MergeCartDto } from './dto/merge-cart.dto';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { CurrentUser, JwtUser } from '@common/decorators/current-user.decorator';
 import { ApiResponse } from '@common/interfaces/api-response.interface';
+import { CartResponse } from './dto/cart.response';
 
 @ApiTags('Cart')
 @ApiBearerAuth('JWT')
@@ -89,7 +90,7 @@ export class CartController {
     @Body() dto: MergeCartDto,
     @CurrentUser() user: JwtUser,
   ): Promise<ApiResponse<CartResponse>> {
-    const data = await this.cartService.merge(user.sub, dto);
+    const data = await this.cartService.mergeGuestItems(user.sub, dto);
 
     return {
       status: 'success',

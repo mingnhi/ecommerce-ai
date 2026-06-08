@@ -8,10 +8,6 @@ interface RetryableAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-interface RefreshTokenResponse {
-  accessToken: string;
-}
-
 let isRefreshing = false;
 let failedQueue: {
   resolve: (token: string) => void;

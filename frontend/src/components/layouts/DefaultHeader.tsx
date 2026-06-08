@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Bell, Key, LogOut, Minus, Package, Plus, ShoppingBag, Ticket, Trash2, User } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Bell, Key, LogOut, Minus, Package, Plus, Search, ShoppingBag, Ticket, Trash2, User } from "lucide-react";
+import { ProductPhoto } from "@/modules/HomePage/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
-import { useAppDispatch, useAppSelector } from "@/stores";
-import { store } from "@/stores";
+import { useAppSelector } from "@/stores";
 import { selectUser, selectAccessToken } from "@/stores/user/selectors";
 import { useLogout } from "@/hooks/use-logout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,14 +24,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatVnd } from "@/lib/format-currency";
-import { useCart } from "@/hooks/use-cart";
-import { cartSlice } from "@/stores/cart/slice";
-import { MOCK_PRODUCTS } from "@/faker/mock-products";
+import { buildSearchUrl, readSearchQuery } from "@/lib/search";
+import { useCartContext } from "@/contexts";
 import { MOCK_NOTIFICATIONS } from "@/faker/mock-notifications";
 import { cn } from "@/lib/utils";
-import type { ICartLine } from "@/types/cart";
+import type { CartLine } from "@/apis/cart/types";
+
+const headerDropdownScroll22 = cn(
+  "h-auto max-h-[min(22rem,calc(100vh-12rem))]",
+  "[&_[data-slot=scroll-area-viewport]]:h-auto",
+  "[&_[data-slot=scroll-area-viewport]]:max-h-[min(22rem,calc(100vh-12rem))]",
+);
+
+const headerDropdownScroll24 = cn(
+  "h-auto max-h-[min(24rem,calc(100vh-12rem))]",
+  "[&_[data-slot=scroll-area-viewport]]:h-auto",
+  "[&_[data-slot=scroll-area-viewport]]:max-h-[min(24rem,calc(100vh-12rem))]",
+);
+
 function HeaderCartDropdown() {
-  const { items, totalQuantity, subtotal, setLineQuantity, removeLine } = useCart();
+  const { items, totalQuantity, subtotal, setLineQuantity, removeLine } = useCartContext();
   const badge =
     totalQuantity > 99 ? "99+" : totalQuantity > 0 ? String(totalQuantity) : null;
 
@@ -88,10 +100,9 @@ function HeaderCartDropdown() {
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[min(22rem,calc(100vh-12rem))]">
+            <ScrollArea className={headerDropdownScroll22}>
               <ul className="space-y-0 p-2">
-                {items.map((line: ICartLine) => {
-                  const src = getImageUrl(line.image) ?? line.image ?? undefined;
+                {items.map((line: CartLine) => {
                   const lineTotal = line.price * line.quantity;
                   return (
                     <li
@@ -100,20 +111,13 @@ function HeaderCartDropdown() {
                     >
                       <div className="flex gap-3">
                         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-200/60 dark:bg-neutral-800 dark:ring-neutral-700">
-                          {src ? (
-                            <Image
-                              src={src}
-                              alt={line.name}
-                              width={64}
-                              height={64}
-                              className="h-full w-full object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-gray-400">
-                              <ShoppingBag className="h-6 w-6 opacity-40" strokeWidth={1.25} />
-                            </div>
-                          )}
+                          <ProductPhoto
+                            src={getImageUrl(line.image) ?? line.image ?? ""}
+                            alt={line.name}
+                            fill
+                            sizes="64px"
+                            className="object-cover"
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-900 dark:text-neutral-100">
@@ -138,7 +142,7 @@ function HeaderCartDropdown() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 cursor-pointer rounded-md"
-                                onClick={() => setLineQuantity(line.id, line.quantity - 1)}
+                                onClick={() => void setLineQuantity(line.id, line.quantity - 1)}
                                 aria-label="Giảm"
                               >
                                 <Minus className="h-3.5 w-3.5" />
@@ -151,7 +155,7 @@ function HeaderCartDropdown() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 cursor-pointer rounded-md"
-                                onClick={() => setLineQuantity(line.id, line.quantity + 1)}
+                                onClick={() => void setLineQuantity(line.id, line.quantity + 1)}
                                 aria-label="Tăng"
                               >
                                 <Plus className="h-3.5 w-3.5" />
@@ -166,7 +170,7 @@ function HeaderCartDropdown() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 shrink-0 cursor-pointer text-gray-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 hover:cursor-pointer"
-                                onClick={() => removeLine(line.id)}
+                                onClick={() => void removeLine(line.id)}
                                 aria-label="Xóa"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -188,7 +192,7 @@ function HeaderCartDropdown() {
                   {formatVnd(subtotal)}
                 </span>
               </div>
-              <Button asChild className="w-full rounded-xl font-semibold shadow-sm" size="sm">
+              <Button asChild className="w-full rounded-xl font-semibold shadow-sm bg-sky-500 text-white hover:bg-sky-600" size="sm">
                 <Link href={ROUTES.CART}>Xem giỏ hàng</Link>
               </Button>
             </div>
@@ -251,7 +255,7 @@ function HeaderNotificationDropdown() {
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[min(24rem,calc(100vh-12rem))]">
+            <ScrollArea className={headerDropdownScroll24}>
               <ul className="space-y-0 p-2">
                 {notifications.map((notification) => {
                   return (
@@ -315,147 +319,177 @@ function HeaderNotificationDropdown() {
   );
 }
 
+function HeaderSearchForm({ className }: { className?: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryFromUrl = readSearchQuery(searchParams);
+  const [term, setTerm] = useState(queryFromUrl);
+
+  useEffect(() => {
+    setTerm(queryFromUrl);
+  }, [queryFromUrl]);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    router.push(buildSearchUrl({ q: term, page: 1 }));
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className={cn(
+        "flex w-full overflow-hidden rounded-md border border-sky-200 bg-white transition-colors focus-within:border-sky-500",
+        className,
+      )}
+    >
+      <div className="relative min-w-0 flex-1">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-sky-500" />
+        <input
+          type="search"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Tìm sản phẩm..."
+          className="h-10 w-full border-0 bg-sky-50/50 pl-10 pr-3 text-sm text-sky-950 outline-none "
+        />
+      </div>
+      <button
+        type="submit"
+        className="h-10 shrink-0 border-l border-sky-200 bg-sky-500 px-4 text-sm font-semibold text-white transition-colors hover:bg-sky-600 cursor-pointer sm:px-5"
+      >
+        Tìm kiếm
+      </button>
+    </form>
+  );
+}
+
 export function DefaultHeader() {
-  const dispatch = useAppDispatch();
   const { handleLogout } = useLogout();
   const user = useAppSelector(selectUser);
   const accessToken = useAppSelector(selectAccessToken);
   const avatarSrc = getImageUrl(user?.image);
   const [mounted, setMounted] = useState(false);
-  const demoSeededRef = useRef(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!mounted || demoSeededRef.current) return;
-    const id = window.setTimeout(() => {
-      if (demoSeededRef.current) return;
-      if (store.getState().cart.items.length > 0) return;
-      demoSeededRef.current = true;
-      MOCK_PRODUCTS.forEach((row) => {
-        dispatch(cartSlice.actions.addLine(row));
-      });
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [mounted, dispatch]);
+    setMounted(true);
+  }, []);
 
   const isLoggedIn = !!accessToken;
 
+  const headerActions = !mounted ? (
+    <div className="flex items-center gap-2 sm:gap-3">
+      <HeaderCartDropdown />
+    </div>
+  ) : isLoggedIn ? (
+    <div className="flex items-center gap-2 sm:gap-3">
+      <HeaderNotificationDropdown />
+      <HeaderCartDropdown />
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center gap-2 rounded-full p-1.5 pr-3 text-gray-700 outline-none transition-colors hover:bg-sky-50 cursor-pointer">
+            <Avatar className="h-8 w-8 border border-sky-100">
+              <AvatarImage key={avatarSrc} src={avatarSrc} alt={user?.fullName} className="object-cover" />
+              <AvatarFallback className="bg-sky-50 text-sky-600">
+                <User className="h-4 w-4" />
+              </AvatarFallback>
+            </Avatar>
+            <span className="hidden max-w-[150px] truncate text-sm font-medium md:inline">
+              {user?.fullName ?? "Tài khoản"}
+            </span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" sideOffset={10} maxHeight="none" className="w-64 overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-0 shadow-xl backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/95">
+          <div className="flex items-center gap-3 border-b border-gray-100 px-3 py-3 dark:border-neutral-800">
+            <Avatar className="h-10 w-10 border border-gray-200 shadow-sm dark:border-neutral-700">
+              <AvatarImage key={avatarSrc} src={avatarSrc} alt={user?.fullName} className="object-cover" />
+              <AvatarFallback className="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
+                <User className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-semibold text-gray-900 dark:text-neutral-100">
+                {user?.fullName ?? "Tài khoản"}
+              </span>
+              <span className="mt-0.5 truncate text-xs text-gray-500 dark:text-neutral-400">
+                {user?.email ?? "Thành viên"}
+              </span>
+            </div>
+          </div>
+          <ScrollArea className="max-h-72">
+            <div className="space-y-1 p-2">
+              <Link href={ROUTES.PROFILE}>
+                <DropdownMenuItem>
+                  <User className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                  <span>Thông tin tài khoản</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href={ROUTES.VOUCHERS}>
+                <DropdownMenuItem>
+                  <Ticket className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                  <span>Voucher của tôi</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href={ROUTES.NOTIFICATIONS}>
+                <DropdownMenuItem>
+                  <Bell className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                  <span>Thông báo</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href={ROUTES.ORDER_HISTORY}>
+                <DropdownMenuItem>
+                  <Package className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                  <span>Lịch sử đơn hàng</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href={ROUTES.CHANGE_PASSWORD}>
+                <DropdownMenuItem>
+                  <Key className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
+                  <span>Đổi mật khẩu</span>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuSeparator className="my-1" />
+              <DropdownMenuItem variant="destructive" onClick={() => handleLogout()}>
+                <LogOut className="h-4 w-4" />
+                <span className="font-medium">Đăng xuất</span>
+              </DropdownMenuItem>
+            </div>
+          </ScrollArea>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  ) : (
+    <div className="flex items-center gap-2 sm:gap-3">
+      <HeaderCartDropdown />
+      <Button asChild variant="default" className="rounded-full bg-sky-500 hover:bg-sky-600">
+        <Link href={ROUTES.LOGIN}>Đăng nhập</Link>
+      </Button>
+      <Button asChild variant="outline" className="rounded-full border-sky-200 text-sky-700 hover:bg-sky-50">
+        <Link href={ROUTES.REGISTER}>Đăng ký</Link>
+      </Button>
+    </div>
+  );
+
   return (
-    <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50 py-1" suppressHydrationWarning>
-      <div className="mx-auto flex items-center justify-between py-1 px-4 sm:px-6 lg:px-8 relative" suppressHydrationWarning>
-        <div className="flex items-center gap-6">
-          <Link
-            href={ROUTES.HOME}
-            className="items-center gap-2 cursor-pointer shrink-0 flex hover:opacity-90 transition-opacity"
+    <header className="fixed left-0 top-0 z-50 w-full border-b border-sky-100 bg-white" suppressHydrationWarning>
+      <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6" suppressHydrationWarning>
+        <Link href={ROUTES.HOME} className="flex shrink-0 items-center transition-opacity hover:opacity-90">
+          <img
+            src="/images/logo.png"
+            alt="Ecommerce AI Logo"
+            className="h-8 w-auto object-contain md:h-9"
+          />
+        </Link>
+
+        <div className="flex min-w-0 flex-1 justify-center px-1 sm:px-6">
+          <Suspense
+            fallback={
+              <div className="h-10 w-full max-w-2xl animate-pulse rounded-md border border-sky-100 bg-sky-50/60" />
+            }
           >
-            <img
-              src="/images/logo.png"
-              alt="Ecommerce AI Logo"
-              className="h-14 md:h-8 w-auto object-contain transition-all duration-300"
-            />
-          </Link>
-          <nav className="hidden sm:flex items-center gap-6">
-            <Link
-              href={ROUTES.HOME}
-              className="text-gray-700 font-semibold hover:text-sky-600 transition hover:cursor-pointer"
-            >
-              Trang chủ
-            </Link>
-          </nav>
+            <HeaderSearchForm className="max-w-2xl" />
+          </Suspense>
         </div>
 
-        {mounted && isLoggedIn ? (
-          <div className="flex items-center gap-2 sm:gap-3">
-            <HeaderNotificationDropdown />
-            <HeaderCartDropdown />
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 text-gray-700 outline-none hover:bg-gray-100 p-1.5 pr-3 rounded-full transition-colors cursor-pointer dark:hover:bg-neutral-800">
-                  <Avatar className="h-8 w-8 border border-gray-200 shadow-sm dark:border-neutral-700">
-                    <AvatarImage key={avatarSrc} src={avatarSrc} alt={user?.fullName} className="object-cover" />
-                    <AvatarFallback className="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:inline font-medium text-sm max-w-[150px] truncate">
-                    {user?.fullName ?? "Tài khoản"}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={10} maxHeight="none" className="w-64 overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-0 shadow-xl backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/95">
-                <div className="flex items-center gap-3 px-3 py-3 border-b border-gray-100 dark:border-neutral-800">
-                  <Avatar className="h-10 w-10 border border-gray-200 shadow-sm dark:border-neutral-700">
-                    <AvatarImage key={avatarSrc} src={avatarSrc} alt={user?.fullName} className="object-cover" />
-                    <AvatarFallback className="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
-                      <User className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-sm truncate text-gray-900 dark:text-neutral-100">
-                      {user?.fullName ?? "Tài khoản"}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-neutral-400 truncate mt-0.5">
-                      {user?.email ?? "Thành viên"}
-                    </span>
-                  </div>
-                </div>
-                <ScrollArea className="max-h-72">
-                  <div className="p-2 space-y-1">
-                    <Link href={ROUTES.PROFILE}>
-                      <DropdownMenuItem>
-                        <User className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
-                        <span>Thông tin tài khoản</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href={ROUTES.VOUCHERS}>
-                      <DropdownMenuItem>
-                        <Ticket className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
-                        <span>Voucher của tôi</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href={ROUTES.NOTIFICATIONS}>
-                      <DropdownMenuItem>
-                        <Bell className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
-                        <span>Thông báo</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href={ROUTES.ORDER_HISTORY}>
-                      <DropdownMenuItem>
-                        <Package className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
-                        <span>Lịch sử đơn hàng</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href={ROUTES.CHANGE_PASSWORD}>
-                      <DropdownMenuItem>
-                        <Key className="h-4 w-4 text-gray-500 dark:text-neutral-400" />
-                        <span>Đổi mật khẩu</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuSeparator className="my-1" />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => handleLogout()}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span className="font-medium">Đăng xuất</span>
-                    </DropdownMenuItem>
-                  </div>
-                </ScrollArea>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 sm:gap-3">
-            <HeaderCartDropdown />
-            <Button asChild variant="default" className="rounded-full">
-              <Link href={ROUTES.LOGIN}>Đăng nhập</Link>
-            </Button>
-            <Button asChild variant="outline" className="rounded-full">
-              <Link href={ROUTES.REGISTER}>Đăng ký</Link>
-            </Button>
-          </div>
-        )}
+        <div className="flex shrink-0 items-center justify-end">{headerActions}</div>
       </div>
     </header>
   );

@@ -1,57 +1,51 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { getApiErrorMessage, getEnvelopeData } from '@/lib/api-response';
+import { paymentResultRoute } from '@/lib/routes';
 import { PaymentService } from './requests';
-import {
-    CreatePaymentRequest,
-} from './types';
-import { KEYS } from './keys';
-
-export const useCreatePayment = () => {
-    return useMutation({
-        mutationFn: async (data: CreatePaymentRequest) => {
-            return await PaymentService.createPayment(data);
-        },
-
-        onSuccess: (response) => {
-            const data = response?.data;
-
-            if (data?.method === 'VNPAY' && data?.paymentUrl) {
-                toast.success('Đang chuyển đến VNPAY...');
-                window.location.href = data.paymentUrl;
-                return;
-            }
-
-            if (data?.method === 'CASH') {
-                toast.success(data.message || 'Đặt hàng COD thành công');
-                return;
-            }
-
-            toast.error('Không tạo được thanh toán');
-        },
-
-        onError: (error: unknown) => {
-            const errorMessage =
-                error?.response?.data?.message ||
-                error?.message ||
-                'Thanh toán thất bại';
-
-            toast.error(errorMessage);
-        },
-    });
-};
+import type { CreatePaymentData, CreatePaymentRequest } from './types';
 
 export const useVerifyVnpayReturn = (queryString: string) => {
-    return useQuery({
-        queryKey: [KEYS.PAYMENT_VNPAY_RETURN, queryString],
+  return useQuery({
+    queryKey: ['payment', 'vnpay-return', queryString],
+    queryFn: () => PaymentService.verifyVnpayReturn(queryString),
+    enabled: queryString.includes('vnp_'),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+};
 
-        queryFn: async () => {
-            return await PaymentService.verifyVnpayReturn(queryString);
-        },
+export const useCreatePayment = () => {
+  const router = useRouter();
 
-        enabled: !!queryString,
+  return useMutation<CreatePaymentData | undefined, Error, CreatePaymentRequest>({
+    mutationFn: async (data) => {
+      const res = await PaymentService.createPayment(data);
+      return getEnvelopeData<CreatePaymentData>(res);
+    },
+    onSuccess: (data) => {
+      if (!data) {
+        toast.error('Không tạo được thanh toán');
+        return;
+      }
 
-        retry: 1,
+      if (data.method === 'VNPAY' && data.paymentUrl) {
+        toast.success('Đang chuyển đến VNPAY...');
+        window.location.href = data.paymentUrl;
+        return;
+      }
 
-        refetchOnWindowFocus: false,
-    });
+      if (data.method === 'CASH') {
+        toast.success(data.message || 'Đặt hàng thành công');
+        router.push(paymentResultRoute(data.orderId));
+        return;
+      }
+
+      toast.error('Không tạo được thanh toán');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Thanh toán thất bại'));
+    },
+  });
 };

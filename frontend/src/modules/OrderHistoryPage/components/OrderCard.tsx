@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { Package, Calendar, ChevronRight } from "lucide-react";
+import { Package, Calendar, ChevronRight, Copy } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 import { IOrder } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatVnd } from "@/lib/format-currency";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
+import Link from "next/link";
+import { ROUTES } from "@/lib/routes";
 
 interface OrderCardProps {
   order: IOrder;
@@ -31,9 +34,20 @@ export function OrderCard({ order }: OrderCardProps) {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between border-b border-border/50 bg-muted/30 px-5 py-4">
         <div className="flex flex-wrap items-center gap-4 text-sm">
-          <div className="flex items-center gap-2 font-medium text-foreground">
-            <Package className="size-4 text-sky-500" />
-            <span>Mã đơn: <span className="uppercase">{order.orderNumber}</span></span>
+          <div className="flex min-w-0 items-center gap-2 font-medium text-foreground">
+            <Package className="size-4 shrink-0 text-sky-500" />
+            <span className="shrink-0 text-muted-foreground">Mã đơn:</span>
+            <span className="break-all font-mono text-xs uppercase sm:text-sm">
+              {order.id}
+            </span>
+            <button
+              type="button"
+              onClick={() => copyToClipboard(order.id, "Đã sao chép mã đơn hàng")}
+              className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-sky-50 hover:text-sky-600 cursor-pointer"
+              aria-label="Sao chép mã đơn hàng"
+            >
+              <Copy className="size-4" />
+            </button>
           </div>
           <div className="hidden h-4 w-px bg-border/80 sm:block" />
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -106,20 +120,15 @@ export function OrderCard({ order }: OrderCardProps) {
               {formatVnd(order.total)}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              className="flex-1 bg-background hover:bg-muted sm:flex-none border-border/80 font-medium"
-            >
-              Xem chi tiết
-            </Button>
-            <Button
-              className="flex-1 bg-sky-500 hover:bg-sky-600 text-white sm:flex-none font-medium shadow-md shadow-sky-500/20 hover:cursor-pointer"
-            >
+          <Button
+            asChild
+            className="w-full bg-sky-500 font-medium text-white shadow-md shadow-sky-500/20 hover:bg-sky-600 hover:cursor-pointer sm:w-auto"
+          >
+            <Link href={ROUTES.HOME}>
               Mua lại
               <ChevronRight className="ml-1.5 size-4" />
-            </Button>
-          </div>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

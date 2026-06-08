@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserEventDto } from './dto/user-event.dto';
 import { EntityManager, EntityRepository } from '@mikro-orm/core';
-import { UserEventType } from './dto/user-event.enum';
-import { UserEvent } from '@entities/user-event.entity';
-import { RecommendRequestDto } from './dto/recommendRequest.dto';
-import { firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@mikro-orm/nestjs/mikro-orm.common';
-import { ProductEntity } from '@entities/product.entity';
-import { ProductVariantEntity } from '@entities/product-variant.entity';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
+import { CreateUserEventDto } from './dto/user-event.dto';
+import { UserEventType } from './dto/user-event.enum';
+import { RecommendRequestDto } from './dto/recommendRequest.dto';
+
+import { UserEvent } from '@entities/user-event.entity';
+import { ProductEntity } from '@entities/product.entity';
+import { ProductPriceEntity } from '@entities/product-price.entity';
 
 @Injectable()
 export class UserEventService {
@@ -20,9 +21,10 @@ export class UserEventService {
     @InjectRepository(ProductEntity)
     private readonly productRepo: EntityRepository<ProductEntity>,
 
-    @InjectRepository(ProductVariantEntity)
-    private readonly productVariantRepo: EntityRepository<ProductVariantEntity>,
+    @InjectRepository(ProductPriceEntity)
+    private readonly productPriceRepo: EntityRepository<ProductPriceEntity>,
   ) { }
+
   private getScore(eventType: UserEventType) {
     switch (eventType) {
       case UserEventType.VIEW:
@@ -40,45 +42,92 @@ export class UserEventService {
     }
   }
 
+  private getProductIdFromPrice(price: any) {
+    return (
+      price.product?.id ??
+      price.productId?.id ??
+      price.productId ??
+      price.product_id
+    );
+  }
+
+  private getValidPriceForProduct(productId: string, prices: any[]) {
+    const now = new Date();
+
+    const productPrices = prices.filter((item: any) => {
+      const priceProductId = this.getProductIdFromPrice(item);
+
+      const isSameProduct = String(priceProductId) === String(productId);
+      const isActive = item.isActive ?? item.is_active ?? true;
+
+      const startAt = item.startAt ?? item.start_at;
+      const endAt = item.endAt ?? item.end_at;
+
+      const isStarted = !startAt || new Date(startAt) <= now;
+      const isNotEnded = !endAt || new Date(endAt) >= now;
+
+      return isSameProduct && isActive && isStarted && isNotEnded;
+    });
+
+    if (!productPrices.length) return 0;
+
+    productPrices.sort((a: any, b: any) => {
+      const bDate = new Date(b.updatedAt ?? b.updated_at ?? b.createdAt ?? b.created_at).getTime();
+      const aDate = new Date(a.updatedAt ?? a.updated_at ?? a.createdAt ?? a.created_at).getTime();
+
+      return bDate - aDate;
+    });
+
+    const latestPrice = productPrices[0];
+
+    return Number(
+      latestPrice.price ??
+      latestPrice.originalPrice ??
+      latestPrice.original_price ??
+      0,
+    );
+  }
+
   private async getProductsForRecommend() {
-    const products = await this.productRepo.findAll();
-    const variants = await this.productVariantRepo.findAll();
+    const products = await this.productRepo.findAll({
+      populate: ['category'],
+    });
+
+    const prices = await this.productPriceRepo.findAll();
 
     const mappedProducts = products.map((product: any) => {
-      const productVariants = variants.filter((variant: any) => {
-        const variantProductId =
-          variant.productId?.id ??
-          variant.productId ??
-          variant.product?.id ??
-          variant.product_id;
+      const categoryId =
+        product.category?.id ??
+        product.categoryId?.id ??
+        product.categoryId ??
+        product.category_id;
 
-        return String(variantProductId) === String(product.id);
+      const price = this.getValidPriceForProduct(product.id, prices);
+
+      console.log({
+        productId: product.id,
+        name: product.name,
+        categoryId,
+        price,
       });
-
-      const prices = productVariants
-        .map((variant: any) => Number(variant.price))
-        .filter((price: number) => price > 0);
-
-      const price =
-        prices.length > 0 ? Math.min(...prices) : Number(product.price ?? 0);
 
       return {
         id: product.id,
-        category_id:
-          product.categoryId?.id ??
-          product.categoryId ??
-          product.category?.id ??
-          product.category_id,
+        category_id: categoryId,
         price,
         name: product.name ?? product.title,
         image: product.thumbnail ?? product.image,
+        slug: product.slug,
       };
     });
 
-    return mappedProducts.filter(
+    const validProducts = mappedProducts.filter(
       (item) => item.id && item.category_id && Number(item.price) > 0,
     );
+
+    return validProducts;
   }
+
   async create(userId: string, dto: CreateUserEventDto) {
     const event = this.em.create(UserEvent, {
       userId,
@@ -105,7 +154,6 @@ export class UserEventService {
         price: item.price,
       })),
     };
-
     const response = await firstValueFrom(
       this.httpService.post(
         'http://127.0.0.1:8000/api/v1/recommend/',
@@ -129,7 +177,7 @@ export class UserEventService {
 
     const fullProducts = recommendIds
       .map((id: string) => {
-        const product = products.find((item) => item.id === id);
+        const product = products.find((item) => String(item.id) === String(id));
 
         if (!product) return null;
 

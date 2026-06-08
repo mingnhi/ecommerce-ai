@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapPin, Ticket, Banknote, Landmark, Check, ShoppingBag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,15 @@ import { useCart } from "@/hooks/use-cart";
 import { CartVoucherPopover } from "@/modules/CartPage/components/CartVoucherPopover";
 import { cn } from "@/lib/utils";
 import { AddressDialog } from "./components/AddressDialog";
+import {
+  emptyCheckoutAddress,
+  isCheckoutAddressReady,
+  toCheckoutAddress,
+} from "@/lib/checkout";
+import { useAddresses } from "@/apis/address";
 import { CheckoutItem } from "./components/CheckoutItem";
 import { ROUTES } from "@/lib/routes";
+import { useCreateOrder } from "@/apis/order";
 import { useCreatePayment } from "@/apis/payment/queries";
 import { PaymentMethod } from "@/apis/payment";
 
@@ -26,11 +33,6 @@ const PAYMENT_METHODS: {
 }[] = [
   { id: "CASH", label: "Thanh toán khi nhận hàng", icon: Banknote },
   { id: "VNPAY", label: "Thanh toán VNPAY", icon: Landmark },
-];
-
-const ADDRESSES = [
-  { id: "1", name: "Trịnh Thị Thanh Tâm", phone: "(+84) 941 692 448", address: "99 Tôn Thất Thiệp, Phường Ngũ Hành Sơn, Thành phố Đà Nẵng", isDefault: true },
-  { id: "2", name: "Trịnh Thị Thanh Tâm", phone: "(+84) 941 692 448", address: "K72/10 Nguyễn Văn Thoại, Phường Mỹ An, Quận Ngũ Hành Sơn, Đà Nẵng", isDefault: false },
 ];
 
 function EmptyCheckout() {
@@ -75,11 +77,20 @@ function EmptyCheckout() {
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { items } = useCart();
+  const createOrder = useCreateOrder();
   const createPayment = useCreatePayment();
-  const orderId = searchParams.get("orderId");
+  const [note, setNote] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>("CASH");
   const [isAddrDialogOpen, setIsAddrDialogOpen] = useState(false);
-  const [currentAddress, setCurrentAddress] = useState(ADDRESSES[0]);
+  const [currentAddress, setCurrentAddress] = useState(emptyCheckoutAddress);
+  const { data: savedAddresses = [] } = useAddresses();
+
+  useEffect(() => {
+    const latest = savedAddresses[0];
+    if (latest) {
+      setCurrentAddress(toCheckoutAddress(latest));
+    }
+  }, [savedAddresses]);
 
   const selectedItems = useMemo(() => {
     const idsParam = searchParams.get("ids");
@@ -92,24 +103,40 @@ export default function CheckoutPage() {
   const subTotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shippingFee = 0;
   const totalAmount = subTotal + shippingFee;
+  const isPlacingOrder = createOrder.isPending || createPayment.isPending;
+
   const handlePlaceOrder = async () => {
-    if (!orderId) {
-      alert("Không tìm thấy orderId");
+    if (!isCheckoutAddressReady(currentAddress)) {
+      toast.error("Vui lòng cập nhật địa chỉ nhận hàng");
+      setIsAddrDialogOpen(true);
       return;
     }
 
-    createPayment.mutate({
-      orderId,
-      method: selectedPayment,
-    });
+    const cartItemIds = selectedItems.map((item) => item.id).filter(Boolean);
+    if (cartItemIds.length === 0) {
+      toast.error("Không có sản phẩm để đặt hàng");
+      return;
+    }
+
+    try {
+      const order = await createOrder.mutateAsync({
+        shippingAddress: currentAddress.address,
+        phone: currentAddress.phone,
+        note: note.trim() || undefined,
+        cartItemIds,
+      });
+
+      createPayment.mutate({
+        orderId: order.id,
+        method: selectedPayment,
+      });
+    } catch {
+      return;
+    }
   };
 
-  const handleAddressUpdate = (newAddress: { name: string; phone: string; address: string }) => {
-    setCurrentAddress({
-      ...newAddress,
-      id: "current",
-      isDefault: false
-    });
+  const handleAddressSaved = (address: ReturnType<typeof toCheckoutAddress>) => {
+    setCurrentAddress(address);
   };
 
   if (selectedItems.length === 0) {
@@ -136,8 +163,8 @@ export default function CheckoutPage() {
                 <AddressDialog
                   open={isAddrDialogOpen}
                   onOpenChange={setIsAddrDialogOpen}
-                  initialAddress={currentAddress}
-                  onUpdate={handleAddressUpdate}
+                  savedAddress={currentAddress}
+                  onSaved={handleAddressSaved}
                 />
               </div>
             </div>
@@ -162,6 +189,8 @@ export default function CheckoutPage() {
                 Lời nhắn:
               </span>
               <Input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
                 placeholder="Lưu ý cho Người bán..."
                 className="flex-1 border-border/60 h-9 rounded-sm focus-visible:ring-1 focus-visible:ring-border/60 shadow-none text-sm placeholder:text-muted-foreground"
               />
@@ -173,7 +202,7 @@ export default function CheckoutPage() {
               <span className="text-muted-foreground text-sm">
                 Tổng số tiền ({totalQty} sản phẩm):
               </span>
-              <span className="text-xl font-semibold text-sky-600">
+              <span className="text-xl font-semibold text-sky-500">
                 {formatVnd(subTotal)}
               </span>
             </div>
@@ -211,7 +240,7 @@ export default function CheckoutPage() {
                       className={cn(
                         "relative flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all cursor-pointer group hover:cursor-pointer",
                         isSelected
-                          ? "border-sky-500 bg-sky-500/5 text-sky-600"
+                          ? "border-sky-500 bg-sky-500/5 text-sky-500"
                           : "border-border hover:border-sky-500/50 hover:bg-muted/30 text-muted-foreground",
                       )}
                     >
@@ -246,7 +275,7 @@ export default function CheckoutPage() {
                         (m) => m.id === selectedPayment,
                       );
                       const Icon = method?.icon || Banknote;
-                      return <Icon className="size-5 text-sky-600" />;
+                      return <Icon className="size-5 text-sky-500" />;
                     })()}
                   </div>
                   <div>
@@ -270,7 +299,7 @@ export default function CheckoutPage() {
                   <span className="text-base font-bold text-foreground">
                     Tổng thanh toán
                   </span>
-                  <span className="text-2xl font-black text-sky-600 tracking-tight">
+                  <span className="text-2xl font-black text-sky-500 tracking-tight">
                     {formatVnd(totalAmount)}
                   </span>
                 </div>
@@ -283,7 +312,7 @@ export default function CheckoutPage() {
               Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo{" "}
               <Link
                 href="#"
-                className="text-sky-600 hover:underline font-bold cursor-pointer"
+                className="text-sky-500 hover:underline font-bold cursor-pointer"
               >
                 Điều khoản {siteConfig.name}
               </Link>
@@ -298,8 +327,8 @@ export default function CheckoutPage() {
               </Button>
               <Button
                 onClick={handlePlaceOrder}
-                disabled={createPayment.isPending}
-                className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xl shadow-sky-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer hover:cursor-pointer"
+                disabled={isPlacingOrder}
+                className="w-full md:w-[200px] h-10 text-md font-black rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-xl shadow-sky-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] uppercase cursor-pointer hover:cursor-pointer"
               >
                 Đặt hàng
               </Button>

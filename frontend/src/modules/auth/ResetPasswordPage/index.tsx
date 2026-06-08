@@ -8,12 +8,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Eye, EyeOff, KeyRound, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { ROUTES } from '@/lib/routes';
-import { FORGOT_PASSWORD_OTP_KEY } from '@/lib/const';
 import { resetPasswordSchema, type ResetPasswordSchemaType } from '@/lib/validations/auth';
 import { useResetPassword } from '@/apis/auth/queries';
 import { getApiErrorMessage, getApiMessage, isApiSuccess } from '@/lib/api-response';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+const FORGOT_PASSWORD_OTP_KEY = 'forgot_password_otp';
 
 export default function ResetPasswordPage() {
   const router = useRouter();

@@ -7,11 +7,13 @@ export const PERMISSIONS = {
     CREATE: "product:create",
     UPDATE: "product:update",
     DELETE: "product:delete",
+    UPLOAD_IMAGES: "product:upload_images",
   },
   ORDER: {
     READ: "order:read",
     UPDATE_STATUS: "order:update_status",
     CANCEL: "order:cancel",
+    DELETE: "order:delete",
   },
   INVENTORY: {
     READ: "inventory:read",
