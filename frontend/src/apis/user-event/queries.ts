@@ -14,6 +14,14 @@ export const useSaveUserEvent = () => {
 export const useMyRecommendations = (limit = 10) => {
     return useQuery({
         queryKey: [...USER_EVENT_KEYS.RECOMMENDATIONS_ME, limit],
-        queryFn: () => getMyRecommendationsRequest(limit),
+        queryFn: async () => {
+            console.log("CALL FRONTEND RECOMMEND API");
+
+            const res = await getMyRecommendationsRequest(limit);
+
+            console.log("RECOMMEND RAW RESPONSE:", res);
+
+            return res;
+        },
     });
 };

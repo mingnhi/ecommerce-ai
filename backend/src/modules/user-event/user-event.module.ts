@@ -6,6 +6,7 @@ import { MikroOrmModule } from '@mikro-orm/nestjs/mikro-orm.module';
 import { HttpModule } from '@nestjs/axios';
 import { ProductEntity } from '@entities/product.entity';
 import { ProductVariantEntity } from '@entities/product-variant.entity';
+import { ProductPriceEntity } from '@entities/product-price.entity';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ProductVariantEntity } from '@entities/product-variant.entity';
       UserEvent,
       ProductEntity,
       ProductVariantEntity,
+      ProductPriceEntity,
     ]),
     HttpModule,
   ],
