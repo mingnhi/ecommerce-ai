@@ -14,6 +14,7 @@ export const ROUTES = {
   NOTIFICATIONS: '/thong-bao',
   CHANGE_PASSWORD: '/doi-mat-khau',
   PRODUCTS: '/san-pham',
+  GOI_Y_SAN_PHAM: '/goi-y-san-pham',
 } as const;
 
 export function paymentResultRoute(orderId: string) {
