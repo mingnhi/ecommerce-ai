@@ -1,5 +1,5 @@
-import type { ComponentProps } from "react"
-import { Link } from "react-router-dom"
+import type { ComponentProps } from "react";
+import { Link } from "react-router-dom";
 import {
   BaggageClaim,
   KeyRound,
@@ -9,7 +9,9 @@ import {
   Warehouse,
   Shield,
   Users,
-} from "lucide-react"
+  Star,                    // ← Thêm icon này
+} from "lucide-react";
+
 import {
   Sidebar,
   SidebarContent,
@@ -19,14 +21,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/shared/components/ui/sidebar"
-import { NavMain, type NavMainItem, type NavSection } from "@/shared/layouts/sidebar/NavMain"
-import { NavUser } from "@/shared/layouts/sidebar/NavUser"
-import { useMe } from "@/features/auth/hooks"
-import { useProfile } from "@/features/account/hooks"
-import { PERMISSIONS } from "@/shared/lib/casl/permissions"
-import logo from "@/assets/logo.png"
-import logoSmall from "@/assets/logo-small.png"
+} from "@/shared/components/ui/sidebar";
+
+import { NavMain, type NavMainItem, type NavSection } from "@/shared/layouts/sidebar/NavMain";
+import { NavUser } from "@/shared/layouts/sidebar/NavUser";
+import { useMe } from "@/features/auth/hooks";
+import { useProfile } from "@/features/account/hooks";
+import { PERMISSIONS } from "@/shared/lib/casl/permissions";
+
+import logo from "@/assets/logo.png";
+import logoSmall from "@/assets/logo-small.png";
 
 const navManagement: NavMainItem[] = [
   {
@@ -38,7 +42,7 @@ const navManagement: NavMainItem[] = [
   },
   {
     title: "Sản phẩm",
-    url: "/products/1",
+    url: "/products",
     icon: <Package className="size-4" />,
     permission: PERMISSIONS.PRODUCT.READ,
     items: [
@@ -46,6 +50,14 @@ const navManagement: NavMainItem[] = [
       { title: "Danh sách sản phẩm", url: "/products", permission: PERMISSIONS.PRODUCT.READ },
     ],
   },
+  // ==================== THÊM PHẦN REVIEWS ====================
+  {
+    title: "Đánh giá",
+    url: "/reviews",
+    icon: <Star className="size-4" />,
+    permission: PERMISSIONS.PRODUCT.READ, // Tạm dùng quyền Product, sau có thể tạo riêng
+  },
+  // ========================================================
   {
     title: "Đơn hàng",
     url: "/orders",
@@ -84,7 +96,7 @@ const navManagement: NavMainItem[] = [
       { title: "Quản lý người dùng", url: "/users", permission: PERMISSIONS.USER.READ },
     ],
   },
-]
+];
 
 const navPersonal: NavMainItem[] = [
   {
@@ -97,22 +109,22 @@ const navPersonal: NavMainItem[] = [
     url: "/account/password",
     icon: <KeyRound className="size-4" />,
   },
-]
+];
 
 const navSections: NavSection[] = [
   { label: "Điều hướng", items: navManagement },
   { label: "Cá nhân", items: navPersonal },
-]
+];
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-  const { data: user } = useMe()
-  const { data: profile } = useProfile()
+  const { data: user } = useMe();
+  const { data: profile } = useProfile();
 
   const activeUser = {
     name: profile?.fullName || user?.fullName || "Quản trị viên",
     email: user?.email || "",
     avatar: profile?.avatarUrl || "",
-  }
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -140,13 +152,16 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain sections={navSections} />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={activeUser} />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

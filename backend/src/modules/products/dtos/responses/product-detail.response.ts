@@ -45,4 +45,17 @@ export class ProductDetailResponse {
     sortOrder: number;
     isPrimary: boolean;
   }>;
+
+  reviews: Array<{
+    id: string;
+    rating: number;
+    comment?: string;
+
+    user: {
+      id: string;
+      fullName?: string;
+    };
+
+    createdAt: Date;
+  }>;
 }

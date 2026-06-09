@@ -9,6 +9,9 @@ import ProductDetailPage from "@/features/products/pages/ProductDetailPage";
 import CreateProductPage from "@/features/products/pages/CreateProductPage";
 import EditProductPage from "@/features/products/pages/EditProductPage";
 
+// === THÊM IMPORT REVIEW ===
+import ReviewsPage from "@/features/reviews/pages/ReviewsPage";
+
 import { CartPage } from "@/features/cart/pages/CartPage";
 import OrdersPage from "@/features/order/pages/OrdersPage";
 import InventoryPage from "@/features/inventory/pages/InventoryPage";
@@ -80,11 +83,20 @@ export const privateRoutes = [
         element: <ProductDetailPage />,
       },
 
+      // ==================== REVIEW ROUTE ====================
+      {
+        path: "/reviews",
+        element: (
+          <PermissionRoute permission={PERMISSIONS.PRODUCT.READ}>
+            <ReviewsPage />
+          </PermissionRoute>
+        ),
+      },
+
       {
         path: "/cart",
         element: <CartPage />,
       },
-      { path: "/cart", element: <CartPage /> },
       {
         path: "/orders",
         element: (
@@ -110,7 +122,6 @@ export const privateRoutes = [
         ),
       },
 
-      // Catch all - Phải để cuối cùng
       {
         path: "/roles",
         element: (
@@ -147,4 +158,3 @@ export const router = createBrowserRouter([
   ...publicRoutes,
   ...privateRoutes,
 ]);
-
