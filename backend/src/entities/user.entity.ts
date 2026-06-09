@@ -2,7 +2,7 @@ import { Collection, Entity, Enum, OneToMany, Property } from '@mikro-orm/core';
 import { AuditableEntity } from './base/auditable_entity';
 import { UserRole } from './userRoles.entity';
 import { UserStatus } from '@modules/users/use.enum';
-
+import { ProductReviewEntity } from './product-review.entity';
 
 @Entity({ tableName: 'users' })
 export class User extends AuditableEntity {
@@ -31,4 +31,7 @@ export class User extends AuditableEntity {
 
   @OneToMany(() => UserRole, userRole => userRole.user)
   userRoles = new Collection<UserRole>(this);
+
+  @OneToMany(() => ProductReviewEntity, (review) => review.user)
+  reviews = new Collection<ProductReviewEntity>(this);
 }

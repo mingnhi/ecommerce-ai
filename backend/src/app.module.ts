@@ -13,7 +13,7 @@ import { MailModule } from './modules/mail/mail.module';
 import {ProductsModule} from "@modules/products/products.module";
 import {CategoryModule} from "@modules/categories/categories.module";
 import {ProductImageModule} from "@modules/productimage/productimage.module";
-import {ProductReviewModule} from "@modules/productreview/productreview.module";
+
 
 import { PaymentModule } from './modules/payment/payment.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
@@ -45,7 +45,7 @@ import { AddressModule } from '@modules/address/address.module';
     ProductsModule,
     CategoryModule,
     ProductImageModule,
-    ProductReviewModule,
+   
     PaymentModule,
     UserProfileModule,
     CloudinaryModule,

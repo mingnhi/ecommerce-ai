@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import {
@@ -23,10 +24,15 @@ import { CategoryEntity } from '@entities/category.entity';
 import { ProductPriceEntity } from '@entities/product-price.entity';
 import { ProductVariantEntity } from '@entities/product-variant.entity';
 import { ProductAttributeEntity } from '@entities/product-attribute.entity';
+import { ProductReviewEntity } from '@entities/product-review.entity';
+import { User } from '@entities/user.entity';   // ← Thêm
 
 import { CreateProductRequest } from './dtos/requests/create-product.request';
 import { UpdateProductRequest } from './dtos/requests/update-product.request';
 import { QueryProductRequest } from './dtos/requests/query-product.request';
+import { CreateReviewRequest } from './dtos/requests/create-review.request';
+import { UpdateReviewRequest } from './dtos/requests/update-review.request';   // ← Thêm
+import { QueryReviewRequest } from './dtos/requests/query-review.request';
 
 @Injectable()
 export class ProductsService {
@@ -38,7 +44,10 @@ export class ProductsService {
 
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: EntityRepository<CategoryEntity>,
-  ) { }
+
+    @InjectRepository(ProductReviewEntity)
+    private readonly reviewRepository: EntityRepository<ProductReviewEntity>,   // ← Thêm
+  ) {}
 
   /** ====================== HELPERS ====================== */
 
@@ -52,22 +61,15 @@ export class ProductsService {
     });
 
     const baseSlug = slug;
-
     let count = 1;
 
     while (true) {
-      const existing =
-        await this.productRepository.findOne({
-          slug,
-          ...(excludeId && {
-            id: {
-              $ne: excludeId,
-            },
-          }),
-        });
+      const existing = await this.productRepository.findOne({
+        slug,
+        ...(excludeId && { id: { $ne: excludeId } }),
+      });
 
       if (!existing) break;
-
       slug = `${baseSlug}-${count++}`;
     }
 
@@ -78,188 +80,268 @@ export class ProductsService {
     originalPrice: number,
     discountPercent?: number,
   ): number {
-    if (
-      !discountPercent ||
-      discountPercent <= 0
-    ) {
+    if (!discountPercent || discountPercent <= 0) {
       return originalPrice;
     }
 
-    const discount =
-      (originalPrice * discountPercent) /
-      100;
+    const discount = (originalPrice * discountPercent) / 100;
+    return Math.round(originalPrice - discount);
+  }
 
-    return Math.round(
-      originalPrice - discount,
+/** ====================== REVIEWS ====================== */
+
+// Trong ProductsService
+
+async getAllReviews(query: QueryReviewRequest) {
+  const page = Number(query.page || 1);
+  const limit = Number(query.limit || 20);
+  const skip = (page - 1) * limit;
+
+  let where: FilterQuery<ProductReviewEntity> = {};
+
+  // Search
+  if (query.search) {
+    where.$or = [
+      { comment: { $like: `%${query.search}%` } },
+      { user: { fullName: { $like: `%${query.search}%` } } },
+    ];
+  }
+
+  // Filter by product
+  if (query.productId) {
+    where.product = query.productId;
+  }
+
+  // Filter by min rating
+  if (query.minRating) {
+    where.rating = { $gte: query.minRating };
+  }
+
+  const [reviews, total] = await this.reviewRepository.findAndCount(
+    where,
+    {
+      populate: ['user', 'product'],
+      orderBy: { createdAt: QueryOrder.DESC },
+      limit,
+      offset: skip,
+    },
+  );
+
+  const formattedReviews = reviews.map((review) => ({
+    id: review.id,
+    rating: review.rating,
+    comment: review.comment,
+    userId: review.user.id,
+    userName: (review.user as any).fullName,
+    productId: review.product.id,
+    productName: review.product.name,
+    createdAt: review.createdAt,
+    updatedAt: review.updatedAt,
+  }));
+
+  return {
+    reviews: formattedReviews,
+    pagination: {
+      page,
+      limit,
+      totalItems: total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+async createReview(
+  productId: string,
+  request: CreateReviewRequest,
+  userId: string,
+) {
+  console.log('Service - createReview called with:', { productId, userId, rating: request.rating });
+
+  if (!userId) {
+    throw new BadRequestException('User not authenticated');
+  }
+
+  if (!request.rating || request.rating < 1 || request.rating > 5) {
+    throw new BadRequestException('Rating must be between 1 and 5');
+  }
+
+  const product = await this.productRepository.findOne({ id: productId });
+  if (!product) {
+    throw new NotFoundException('Product not found');
+  }
+
+  const existing = await this.reviewRepository.findOne({
+    product: productId,
+    user: userId,
+  });
+
+  if (existing) {
+    throw new BadRequestException('Bạn đã đánh giá sản phẩm này rồi');
+  }
+
+  const review = this.em.create(ProductReviewEntity, {
+    product,
+    user: this.em.getReference(User, userId),
+    rating: request.rating,
+    comment: request.comment,
+  });
+
+  await this.em.persistAndFlush(review);
+
+  return {
+    id: review.id,
+    rating: review.rating,
+    comment: review.comment,
+    userId: userId,
+    createdAt: review.createdAt,
+  };
+}
+
+  async getReviews(productId: string) {
+    const reviews = await this.reviewRepository.find(
+      { product: productId },
+      {
+        populate: ['user'],
+        orderBy: { createdAt: QueryOrder.DESC },
+      },
     );
+
+    return reviews.map((review) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      user: {
+        id: review.user.id,
+        fullName: (review.user as any).fullName,
+      },
+      createdAt: review.createdAt,
+    }));
+  }
+
+  async updateReview(
+    productId: string,
+    reviewId: string,
+    request: UpdateReviewRequest,
+  ) {
+    const review = await this.reviewRepository.findOne({
+      id: reviewId,
+      product: productId,
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (request.rating !== undefined) review.rating = request.rating;
+    if (request.comment !== undefined) review.comment = request.comment;
+
+    await this.em.flush();
+
+    return {
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      userId: review.user.id,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+    };
+  }
+
+  async deleteReview(productId: string, reviewId: string) {
+    const review = await this.reviewRepository.findOne({
+      id: reviewId,
+      product: productId,
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    await this.em.removeAndFlush(review);
+    return { message: 'Review deleted successfully' };
   }
 
   /** ====================== CREATE ====================== */
 
-  async create(
-    request: CreateProductRequest,
-  ) {
-    const category =
-      await this.categoryRepository.findOne({
-        id: request.categoryId,
-      });
+  async create(request: CreateProductRequest) {
+    const category = await this.categoryRepository.findOne({
+      id: request.categoryId,
+    });
 
     if (!category) {
-      throw new NotFoundException(
-        'Category not found',
-      );
+      throw new NotFoundException('Category not found');
     }
 
-    const slug = await this.generateSlug(
-      request.name,
-    );
+    const slug = await this.generateSlug(request.name);
 
-    const product = this.em.create(
-      ProductEntity,
-      {
-        category,
-        name: request.name,
-        slug,
-        shortDescription:
-          request.shortDescription,
-        description: request.description,
-        isActive:
-          request.isActive ?? true,
-      },
-    );
+    const product = this.em.create(ProductEntity, {
+      category,
+      name: request.name,
+      slug,
+      shortDescription: request.shortDescription,
+      description: request.description,
+      isActive: request.isActive ?? true,
+    });
 
-    this.assignPrices(
-      product,
-      request.prices || [],
-    );
+    this.assignPrices(product, request.prices || []);
+    this.assignVariants(product, request.variants || []);
+    this.assignAttributes(product, request.attributes || []);
 
-    this.assignVariants(
-      product,
-      request.variants || [],
-    );
-
-    this.assignAttributes(
-      product,
-      request.attributes || [],
-    );
-
-    await this.em.persistAndFlush(
-      product,
-    );
+    await this.em.persistAndFlush(product);
 
     return await this.findBySlug(slug);
   }
 
   /** ====================== UPDATE ====================== */
 
-  async update(
-    id: string,
-    request: UpdateProductRequest,
-  ) {
-    const product =
-      await this.productRepository.findOne(
-        { id },
-        {
-          populate: [
-            'prices',
-            'variants',
-            'attributes',
-          ],
-        },
-      );
+  async update(id: string, request: UpdateProductRequest) {
+    const product = await this.productRepository.findOne(
+      { id },
+      { populate: ['prices', 'variants', 'attributes'] },
+    );
 
     if (!product) {
-      throw new NotFoundException(
-        'Product not found',
-      );
+      throw new NotFoundException('Product not found');
     }
 
     if (request.name) {
       product.name = request.name;
-
-      product.slug =
-        await this.generateSlug(
-          request.name,
-          id,
-        );
+      product.slug = await this.generateSlug(request.name, id);
     }
 
     if (request.categoryId) {
-      const category =
-        await this.categoryRepository.findOne({
-          id: request.categoryId,
-        });
-
-      if (!category) {
-        throw new NotFoundException(
-          'Category not found',
-        );
-      }
-
+      const category = await this.categoryRepository.findOne({
+        id: request.categoryId,
+      });
+      if (!category) throw new NotFoundException('Category not found');
       product.category = category;
     }
 
-    if (
-      request.shortDescription !==
-      undefined
-    ) {
-      product.shortDescription =
-        request.shortDescription;
-    }
-
-    if (
-      request.description !== undefined
-    ) {
-      product.description =
-        request.description;
-    }
-
-    if (
-      request.isActive !== undefined
-    ) {
-      product.isActive =
-        request.isActive;
-    }
+    if (request.shortDescription !== undefined) product.shortDescription = request.shortDescription;
+    if (request.description !== undefined) product.description = request.description;
+    if (request.isActive !== undefined) product.isActive = request.isActive;
 
     if (request.prices !== undefined) {
       product.prices.removeAll();
-
-      this.assignPrices(
-        product,
-        request.prices,
-      );
+      this.assignPrices(product, request.prices);
     }
 
-    if (
-      request.variants !== undefined
-    ) {
+    if (request.variants !== undefined) {
       product.variants.removeAll();
-
-      this.assignVariants(
-        product,
-        request.variants,
-      );
+      this.assignVariants(product, request.variants);
     }
 
-    if (
-      request.attributes !== undefined
-    ) {
+    if (request.attributes !== undefined) {
       product.attributes.removeAll();
-
-      this.assignAttributes(
-        product,
-        request.attributes,
-      );
+      this.assignAttributes(product, request.attributes);
     }
 
     await this.em.flush();
 
-    return await this.findBySlug(
-      product.slug,
-    );
+    return await this.findBySlug(product.slug);
   }
 
-  /** ====================== FIND ALL ====================== */
+ /** ====================== FIND ALL ====================== */
 
   async findAll(
     query: QueryProductRequest,
@@ -590,293 +672,181 @@ export class ProductsService {
   /** ====================== FIND DETAIL ====================== */
 
   async findBySlug(slug: string) {
-    const product =
-      await this.productRepository.findOne(
-        { slug },
-        {
-          populate: [
-            'category',
-            'images',
-            'prices',
-            'variants',
-            'attributes',
-          ],
-        },
-      );
+    const product = await this.productRepository.findOne(
+      { slug },
+      {
+        populate: [
+          'category',
+          'images',
+          'prices',
+          'variants',
+          'attributes',
+          'reviews.user',        // ← Thêm
+        ],
+      },
+    );
 
     if (!product) {
-      throw new NotFoundException(
-        'Product not found',
-      );
+      throw new NotFoundException('Product not found');
     }
 
-    return this.toProductDetailResponse(
-      product,
-    );
+    return this.toProductDetailResponse(product);
   }
 
-  private toProductDetailResponse(
-    product: ProductEntity,
-  ) {
+  private toProductDetailResponse(product: ProductEntity) {
     return {
       id: product.id,
       name: product.name,
       slug: product.slug,
-
-      shortDescription:
-        product.shortDescription,
-
-      description:
-        product.description,
-
-      thumbnail:
-        product.thumbnail,
-
-      isActive:
-        product.isActive,
-
-      createdAt:
-        product.createdAt,
-
-      updatedAt:
-        product.updatedAt,
+      shortDescription: product.shortDescription,
+      description: product.description,
+      thumbnail: product.thumbnail,
+      isActive: product.isActive,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
 
       category: {
         id: product.category.id,
-        name:
-          product.category.name,
-        slug:
-          product.category.slug,
+        name: product.category.name,
+        slug: product.category.slug,
       },
 
-      prices: product.prices
-        .toArray()
-        .map((p) => ({
-          originalPrice:
-            p.originalPrice,
-          discountPercent:
-            p.discountPercent,
-          price: p.price,
-          currency:
-            p.currency,
-          isActive:
-            p.isActive,
-        })),
+      prices: product.prices.toArray().map((p) => ({
+        originalPrice: p.originalPrice,
+        discountPercent: p.discountPercent,
+        price: p.price,
+        currency: p.currency,
+        isActive: p.isActive,
+      })),
 
-      variants: product.variants
-        .toArray()
-        .map((v: any) => ({
-          id: v.id,
-          title: v.title,
-          sku: v.sku,
-          stock: v.stock,
-          price: v.price,
-          image: v.image,
-          isActive:
-            v.isActive,
-          attributes:
-            v.attributes || {},
-        })),
+      variants: product.variants.toArray().map((v: any) => ({
+        id: v.id,
+        title: v.title,
+        sku: v.sku,
+        stock: v.stock,
+        price: v.price,
+        image: v.image,
+        isActive: v.isActive,
+        attributes: v.attributes || {},
+      })),
 
-      attributes:
-        product.attributes
-          .toArray()
-          .map((a) => ({
-            id: a.id,
-            name: a.name,
-            value: a.value,
-          })),
+      attributes: product.attributes.toArray().map((a) => ({
+        id: a.id,
+        name: a.name,
+        value: a.value,
+      })),
 
-      images: product.images
-        .toArray()
-        .map((i) => ({
-          id: i.id,
-          imageUrl:
-            i.imageUrl,
-          type: i.type,
-          sortOrder:
-            i.sortOrder,
-          isPrimary:
-            i.isPrimary,
-        })),
+      images: product.images.toArray().map((i) => ({
+        id: i.id,
+        imageUrl: i.imageUrl,
+        type: i.type,
+        sortOrder: i.sortOrder,
+        isPrimary: i.isPrimary,
+      })),
+
+      // === REVIEWS ===
+      reviews: product.reviews?.isInitialized()
+        ? product.reviews.getItems().map((r: any) => ({
+            id: r.id,
+            rating: r.rating,
+            comment: r.comment,
+            user: {
+              id: r.user.id,
+              fullName: r.user.fullName,
+            },
+            createdAt: r.createdAt,
+          }))
+        : [],
     };
   }
 
   /** ====================== DELETE ====================== */
 
   async remove(id: string) {
-    const product =
-      await this.productRepository.findOne(
-        { id },
-        {
-          populate: [
-            'prices',
-            'variants',
-            'attributes',
-            'images',
-            'reviews',
-          ],
-        },
-      );
+    const product = await this.productRepository.findOne(
+      { id },
+      {
+        populate: ['prices', 'variants', 'attributes', 'images', 'reviews'],
+      },
+    );
 
     if (!product) {
-      throw new NotFoundException(
-        'Product not found',
-      );
+      throw new NotFoundException('Product not found');
     }
 
+    // Xóa ảnh trên Cloudinary
     for (const image of product.images.getItems()) {
       if (image.publicId) {
         try {
-          await cloudinary.uploader.destroy(
-            image.publicId,
-          );
+          await cloudinary.uploader.destroy(image.publicId);
         } catch (error) {
-          console.warn(
-            `Cloudinary delete failed for ${image.publicId}:`,
-            error,
-          );
+          console.warn(`Cloudinary delete failed for ${image.publicId}:`, error);
         }
       }
     }
 
-    if (
-      product.prices.isInitialized() &&
-      product.prices.count() > 0
-    ) {
-      await this.em.remove(
-        product.prices.getItems(),
-      );
+    if (product.prices.isInitialized() && product.prices.count() > 0) {
+      await this.em.remove(product.prices.getItems());
     }
-
-    if (
-      product.variants.isInitialized() &&
-      product.variants.count() > 0
-    ) {
-      await this.em.remove(
-        product.variants.getItems(),
-      );
+    if (product.variants.isInitialized() && product.variants.count() > 0) {
+      await this.em.remove(product.variants.getItems());
     }
-
-    if (
-      product.attributes.isInitialized() &&
-      product.attributes.count() > 0
-    ) {
-      await this.em.remove(
-        product.attributes.getItems(),
-      );
+    if (product.attributes.isInitialized() && product.attributes.count() > 0) {
+      await this.em.remove(product.attributes.getItems());
     }
-
-    if (
-      product.images.isInitialized() &&
-      product.images.count() > 0
-    ) {
-      await this.em.remove(
-        product.images.getItems(),
-      );
+    if (product.images.isInitialized() && product.images.count() > 0) {
+      await this.em.remove(product.images.getItems());
     }
-
-    if (
-      product.reviews.isInitialized() &&
-      product.reviews.count() > 0
-    ) {
-      await this.em.remove(
-        product.reviews.getItems(),
-      );
+    if (product.reviews.isInitialized() && product.reviews.count() > 0) {
+      await this.em.remove(product.reviews.getItems());
     }
 
     await this.em.flush();
+    await this.em.removeAndFlush(product);
 
-    await this.em.removeAndFlush(
-      product,
-    );
-
-    return {
-      message:
-        'Product deleted successfully',
-    };
+    return { message: 'Product deleted successfully' };
   }
 
   /** ====================== PRIVATE RELATIONS ====================== */
 
-  private assignPrices(
-    product: ProductEntity,
-    prices: any[],
-  ) {
+  private assignPrices(product: ProductEntity, prices: any[]) {
     for (const p of prices) {
-      const priceEntity =
-        this.em.create(
-          ProductPriceEntity,
-          {
-            product,
-            originalPrice:
-              p.originalPrice,
-            discountPercent:
-              p.discountPercent,
-            price:
-              this.calculatePrice(
-                p.originalPrice,
-                p.discountPercent,
-              ),
-            currency:
-              p.currency || 'VND',
-            isActive:
-              p.isActive ?? true,
-          },
-        );
-
-      product.prices.add(
-        priceEntity,
-      );
+      const priceEntity = this.em.create(ProductPriceEntity, {
+        product,
+        originalPrice: p.originalPrice,
+        discountPercent: p.discountPercent,
+        price: this.calculatePrice(p.originalPrice, p.discountPercent),
+        currency: p.currency || 'VND',
+        isActive: p.isActive ?? true,
+      });
+      product.prices.add(priceEntity);
     }
   }
 
-  private assignVariants(
-    product: ProductEntity,
-    variants: any[],
-  ) {
+  private assignVariants(product: ProductEntity, variants: any[]) {
     for (const v of variants) {
-      const variantEntity =
-        this.em.create(
-          ProductVariantEntity,
-          {
-            product,
-            title: v.title,
-            sku: v.sku,
-            stock: v.stock ?? 0,
-            price: v.price,
-            image: v.image,
-            isActive:
-              v.isActive ?? true,
-            attributes:
-              v.attributes || {},
-          },
-        );
-
-      product.variants.add(
-        variantEntity,
-      );
+      const variantEntity = this.em.create(ProductVariantEntity, {
+        product,
+        title: v.title,
+        sku: v.sku,
+        stock: v.stock ?? 0,
+        price: v.price,
+        image: v.image,
+        isActive: v.isActive ?? true,
+        attributes: v.attributes || {},
+      });
+      product.variants.add(variantEntity);
     }
   }
 
-  private assignAttributes(
-    product: ProductEntity,
-    attributes: any[],
-  ) {
+  private assignAttributes(product: ProductEntity, attributes: any[]) {
     for (const a of attributes) {
-      const attrEntity =
-        this.em.create(
-          ProductAttributeEntity,
-          {
-            product,
-            name: a.name,
-            value: a.value,
-          },
-        );
-
-      product.attributes.add(
-        attrEntity,
-      );
+      const attrEntity = this.em.create(ProductAttributeEntity, {
+        product,
+        name: a.name,
+        value: a.value,
+      });
+      product.attributes.add(attrEntity);
     }
   }
 }

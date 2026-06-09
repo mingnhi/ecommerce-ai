@@ -6,6 +6,7 @@ import { CategoryEntity } from '@entities/category.entity';
 import { ProductPriceEntity } from '@entities/product-price.entity';
 import { ProductVariantEntity } from '@entities/product-variant.entity';
 import { ProductAttributeEntity } from '@entities/product-attribute.entity';
+import { ProductReviewEntity } from '@entities/product-review.entity'; 
 
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
@@ -18,6 +19,7 @@ import { ProductsService } from './products.service';
       ProductPriceEntity,
       ProductVariantEntity,
       ProductAttributeEntity,
+      ProductReviewEntity, 
     ]),
   ],
   controllers: [ProductsController],
