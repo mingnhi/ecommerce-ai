@@ -638,7 +638,7 @@ async createReview(
     return map;
   }
 
-  private formatProductList(products: ProductEntity[]) {
+  formatProductList(products: ProductEntity[]) {
     return products.map((product) => {
       const activePrice =
         product.prices?.find((p) => p.isActive) || product.prices?.[0];

@@ -11,12 +11,14 @@ import { RecommendRequestDto } from './dto/recommendRequest.dto';
 import { UserEvent } from '@entities/user-event.entity';
 import { ProductEntity } from '@entities/product.entity';
 import { ProductPriceEntity } from '@entities/product-price.entity';
+import { ProductsService } from '@modules/products/products.service';
 
 @Injectable()
 export class UserEventService {
   constructor(
     private readonly em: EntityManager,
     private readonly httpService: HttpService,
+    private readonly productsService: ProductsService,
 
     @InjectRepository(ProductEntity)
     private readonly productRepo: EntityRepository<ProductEntity>,
@@ -104,13 +106,6 @@ export class UserEventService {
 
       const price = this.getValidPriceForProduct(product.id, prices);
 
-      console.log({
-        productId: product.id,
-        name: product.name,
-        categoryId,
-        price,
-      });
-
       return {
         id: product.id,
         category_id: categoryId,
@@ -168,31 +163,40 @@ export class UserEventService {
 
     const fastApiData = response.data.data;
     const recommendItems = fastApiData.recommendations ?? [];
-
-    const scoreMap = new Map(
-      recommendItems.map((item: any) => [item.product_id, item.score]),
-    );
-
     const recommendIds = recommendItems.map((item: any) => item.product_id);
 
-    const fullProducts = recommendIds
-      .map((id: string) => {
-        const product = products.find((item) => String(item.id) === String(id));
+    const productEntities = await this.productRepo.find(
+      { id: { $in: recommendIds } },
+      { populate: ['category', 'prices', 'images'] },
+    );
 
-        if (!product) return null;
+    const productMap = new Map(
+      productEntities.map((product) => [String(product.id), product]),
+    );
 
-        return {
-          ...product,
-          recommendScore: scoreMap.get(id),
-        };
-      })
-      .filter(Boolean);
+    const orderedProducts = recommendIds
+      .map((id: string) => productMap.get(String(id)))
+      .filter((product): product is ProductEntity => !!product);
+
+    const allRecommendations =
+      this.productsService.formatProductList(orderedProducts);
+
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 20;
+    const offset = (page - 1) * limit;
+    const totalItems = allRecommendations.length;
 
     return {
       user_id: fastApiData.user_id,
       cold_start: fastApiData.cold_start,
       total_products: fastApiData.total_products,
-      recommendations: fullProducts,
+      recommendations: allRecommendations.slice(offset, offset + limit),
+      meta: {
+        page,
+        limit,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit) || 1,
+      },
     };
   }
 }

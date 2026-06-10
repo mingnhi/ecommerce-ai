@@ -1,26 +1,48 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Package, UserRound } from "lucide-react";
-import { useMyRecommendations } from "@/apis/user-event";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { useInfiniteMyRecommendations } from "@/apis/user-event";
 import { ProductCard } from "@/modules/HomePage/components/ProductCard";
 import { EmptyState } from "./components/EmptyState";
 import { GoiYSanPhamSkeleton } from "./components/Skeleton";
-import { mapRecommendedToProduct } from "./lib";
 
-const FETCH_LIMIT = 100;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export default function GoiYSanPhamPage() {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { data, isLoading } = useMyRecommendations(FETCH_LIMIT);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteMyRecommendations(PAGE_SIZE);
+
   const products = useMemo(
-    () => (data?.recommendations ?? []).map(mapRecommendedToProduct),
-    [data?.recommendations],
+    () => data?.pages.flatMap((page) => page.recommendations) ?? [],
+    [data],
   );
-  const total = products.length;
-  const { visibleItems, hasMore } = useInfiniteScroll(products, PAGE_SIZE, sentinelRef);
+
+  const firstPage = data?.pages[0];
+  const total = firstPage?.meta.totalItems ?? 0;
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "240px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <div className=" bg-slate-50/60">
@@ -53,15 +75,7 @@ export default function GoiYSanPhamPage() {
                 ) : null}
               </div>
 
-              {data?.cold_start ? (
-                <div className="mt-6 flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3.5 text-sm leading-relaxed text-slate-600">
-                  <UserRound className="mt-0.5 size-4 shrink-0 text-sky-500" />
-                  <p>
-                    Bạn mới bắt đầu — gợi ý hiện tại dựa trên sản phẩm phổ biến. Tiếp tục mua sắm
-                    để nhận gợi ý chính xác hơn.
-                  </p>
-                </div>
-              ) : null}
+              
             </header>
 
             {total === 0 ? (
@@ -72,16 +86,15 @@ export default function GoiYSanPhamPage() {
                   <h2 className="text-xs font-medium uppercase  text-sky-700">
                     Bộ sưu tập gợi ý
                   </h2>
-                 
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {visibleItems.map((product) => (
+                  {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
 
-                {hasMore ? (
+                {hasNextPage ? (
                   <div ref={sentinelRef} className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <div

@@ -1,3 +1,5 @@
+import type { Product, ProductPaginationMeta } from '@/apis/product/types';
+
 export type UserEventType =
     | 'VIEW'
     | 'CLICK'
@@ -12,18 +14,15 @@ export interface SaveUserEventPayload {
     eventType: UserEventType;
 }
 
-export interface RecommendedProduct {
-    id: string;
-    category_id: string;
-    price: number;
-    name: string;
-    image: string;
-    recommendScore: number;
+export interface GetRecommendationsParams {
+    page?: number;
+    limit?: number;
 }
 
 export interface RecommendationData {
     user_id: string;
     cold_start: boolean;
     total_products: number;
-    recommendations: RecommendedProduct[];
+    recommendations: Product[];
+    meta: ProductPaginationMeta;
 }
