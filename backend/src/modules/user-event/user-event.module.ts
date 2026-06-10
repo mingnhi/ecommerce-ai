@@ -7,6 +7,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ProductEntity } from '@entities/product.entity';
 import { ProductVariantEntity } from '@entities/product-variant.entity';
 import { ProductPriceEntity } from '@entities/product-price.entity';
+import { ProductsModule } from '@modules/products/products.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ProductPriceEntity } from '@entities/product-price.entity';
       ProductPriceEntity,
     ]),
     HttpModule,
+    ProductsModule,
   ],
   controllers: [UserEventController],
   providers: [UserEventService],

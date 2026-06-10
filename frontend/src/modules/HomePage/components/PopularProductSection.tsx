@@ -60,7 +60,7 @@ export function PopularProductSection() {
         <div className="flex gap-3 overflow-x-auto pb-1 text-sm sm:pb-0">
          <Link
         href={ROUTES.PRODUCTS}
-        className="inline-flex shrink-0 items-center gap-1 rounded-lg  px-4  text-sm font-medium text-sky-600 transition-colors hover:border-sky-200 hover:bg-sky-50"
+        className="inline-flex shrink-0 items-center gap-1 rounded-lg  px-4  text-sm font-medium text-sky-600 transition-colors"
       >
         Xem tất cả
         <ChevronRight className="size-4" />

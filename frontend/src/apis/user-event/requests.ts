@@ -1,5 +1,6 @@
 import { request } from '../axios';
 import {
+    GetRecommendationsParams,
     RecommendationData,
     SaveUserEventPayload,
 } from './types';
@@ -11,10 +12,13 @@ export const saveUserEventRequest = async (
 };
 
 export const getMyRecommendationsRequest = async (
-    limit = 10,
+    params: GetRecommendationsParams = {},
 ): Promise<RecommendationData> => {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+
     const response = await request.get(
-        `/user-events/recommendations/me?limit=${limit}`,
+        `/user-events/recommendations/me?page=${page}&limit=${limit}`,
     );
 
     return response.data;

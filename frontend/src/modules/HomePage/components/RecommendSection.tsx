@@ -7,7 +7,6 @@ import { useMyRecommendations } from "@/apis/user-event";
 import { ROUTES } from "@/lib/routes";
 import { ProductCard } from "@/modules/HomePage/components/ProductCard";
 import { GoiYSanPhamSkeleton } from "@/modules/GoiYSanPhamPage/components/Skeleton";
-import { mapRecommendedToProduct } from "@/modules/GoiYSanPhamPage/lib";
 
 type Props = {
   limit?: number;
@@ -16,7 +15,7 @@ type Props = {
 export default function RecommendSection({ limit = 10 }: Props) {
   const { data, isLoading } = useMyRecommendations(limit);
   const products = useMemo(
-    () => (data?.recommendations ?? []).map(mapRecommendedToProduct),
+    () => data?.recommendations ?? [],
     [data?.recommendations],
   );
 
@@ -54,7 +53,7 @@ function SectionHeader() {
       </div>
       <Link
         href={ROUTES.GOI_Y_SAN_PHAM}
-        className="inline-flex shrink-0 items-center gap-1 rounded-lg  px-4  text-sm font-medium text-sky-600 transition-colors hover:border-sky-200 hover:bg-sky-50"
+        className="inline-flex shrink-0 items-center gap-1 rounded-lg  px-4  text-sm font-medium text-sky-600 transition-colors"
       >
         Xem tất cả
         <ChevronRight className="size-4" />
