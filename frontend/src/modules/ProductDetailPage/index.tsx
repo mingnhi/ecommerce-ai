@@ -80,9 +80,7 @@ export default function ProductDetailPage({ slug }: Props) {
   const { data: response, isLoading } = useProductBySlug(slug);
   const product = getEnvelopeData<Product>(response);
 
-  // Dùng product.id
   const { data: reviewsResponse, refetch: refetchReviews } = useProductReviews(product?.id || "");
-  
   const { mutate: createReviewMutate } = useCreateReview();
   const { addToCart } = useCartContext();
 
@@ -126,7 +124,7 @@ export default function ProductDetailPage({ slug }: Props) {
     setQuantity((value) => Math.min(Math.max(1, value), maxQuantity || 1));
   }, [maxQuantity, selectedVariantId]);
 
-  // Handle Add to Cart (giữ nguyên code cũ của bạn)
+  // Handle Add to Cart
   const handleAddToCart = async () => {
     if (!selectedVariantId) {
       toast.error("Vui lòng chọn biến thể sản phẩm");
@@ -171,7 +169,6 @@ export default function ProductDetailPage({ slug }: Props) {
           setComment("");
           setRating(5);
 
-          // FORCE REFRESH MẠNH NHẤT
           await refetchReviews();
           await queryClient.invalidateQueries({ 
             queryKey: ['product-reviews', product.id],
@@ -199,8 +196,174 @@ export default function ProductDetailPage({ slug }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      {/* ==================== PRODUCT DETAIL (giữ nguyên phần cũ) ==================== */}
-      {/* Bạn copy phần này từ file cũ của bạn vào đây */}
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
+        {/* Left: Images */}
+        <div>
+          <div className="relative aspect-square overflow-hidden rounded-3xl border bg-slate-50">
+            <ProductPhoto
+              src={selectedImageSrc}
+              alt={product.name}
+              fill
+              className="object-contain p-8"
+            />
+          </div>
+
+          {displayImages.length > 1 && (
+            <div className="mt-6 flex flex-wrap gap-4">
+              {displayImages.map((img, idx) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  onClick={() => setSelectedImage(idx)}
+                  className={cn(
+                    "relative h-20 w-20 overflow-hidden rounded-2xl border-2 transition-all",
+                    selectedImage === idx
+                      ? "scale-105 border-sky-600"
+                      : "border-slate-200 hover:border-slate-300",
+                  )}
+                >
+                  <ProductPhoto
+                    src={img.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Product Info */}
+        <div className="space-y-7">
+          <p className="text-lg font-medium text-sky-600">
+            {product.category?.name || "Sản phẩm"}
+          </p>
+          <h1 className="text-3xl font-bold leading-tight">{product.name}</h1>
+
+          <div className="space-y-2">
+            {hasDiscount && (
+              <div className="flex items-center gap-3">
+                <span className="text-2xl text-slate-400 line-through">
+                  {formatVnd(originalPrice)}
+                </span>
+                <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                  -{discountPercent}%
+                </span>
+              </div>
+            )}
+            <div className="text-4xl font-bold text-sky-700">
+              {formatVnd(currentPrice)}
+            </div>
+          </div>
+
+          {/* Variants */}
+          {selectableVariants.length > 0 && (
+            <div>
+              <h3 className="mb-3 font-semibold">Biến thể</h3>
+              <div className="flex flex-wrap gap-3">
+                {selectableVariants.map((variant) => {
+                  const isSelected = variant.id === selectedVariantId;
+                  const outOfStock = variant.stock < 1;
+                  return (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      disabled={outOfStock}
+                      onClick={() => setSelectedVariantId(variant.id)}
+                      className={cn(
+                        "rounded-xl border px-4 py-2 text-left text-sm transition-colors",
+                        isSelected
+                          ? "border-sky-600 bg-sky-50 text-sky-700"
+                          : "border-slate-200 hover:border-sky-300",
+                        outOfStock && "cursor-not-allowed opacity-50",
+                      )}
+                    >
+                      <div className="font-medium">{variant.title}</div>
+                      {variant.sku && (
+                        <div className="text-xs text-slate-500">
+                          SKU: {variant.sku}
+                        </div>
+                      )}
+                      <div className="text-xs text-slate-500">
+                        {outOfStock ? "Hết hàng" : `Còn ${variant.stock}`}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Quantity */}
+          <div className="flex items-center gap-4">
+            <span className="font-medium text-slate-700">Số lượng:</span>
+            <div className="flex items-center rounded-2xl border border-slate-300">
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                disabled={!canAddToCart || quantity <= 1}
+                className="rounded-l-2xl px-5 py-3 text-xl hover:bg-slate-100 disabled:opacity-40"
+              >
+                −
+              </button>
+              <span className="min-w-[50px] px-8 py-3 text-center text-lg font-semibold">
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
+                disabled={!canAddToCart || quantity >= maxQuantity}
+                className="rounded-r-2xl px-5 py-3 text-xl hover:bg-slate-100 disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Add to Cart Button */}
+          <Button
+            size="lg"
+            onClick={handleAddToCart}
+            disabled={!canAddToCart || isAdding}
+            className="w-full cursor-pointer rounded-2xl bg-sky-500 py-7 text-lg hover:bg-sky-600 disabled:cursor-not-allowed"
+          >
+            {isAdding
+              ? "Đang thêm..."
+              : canAddToCart
+                ? "Thêm vào giỏ hàng"
+                : "Hết hàng"}
+          </Button>
+
+          {/* Description */}
+          {(product.description || product.shortDescription) && (
+            <div>
+              <h3 className="mb-3 text-lg font-semibold">Mô tả</h3>
+              <p className="whitespace-pre-line leading-relaxed text-slate-600">
+                {product.description || product.shortDescription}
+              </p>
+            </div>
+          )}
+
+          {/* Attributes */}
+          {product.attributes?.length > 0 && (
+            <div>
+              <h3 className="mb-3 text-lg font-semibold">Thông số kỹ thuật</h3>
+              <div className="grid grid-cols-1 gap-y-3 rounded-2xl bg-slate-50 p-5 text-sm sm:grid-cols-2">
+                {product.attributes.map((attr, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start justify-between gap-4"
+                  >
+                    <span className="text-slate-500">{attr.name}</span>
+                    <span className="text-right font-medium">{attr.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ==================== REVIEWS SECTION ==================== */}
       <div className="mt-20 border-t pt-12">
@@ -213,9 +376,10 @@ export default function ProductDetailPage({ slug }: Props) {
           </div>
         </div>
 
-        {/* Form Review */}
+        {/* Review Form */}
         <div className="bg-slate-50 rounded-3xl p-8 mb-12">
           <h3 className="font-semibold text-xl mb-5">Viết đánh giá của bạn</h3>
+          
           <div className="flex gap-2 mb-6">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -246,7 +410,7 @@ export default function ProductDetailPage({ slug }: Props) {
           </Button>
         </div>
 
-        {/* Danh sách review */}
+        {/* Reviews List */}
         <div className="space-y-10">
           {reviews.length > 0 ? (
             reviews.map((review: any) => (
