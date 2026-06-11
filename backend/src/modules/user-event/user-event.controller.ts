@@ -24,12 +24,15 @@ export class UserEventController {
   @Get('recommendations/me')
   async getMyRecommendations(
     @Req() req: any,
+    @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     const userId = req.user.sub;
 
     const dto: RecommendRequestDto = {
-      top_k: Number(limit) || 10,
+      top_k: 100,
+      page: Math.max(1, Number(page) || 1),
+      limit: Math.min(100, Math.max(1, Number(limit) || 20)),
     };
 
     return this.userEventService.recommend(userId, dto);

@@ -95,3 +95,42 @@ export interface ProductPriceRange {
 }
 
 export type ProductPriceRangeResponse = ApiEnvelope<ProductPriceRange>;
+
+// ==================== REVIEW ====================
+
+export interface ReviewUser {
+  id: string;
+  fullName?: string;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment?: string;
+  user: ReviewUser;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateReviewRequest {
+  rating: number;
+  comment?: string;
+}
+
+export interface UpdateReviewRequest {
+  rating?: number;
+  comment?: string;
+}
+
+export interface ReviewResponse {
+  id: string;
+  rating: number;
+  comment?: string;
+  userId: string;
+  userName?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Response khi lấy danh sách review
+export type ProductReviewsResponse = ApiEnvelope<Review[]>;

@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 
 import type { Product } from "@/apis/product/types";
+import Link from "next/link";
+import { ROUTES } from "@/lib/routes";
+import { ChevronRight } from "lucide-react";
 
 type Category = {
   id: string;
@@ -55,39 +58,13 @@ export function PopularProductSection() {
         </h2>
 
         <div className="flex gap-3 overflow-x-auto pb-1 text-sm sm:pb-0">
-          <button
-            onClick={() =>
-              setActiveCategory("")
-            }
-            className={cn(
-              "shrink-0 whitespace-nowrap text-[13px] transition-colors hover:text-sky-600 sm:text-sm cursor-pointer",
-              activeCategory === ""
-                ? "font-semibold text-sky-600"
-                : "text-slate-500"
-            )}
-          >
-            Tất cả
-          </button>
-
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() =>
-                setActiveCategory(
-                  category.id
-                )
-              }
-              className={cn(
-                "shrink-0 whitespace-nowrap text-[13px] transition-colors hover:text-sky-600 sm:text-sm cursor-pointer",
-                activeCategory ===
-                  category.id
-                  ? "font-semibold text-sky-600"
-                  : "text-slate-500"
-              )}
-            >
-              {category.name}
-            </button>
-          ))}
+         <Link
+        href={ROUTES.PRODUCTS}
+        className="inline-flex shrink-0 items-center gap-1 rounded-lg  px-4  text-sm font-medium text-sky-600 transition-colors"
+      >
+        Xem tất cả
+        <ChevronRight className="size-4" />
+      </Link>
         </div>
       </div>
 
